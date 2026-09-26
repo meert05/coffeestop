@@ -8,33 +8,51 @@
   <!-- Leaflet: een gratis bibliotheek voor kaarten -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <!-- Onze eigen opmaak -->
-   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;600&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <header>
+    <!-- Taalkeuze -->
+    <div id="talen">
+      <button data-taal="nl">NL</button>
+      <button data-taal="fr">FR</button>
+      <button data-taal="en">EN</button>
+    </div>
+
     <h1>Koffie<span>stop</span></h1>
-    <p>Koffiebars en wielercafés in Vlaanderen en Brussel</p>
+    <p data-t="ondertitel">Koffiebars en wielercafés in Vlaanderen en Brussel</p>
+
+    <!-- Kleurkiezer: klik een bolletje of kies je eigen kleur -->
+    <div id="kleuren">
+      <span data-t="kleur">Kleur:</span>
+      <button class="bolletje" data-kleur="#0E7C7B" style="background:#0E7C7B" aria-label="Groenblauw"></button>
+      <button class="bolletje" data-kleur="#E4572E" style="background:#E4572E" aria-label="Oranje"></button>
+      <button class="bolletje" data-kleur="#2F5DDB" style="background:#2F5DDB" aria-label="Blauw"></button>
+      <button class="bolletje" data-kleur="#C2185B" style="background:#C2185B" aria-label="Roze"></button>
+      <button class="bolletje" data-kleur="#7A4A2E" style="background:#7A4A2E" aria-label="Koffiebruin"></button>
+      <input type="color" id="eigenKleur" value="#0E7C7B" aria-label="Eigen kleur">
+    </div>
   </header>
 
   <!-- Knoppen om per stad te filteren -->
   <nav id="steden">
-    <button data-stad="alles" class="actief">Alles</button>
-    <button data-stad="antwerpen">Antwerpen</button>
-    <button data-stad="gent">Gent</button>
-    <button data-stad="brussel">Brussel</button>
-    <button data-stad="hellingen">Vlaanderen</button>
+    <button data-stad="alles" class="actief" data-t="alles">Alles</button>
+    <button data-stad="antwerpen" data-t="antwerpen">Antwerpen</button>
+    <button data-stad="gent" data-t="gent">Gent</button>
+    <button data-stad="brussel" data-t="brussel">Brussel</button>
+    <button data-stad="hellingen" data-t="vlaanderen">Vlaanderen</button>
   </nav>
 
   <!-- Zoeken en filteren op type -->
   <div id="filters">
-    <input id="zoek" type="search" placeholder="Zoek een stop…">
+    <input id="zoek" type="search" placeholder="Zoek een stop…" data-t-placeholder="zoek">
     <select id="type">
-      <option value="alles">Alle types</option>
-      <option value="coffee">Specialty koffie</option>
-      <option value="wieler">Wielercafé</option>
-      <option value="favoriet">★ Mijn favorieten</option>
+      <option value="alles" data-t="alleTypes">Alle types</option>
+      <option value="coffee" data-t="koffie">Specialty koffie</option>
+      <option value="wieler" data-t="wieler">Wielercafé</option>
+      <option value="favoriet" data-t="favorieten">★ Mijn favorieten</option>
     </select>
   </div>
 
@@ -44,12 +62,12 @@
     <section>
       <!-- Formulier om zelf een stop toe te voegen -->
       <form id="formulier">
-        <strong>Nieuwe stop</strong>
-        <input id="nieuwNaam" placeholder="Naam" required>
-        <input id="nieuwInfo" placeholder="Korte beschrijving">
-        <label><input id="nieuwWieler" type="checkbox"> Wielervriendelijk</label>
-        <p id="plekTekst">Klik op de kaart om de plek te kiezen.</p>
-        <button type="submit">Toevoegen</button>
+        <strong data-t="nieuweStop">Nieuwe stop</strong>
+        <input id="nieuwNaam" placeholder="Naam" data-t-placeholder="naam" required>
+        <input id="nieuwInfo" placeholder="Korte beschrijving" data-t-placeholder="beschrijving">
+        <label><input id="nieuwWieler" type="checkbox"> <span data-t="wielervriendelijk">Wielervriendelijk</span></label>
+        <p id="plekTekst" data-t="kiesPlek">Klik op de kaart om de plek te kiezen.</p>
+        <button type="submit" data-t="toevoegen">Toevoegen</button>
       </form>
 
       <p id="teller"></p>
@@ -60,5 +78,6 @@
   <!-- Eerst Leaflet laden, dan onze eigen code -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="app.js"></script>
+  <script src="vertalingen.js"></script>
 </body>
 </html>

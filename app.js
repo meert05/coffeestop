@@ -80,7 +80,7 @@ function tekenKaart(stops) {
 }
 
 function tekenLijst(stops) {
-  document.getElementById("teller").textContent = stops.length + " stops";
+  document.getElementById("teller").textContent = stops.length + " " + t("stops");
 
   const lijst = document.getElementById("lijst");
   lijst.innerHTML = "";
@@ -94,19 +94,20 @@ function tekenLijst(stops) {
                   encodeURIComponent(stop.naam + " " + stop.adres);
 
     li.innerHTML = `
+      ${stop.foto ? `<img class="foto" src="${stop.foto}" alt="Foto van ${stop.naam}">` : ""}
       <button class="ster">${isFavoriet ? "★" : "☆"}</button>
       <h3></h3>
       <small></small>
       <p></p>
       <div class="acties">
-        <a href="${route}" target="_blank">Route ↗</a>
-        ${stop.eigen ? '<button class="wis">Verwijder</button>' : ""}
+        <a href="${route}" target="_blank">${t("route")}</a>
+        ${stop.eigen ? `<button class="wis">${t("verwijder")}</button>` : ""}
       </div>`;
 
     // Tekst zetten we apart met textContent: dat is veiliger dan innerHTML
     li.querySelector("h3").textContent = stop.naam;
     li.querySelector("small").textContent = stop.adres;
-    li.querySelector("p").textContent = stop.info;
+    li.querySelector("p").textContent = stop["info_" + taal] || stop.info;
 
     // Klikken op de ster: favoriet aan/uit
     li.querySelector(".ster").onclick = (event) => {
@@ -164,7 +165,7 @@ document.getElementById("type").onchange = teken;
 // Klikken op de kaart: plek kiezen voor een nieuwe stop
 kaart.on("click", (event) => {
   nieuwePlek = [event.latlng.lat, event.latlng.lng];
-  document.getElementById("plekTekst").textContent = "Plek gekozen ✓";
+  document.getElementById("plekTekst").textContent = t("plekGekozen");
   teken();
 });
 
@@ -173,7 +174,7 @@ document.getElementById("formulier").onsubmit = (event) => {
   event.preventDefault();   // anders herlaadt de pagina
 
   if (!nieuwePlek) {
-    document.getElementById("plekTekst").textContent = "Klik eerst op de kaart!";
+    document.getElementById("plekTekst").textContent = t("eerstKlikken");
     return;
   }
 
@@ -196,7 +197,7 @@ document.getElementById("formulier").onsubmit = (event) => {
   // Formulier leegmaken
   event.target.reset();
   nieuwePlek = null;
-  document.getElementById("plekTekst").textContent = "Klik op de kaart om de plek te kiezen.";
+  document.getElementById("plekTekst").textContent = t("kiesPlek");
   kies(nieuweStop.id);
 };
 
@@ -208,6 +209,23 @@ function zoomNaarStops() {
   kaart.fitBounds(grenzen, { padding: [30, 30] });
 }
 
+// ---------- 8. Kleur van de app ----------
+function zetKleur(kleur) {
+  // Verander de variabele --accent uit style.css: alles wat die kleur gebruikt, verandert mee
+  document.documentElement.style.setProperty("--accent", kleur);
+  document.getElementById("eigenKleur").value = kleur;
+  document.querySelectorAll(".bolletje").forEach(b =>
+    b.classList.toggle("actief", b.dataset.kleur === kleur));
+  localStorage.setItem("kleur", kleur);   // onthouden voor de volgende keer
+}
+
+document.querySelectorAll(".bolletje").forEach(b => {
+  b.onclick = () => zetKleur(b.dataset.kleur);
+});
+document.getElementById("eigenKleur").oninput = (event) => zetKleur(event.target.value);
+
+zetKleur(localStorage.getItem("kleur") || "#0E7C7B");
+
 // ---------- 7. Starten: data inladen ----------
 fetch("stops.json")
   .then(antwoord => antwoord.json())
@@ -218,5 +236,5 @@ fetch("stops.json")
   })
   .catch(() => {
     document.getElementById("teller").textContent =
-      "Kon stops.json niet laden. Start je de app via de lokale server?";
+      t("fout");
   });

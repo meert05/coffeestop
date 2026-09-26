@@ -217,7 +217,8 @@
     "type": "both",
     "lat": 51.0512,
     "lng": 3.7295,
-    "info": "Specialty koffie en wielercultuur onder één dak, vlak bij Sint-Baafs."
+    "info": "Specialty koffie en wielercultuur onder één dak, vlak bij Sint-Baafs.",
+        "foto": "fotos/bar-bidon.jpg"
   },
   {
     "id": "cafe-labath",
