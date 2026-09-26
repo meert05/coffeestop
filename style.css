@@ -1,427 +1,778 @@
+/* =====================================================
+   ROAST ROUTE – stijl in de sfeer van LAB Antwerp
+   Wit, zwart en één felle accentkleur. Grote hoofdletters,
+   dunne lijnen, veel witruimte, grijze kaart en foto's.
+   ===================================================== */
+
 /* ---------- Kleuren: één plek om ze allemaal te veranderen ---------- */
 :root {
-  --achtergrond: #EDEFEA;
-  --kaartje: #FFFFFF;
-  --tekst: #1D272B;
-  --grijs: #5E6A6E;
-  --lijn: #D3D8D2;
-  --koffie: #7A4A2E;
-  --wieler: #D9A300;
-  --beide: #0E7C7B;
-  --accent: #0E7C7B;
+  color-scheme: dark;       /* vinkjes en scrollbalken ook donker */
+  /* Donker: zwarte achtergrond, witte letters, geen felle kleuren */
+  --achtergrond: #0B0B0B;
+  --vlak: #161615;          /* iets lichtere vlakken */
+  --kaartje: #0B0B0B;
+  --tekst: #F2F1EE;
+  --grijs: #8E8D88;
+  --lijn: #2B2B29;
+  --koffie: #8E8D88;
+  --wieler: #F2F1EE;
+  --beide: #F2F1EE;
+  --accent: #F2F1EE;        /* wordt aangepast door de kleurkiezer */
+
+  --kop: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  --lettertype: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --cijfers: "JetBrains Mono", ui-monospace, monospace;
 }
 
 /* ---------- Basis ---------- */
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }   /* verborgen is echt verborgen */
+
+html { -webkit-font-smoothing: antialiased; }
 
 body {
   margin: 0;
-  padding: 20px;
-  font-family: "Barlow", sans-serif;
+  padding: 0 clamp(16px, 4vw, 48px) 48px;
+  font-family: var(--lettertype);
+  font-size: 15px;
+  line-height: 1.5;
   background: var(--achtergrond);
   color: var(--tekst);
 }
 
+a { color: var(--tekst); text-underline-offset: 3px; }
+a:hover { color: var(--accent); }
+
+::selection { background: var(--accent); color: var(--achtergrond); }
+
+/* Kleine grijze titeltjes in hoofdletters, zoals "OUR SERVICES" */
+#teller, #kleuren > span, #formulier > strong, .urenBewerken strong,
+#voorstellenBeheer > strong, .fotoVeld > span {
+  font-family: var(--kop);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grijs);
+}
+
+/* ---------- Kop bovenaan ---------- */
+header {
+  position: relative;
+  padding: 40px 0 32px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--tekst);
+}
 header h1 {
   margin: 0;
-  font-family: "Barlow Condensed", sans-serif;
-  font-size: 56px;
-  letter-spacing: 1px;
+  font-family: var(--kop);
+  font-weight: 800;
+  font-size: clamp(44px, 9vw, 112px);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
   text-transform: uppercase;
 }
-header h1 span { color: var(--accent); }
-header p { margin: 4px 0 16px; color: var(--grijs); }
+header h1 span {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--accent);   /* "ROUTE" als omlijnde letters */
+  margin-left: 0.05em;
+  letter-spacing: 0;          /* omlijnde letters mogen elkaar niet raken */
+}
+header p {
+  margin: 16px 0 0;
+  max-width: 440px;
+  font-size: 16px;
+  color: var(--grijs);
+}
 
-/* ---------- Knoppen en filters ---------- */
-#steden, #filters {
+/* ---------- Taalkeuze (rechtsboven) ---------- */
+#talen {
+  position: absolute;
+  top: 20px;
+  right: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 2px;
 }
-
-button, input, select {
-  font: inherit;
-  padding: 8px 12px;
-  border: 1px solid var(--lijn);
-  border-radius: 6px;
-  background: var(--kaartje);
-  color: var(--tekst);
-}
-button { cursor: pointer; }
-button.actief { background: var(--tekst); color: var(--kaartje); }
-
-/* ---------- Kaart naast de lijst (onder elkaar op een gsm) ---------- */
-main {
-  display: grid;
-  grid-template-columns: 3fr 2fr;
-  gap: 16px;
-}
-@media (max-width: 800px) {
-  main { grid-template-columns: 1fr; }
-}
-
-#kaart {
-  height: 560px;
-  border-radius: 8px;
-  border: 1px solid var(--lijn);
-}
-
-/* ---------- Formulier ---------- */
-#formulier {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--kaartje);
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px dashed var(--accent);
-  margin-bottom: 12px;
-}
-#formulier p { margin: 0; font-size: 14px; color: var(--grijs); }
-#formulier button { background: var(--accent); color: white; border: none; }
-
-/* ---------- Lijst met stops ---------- */
-#teller { color: var(--grijs); font-size: 14px; }
-
-#lijst {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 460px;
-  overflow-y: auto;
-}
-
-#lijst li {
-  background: var(--kaartje);
-  border: 1px solid var(--lijn);
-  border-left: 6px solid var(--koffie);
-  border-radius: 8px;
-  padding: 10px 12px;
-  cursor: pointer;
-}
-#lijst li.wieler { border-left-color: var(--wieler); }
-#lijst li.both   { border-left-color: var(--beide); }
-#lijst li.gekozen { outline: 2px solid var(--accent); }
-
-#lijst h3 { margin: 0; font-size: 17px; }
-#lijst small { color: var(--grijs); }
-#lijst p { margin: 6px 0 0; font-size: 14px; }
-
-.ster {
-  float: right;
+#talen button {
   border: none;
   background: none;
-  font-size: 20px;
+  padding: 4px 8px;
+  font-family: var(--kop);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--grijs);
+}
+#talen button:hover { color: var(--tekst); background: none; }
+
+/* ---------- Knoppen en invulvakken ---------- */
+button, input, select, textarea {
+  font: inherit;
+  color: var(--tekst);
+}
+
+button {
+  cursor: pointer;
+  padding: 9px 16px;
+  border: 1px solid var(--tekst);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--kop);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+button:hover { background: var(--tekst); color: var(--achtergrond); }
+button.actief { background: var(--tekst); border-color: var(--tekst); color: var(--achtergrond); }
+
+input, select, textarea {
+  padding: 12px 0;
+  border: none;
+  border-bottom: 1px solid var(--lijn);
+  border-radius: 0;
+  background: transparent;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input:focus, textarea:focus { border-bottom-color: var(--tekst); }
+input::placeholder, textarea::placeholder { color: #5E5E5A; }
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
   padding: 0;
+  accent-color: var(--accent);
 }
-.acties { margin-top: 6px; font-size: 14px; }
-.acties a { color: var(--accent); }
-header {
+input[type="file"] { border: none; padding: 6px 0; font-size: 13px; }
+
+/* Grote zwarte knop voor het belangrijkste in een formulier */
+.welkomFormulier button[type="submit"],
+#formulier button[type="submit"] {
+  margin-top: 8px;
+  padding: 15px 22px;
   background: var(--tekst);
-  color: white;
-  padding: 28px 24px;
-  border-radius: 12px;
-  margin-bottom: 16px;
+  border-color: var(--tekst);
+  color: var(--achtergrond);
+  font-size: 13px;
 }
-header p { color: #B9C4C6; }
-#lijst li {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  transition: transform 0.15s, box-shadow 0.15s;
+.welkomFormulier button[type="submit"]:hover,
+#formulier button[type="submit"]:hover {
+  background: var(--grijs);
+  border-color: var(--grijs);
 }
-#lijst li:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+
+/* Knoppen die eruitzien als een link */
+.link {
+  display: block;
+  margin: 18px auto 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  font-family: var(--lettertype);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--grijs);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
+.link:hover { background: none; color: var(--tekst); }
+
+/* ---------- Welkomstscherm ---------- */
+#welkom {
+  max-width: 480px;
+  margin: 56px auto;
+}
+#welkom h2 {
+  margin: 0 0 10px;
+  font-family: var(--kop);
+  font-weight: 800;
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+#welkom > p { margin: 0 0 32px; color: var(--grijs); font-size: 16px; }
+
+.welkomFormulier {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.welkomFormulier small { color: var(--grijs); font-size: 12px; line-height: 1.5; }
+.welkomFormulier .link { margin: 4px 0 0; align-self: flex-start; }
+
+#tabs {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--lijn);
+}
+#tabs button {
+  padding: 0 0 12px;
+  margin-bottom: -1px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--grijs);
+}
+#tabs button:hover { color: var(--tekst); background: none; }
+#tabs button.actief {
+  background: none;
+  color: var(--tekst);
+  border-bottom-color: var(--accent);
+}
+#loginBericht { margin: 16px 0 0; font-size: 14px; color: var(--accent); }
+
+.vinkje {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 14px;
+  cursor: pointer;
+}
+.vinkje input { margin-top: 2px; flex: none; }
+
+/* ---------- Balk "ingelogd als …" ---------- */
+#ingelogd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--lijn);
+  font-size: 13px;
+}
+#wie {
+  font-family: var(--kop);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+#ingelogd .vinkje { padding: 0; }
+#ingelogd .link { margin: 0; font-size: 12px; }
+#uitlogKnop { padding: 6px 14px; font-size: 11px; }
 
 /* ---------- Kleurkiezer ---------- */
 #kleuren {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-bottom: 28px;
 }
 .bolletje {
-  width: 28px;
-  height: 28px;
+  width: 18px;
+  height: 18px;
   padding: 0;
+  border: none;
   border-radius: 50%;
-  border: 3px solid white;
-  box-shadow: 0 0 0 1px var(--lijn);
+  outline: 1px solid transparent;
+  outline-offset: 3px;
+  transition: outline-color 0.15s, transform 0.15s;
 }
-.bolletje.actief { box-shadow: 0 0 0 3px var(--tekst); }
+.bolletje:hover { transform: scale(1.15); }
+.bolletje.actief { outline-color: var(--tekst); }
 #eigenKleur {
-  width: 36px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   border: none;
   background: none;
   cursor: pointer;
 }
 
-/* ---------- Foto's van bars ---------- */
-.foto {
-  display: block;
-  width: 100%;
-  height: 160px;
-  object-fit: cover;        /* vult het vak zonder de foto uit te rekken */
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-/* ---------- Taalkeuze ---------- */
-#talen {
-  float: right;
+/* ---------- Landen, steden, zoeken en filters ---------- */
+#landen, #steden {
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 4px 28px;
+  margin-bottom: 20px;
 }
-#talen button {
-  padding: 4px 10px;
-  font-size: 14px;
-  font-weight: 600;
-}
-/* ---------- Beheermodus: code voor stops.json ---------- */
-[hidden] { display: none !important; }   /* verborgen is echt verborgen */
-
-#jsonVoorbeeld {
-  background: var(--tekst);
-  color: #E6EBE8;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  overflow-x: auto;
-  white-space: pre;
-  user-select: all;         /* één klik selecteert alles */
-}
-/* ---------- Welkomstscherm en account ---------- */
-#welkom {
-  max-width: 460px;
-  margin: 40px auto;
-  background: var(--kaartje);
-  border: 1px solid var(--lijn);
-  border-radius: 12px;
-  padding: 28px;
-}
-#welkom h2 { margin: 0 0 8px; }
-#welkom > p { margin: 0 0 20px; color: var(--grijs); }
-
-.welkomFormulier {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.welkomFormulier button[type="submit"] {
-  background: var(--accent);
-  color: white;
+/* Landen en steden als grote woorden, niet als knoppen */
+#landen button, #steden button {
+  padding: 0 0 4px;
   border: none;
-  font-weight: 600;
-}
-.welkomFormulier small { color: var(--grijs); }
-.welkomFormulier .link { margin: 0; align-self: flex-start; padding: 0; }
-
-#tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--lijn);
-}
-#tabs button {
-  border: none;
-  border-bottom: 3px solid transparent;
+  border-bottom: 2px solid transparent;
   border-radius: 0;
   background: none;
-  font-weight: 600;
-  color: var(--grijs);
+  font-size: clamp(18px, 2.4vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #4A4A47;
 }
-#tabs button.actief {
+#landen button { font-size: 13px; letter-spacing: 0.1em; }
+#landen button:hover, #steden button:hover { background: none; color: var(--tekst); }
+#landen button.actief, #steden button.actief {
+  background: none;
   color: var(--tekst);
   border-bottom-color: var(--accent);
 }
-#loginBericht { margin: 12px 0 0; font-size: 14px; color: var(--accent); }
 
-.vinkje {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 15px;
-  cursor: pointer;
-}
-.vinkje input { margin-top: 3px; }
-
-.link {
-  display: block;
-  margin: 16px auto 0;
-  border: none;
-  background: none;
-  color: var(--grijs);
-  text-decoration: underline;
-}
-
-#ingelogd {
+#filters {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
 }
-#wie { font-weight: 600; }
-/* ---------- Foto-upload ---------- */
-.fotoVeld {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 14px;
-  color: var(--grijs);
+#zoek {
+  flex: 1;
+  min-width: 200px;
+  max-width: 420px;
+  font-size: 16px;
 }
-.acties button {
-  margin-left: 6px;
-  padding: 4px 8px;
-  font-size: 13px;
-}
-/* ---------- Adres opzoeken ---------- */
-.adresRij {
-  display: flex;
-  gap: 8px;
-}
-.adresRij input { flex: 1; min-width: 0; }
-#zoekAdresKnop { white-space: nowrap; }
-/* ---------- Landen ---------- */
-#landen {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-#landen button { font-weight: 600; }
-/* ---------- Filterknopjes en kenmerken ---------- */
-#kenmerkFilters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-#kenmerkFilters button {
-  padding: 4px 10px;
-  font-size: 14px;
-  border-radius: 999px;
-}
-#kenmerkFilters button.actief {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-.labels {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
-}
-.label {
-  font-size: 12px;
-  background: var(--achtergrond);
-  border-radius: 999px;
-  padding: 2px 8px;
-}
-.kenmerkBewerken {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
-  margin-top: 8px;
-  font-size: 14px;
-}
-
-/* ---------- Dichtbij mij ---------- */
 #dichtbijKnop.actief {
   background: var(--accent);
   border-color: var(--accent);
-  color: white;
+  color: var(--achtergrond);
 }
-.afstand {
-  display: block;
-  font-size: 13px;
+
+#kenmerkFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+#kenmerkFilters button {
+  padding: 7px 14px;
+  border-color: var(--lijn);
+  font-size: 11px;
+}
+#kenmerkFilters button:hover { border-color: var(--tekst); background: none; color: var(--tekst); }
+#kenmerkFilters button.actief {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--achtergrond);
+}
+
+/* ---------- Kaart naast de lijst (onder elkaar op een gsm) ---------- */
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 32px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  main { grid-template-columns: 1fr; gap: 24px; }
+}
+
+#kaart {
+  position: sticky;
+  top: 16px;
+  height: min(72vh, 680px);
+  min-height: 380px;
+  border-radius: 0;
+  background: var(--vlak);
+}
+@media (max-width: 860px) {
+  #kaart { position: static; height: 58vh; }
+}
+/* De kaart in grijstinten, zodat de oranje stippen opvallen */
+#kaart .leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(0.85) contrast(0.9); }
+.leaflet-control-zoom a { border-radius: 0 !important; color: var(--tekst) !important; background: var(--achtergrond) !important; border-color: var(--lijn) !important; }
+.leaflet-control-attribution { background: rgba(11, 11, 11, 0.7) !important; color: var(--grijs) !important; }
+.leaflet-control-attribution a { color: var(--grijs) !important; }
+.leaflet-container { background: var(--vlak); }
+.leaflet-bar { border: 1px solid var(--lijn) !important; border-radius: 0 !important; box-shadow: none !important; }
+.leaflet-tooltip {
+  border: none;
+  border-radius: 0;
+  background: var(--tekst);
+  color: var(--achtergrond);
+  box-shadow: none;
+  font-family: var(--kop);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.leaflet-tooltip-left::before { border-left-color: var(--tekst); }
+.leaflet-tooltip-right::before { border-right-color: var(--tekst); }
+.leaflet-tooltip-top::before { border-top-color: var(--tekst); }
+.leaflet-tooltip-bottom::before { border-bottom-color: var(--tekst); }
+
+/* ---------- Lijst met stops ---------- */
+#teller {
+  margin: 0 0 12px;
+  font-family: var(--cijfers);
+}
+
+#lijst {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--tekst);
+}
+
+#lijst > li {
+  position: relative;
+  padding: 22px 0 22px 18px;
+  border-bottom: 1px solid var(--lijn);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+/* Een dun streepje links: oranje voor wielercafés */
+#lijst > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 24px;
+  width: 3px;
+  height: 22px;
+  background: var(--tekst);
+}
+#lijst > li.wieler::before, #lijst > li.both::before { background: var(--accent); }
+#lijst > li:hover { background: var(--vlak); }
+#lijst > li.gekozen { background: var(--vlak); }
+#lijst > li.gekozen h3 { color: var(--accent); }
+
+#lijst h3 {
+  margin: 0 36px 2px 0;
+  font-family: var(--kop);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+#lijst small { color: var(--grijs); font-size: 13px; }
+#lijst p { margin: 10px 0 0; font-size: 14px; color: #BDBCB7; max-width: 52ch; }
+
+.foto {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  object-fit: cover;
+  margin-bottom: 16px;
+  filter: grayscale(1);
+  transition: filter 0.4s;
+}
+#lijst > li:hover .foto, #lijst > li.gekozen .foto { filter: grayscale(0); }
+
+.ster {
+  position: absolute;
+  top: 18px;
+  right: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--tekst);
+}
+.ster:hover { background: none; color: var(--accent); }
+#lijst > li:has(.foto) .ster { top: 26px; right: 10px; color: #FFFFFF; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+
+.afstand {
+  display: inline-block;
+  margin-top: 6px;
+  font-family: var(--cijfers);
+  font-size: 12px;
   color: var(--accent);
 }
 
+/* Labels zoals "Wielercafé" en "PC-friendly" */
+.labels { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.labels:empty { display: none; }
+.label {
+  padding: 3px 9px;
+  border: 1px solid var(--lijn);
+  border-radius: 999px;
+  font-family: var(--kop);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Route · reviews · knoppen van de beheerder */
+.acties {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin-top: 14px;
+}
+.acties a {
+  font-family: var(--kop);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tekst);
+  text-decoration: none;
+}
+.acties a:hover { color: var(--accent); }
+.acties button {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--grijs);
+}
+.acties button:hover { background: none; color: var(--tekst); }
+.acties .wis:hover { color: #E07A6F; }
+
 /* ---------- Openingsuren ---------- */
-.uren { margin-top: 6px; font-size: 14px; }
-.uren summary { cursor: pointer; }
-.uren ul { list-style: none; padding: 0; margin: 6px 0 0; max-width: 240px; }
-.uren li { display: flex; justify-content: space-between; padding: 1px 0; }
-.uren li.vandaag { font-weight: 600; }
-.urenBewerken {
-  grid-column: 1 / -1;            /* over de volle breedte van het paneel */
+.uren { margin-top: 12px; font-size: 13px; }
+.uren summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--cijfers);
+  font-size: 12px;
+}
+.uren summary::-webkit-details-marker { display: none; }
+.uren summary::after { content: " +"; color: var(--grijs); }
+.uren[open] summary::after { content: " −"; }
+.uren ul { list-style: none; padding: 0; margin: 10px 0 0; max-width: 260px; }
+#lijst .uren li {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--lijn);
+  font-family: var(--cijfers);
+  font-size: 12px;
+  color: var(--grijs);
+}
+#lijst .uren li.vandaag { color: var(--tekst); font-weight: 600; }
+
+/* ---------- Beheerder: kenmerken en uren aanpassen ---------- */
+.kenmerkBewerken {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px 12px;
-  margin-top: 8px;
-  padding-top: 8px;
+  gap: 0 16px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: var(--vlak);
+  font-size: 13px;
+  cursor: default;
+}
+#formulier .kenmerkBewerken { margin: 0; padding: 0; background: none; }
+.urenBewerken {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  margin-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--lijn);
 }
 .urenBewerken strong, .urenBewerken small, .urenBewerken button { grid-column: 1 / -1; }
-.urenBewerken label { display: flex; align-items: center; gap: 6px; }
-.urenBewerken input { flex: 1; min-width: 0; padding: 4px 6px; font-size: 13px; }
-.urenBewerken small { color: var(--grijs); }
+.urenBewerken label { display: flex; align-items: center; gap: 8px; font-family: var(--cijfers); font-size: 12px; }
+.urenBewerken input { flex: 1; min-width: 0; padding: 6px 0; font-family: var(--cijfers); font-size: 12px; }
+.urenBewerken small { color: var(--grijs); font-size: 12px; }
+.urenBewerken button { justify-self: start; margin-top: 6px; }
 
 /* ---------- Reviews ---------- */
 .reviews {
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--lijn);
   font-size: 14px;
+  cursor: default;
 }
-.reviews ul { list-style: none; padding: 0; margin: 0 0 8px; }
-.reviews li { padding: 6px 0; border-bottom: 1px solid var(--lijn); }
-.reviews li p { margin: 2px 0 0; }
-.reviews .leeg { color: var(--grijs); }
-.sterren { color: #E0A800; margin-left: 6px; }
+.reviews ul { list-style: none; padding: 0; margin: 0 0 12px; }
+#lijst .reviews li { padding: 10px 0; border-bottom: 1px solid var(--lijn); }
+#lijst .reviews li:last-child { border-bottom: none; }
+#lijst .reviews li p { margin: 4px 0 0; }
+.reviews strong { font-family: var(--kop); font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+.reviews .leeg { color: var(--grijs); margin: 0 0 12px; }
+.sterren { color: var(--accent); margin-left: 8px; letter-spacing: 2px; }
+.wisReview { padding: 0 4px; border: none; background: none; float: right; }
+.kiesSterren { display: flex; gap: 2px; }
 .kiesSterren button {
+  padding: 0 2px;
   border: none;
   background: none;
   font-size: 24px;
-  padding: 0 2px;
+  line-height: 1;
   color: var(--lijn);
 }
-.kiesSterren button.aan { color: #E0A800; }
-.reviewFormulier { display: flex; flex-direction: column; gap: 6px; }
-.reviewFormulier textarea { font: inherit; padding: 6px; border: 1px solid var(--lijn); border-radius: 6px; min-height: 50px; }
-.reviewFormulier .rij { display: flex; gap: 6px; }
+.kiesSterren button:hover { background: none; color: var(--tekst); }
+.kiesSterren button.aan { color: var(--accent); }
+.reviewFormulier { display: flex; flex-direction: column; gap: 10px; }
+.reviewFormulier textarea { min-height: 60px; resize: vertical; }
+.reviewFormulier .rij { display: flex; gap: 8px; }
+.reviewMelding { color: var(--accent); }
+
+/* ---------- Formulier "Nieuwe stop" (beheerder) ---------- */
+#formulier {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px;
+  margin-bottom: 24px;
+  background: var(--vlak);
+}
+#formulier > label:not(.fotoVeld) { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 14px; }
+#formulier p { margin: 6px 0 0; font-size: 13px; color: var(--grijs); }
+.adresRij { display: flex; gap: 12px; align-items: flex-end; }
+.adresRij input { flex: 1; min-width: 0; }
+#zoekAdresKnop { white-space: nowrap; padding: 7px 12px; font-size: 11px; }
+.fotoVeld { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
 
 /* ---------- Bars voorstellen ---------- */
 #voorstelBlok, #voorstellenBeheer {
-  background: var(--kaartje);
-  border: 1px solid var(--lijn);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-}
-#voorstelFormulier { margin-top: 10px; }
-#voorstelMelding { color: var(--accent); }
-#voorstellenBeheer ul { list-style: none; padding: 0; margin: 8px 0 0; }
-#voorstellenBeheer li { padding: 8px 0; border-top: 1px solid var(--lijn); }
-#voorstellenBeheer p { margin: 4px 0; font-size: 14px; }
-#voorstellenBeheer .leeg { color: var(--grijs); margin: 4px 0 0; }
-
-/* ---------- Account en voettekst ---------- */
-#ingelogd .link { margin: 0; font-size: 13px; }
-footer {
-  margin-top: 24px;
-  text-align: center;
-  font-size: 13px;
-}
-footer a { color: var(--grijs); }
-
-/* Reviews en openingsuren staan in een bar-kaartje: niet opmaken als een kaartje */
-#lijst .reviews li, #lijst .uren li {
-  background: none;
-  border: none;
+  padding: 0 0 20px;
+  margin-bottom: 20px;
   border-bottom: 1px solid var(--lijn);
-  border-radius: 0;
-  box-shadow: none;
-  transform: none;
-  cursor: default;
-  padding: 6px 0;
 }
-#lijst .uren li { border-bottom: none; padding: 1px 0; }
+#voorstelFormulier { margin-top: 12px; }
+#voorstelMelding { display: block; margin-top: 8px; color: var(--accent); }
+#voorstellenBeheer ul { list-style: none; padding: 0; margin: 10px 0 0; }
+#voorstellenBeheer li { padding: 12px 0; border-top: 1px solid var(--lijn); }
+#voorstellenBeheer li b { font-family: var(--kop); text-transform: uppercase; }
+#voorstellenBeheer li button { margin: 8px 6px 0 0; padding: 6px 12px; font-size: 11px; }
+#voorstellenBeheer p { margin: 4px 0; font-size: 14px; }
+#voorstellenBeheer .leeg { color: var(--grijs); margin: 6px 0 0; }
+
+/* ---------- Oud: code voor stops.json ---------- */
+#jsonVoorbeeld {
+  background: var(--tekst);
+  color: #EDEDED;
+  padding: 14px;
+  font-family: var(--cijfers);
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre;
+  user-select: all;
+}
+
+/* ---------- Voettekst ---------- */
+footer {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 1px solid var(--tekst);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--kop);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+footer::before { content: "Roast Route © 2026"; color: var(--grijs); }
+footer a { color: var(--grijs); text-decoration: none; }
+footer a:hover { color: var(--tekst); }
+
+/* ---------- Privacypagina ---------- */
+main.privacy { padding-top: 32px; }
+.privacy h1, .privacy h2 { font-family: var(--kop); text-transform: uppercase; letter-spacing: -0.02em; }
+.privacy h1 { font-size: 44px; font-weight: 800; line-height: 1; }
+
+/* ---------- Gsm ---------- */
+@media (max-width: 560px) {
+  header { padding: 48px 0 20px; margin-bottom: 16px; }
+  header p { font-size: 14px; margin-top: 10px; }
+  #ingelogd { gap: 6px 14px; padding-bottom: 12px; margin-bottom: 14px; }
+  #kleuren { margin-bottom: 16px; }
+
+  /* Steden en filters: één rij om opzij te vegen */
+  #landen, #steden, #kenmerkFilters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding: 0 16px;
+  }
+  #landen::-webkit-scrollbar, #steden::-webkit-scrollbar, #kenmerkFilters::-webkit-scrollbar { display: none; }
+  #landen button, #steden button, #kenmerkFilters button { flex: none; white-space: nowrap; }
+  #landen, #steden { gap: 18px; margin-bottom: 12px; }
+  #kenmerkFilters { margin-bottom: 20px; }
+
+  #filters { flex-wrap: nowrap; gap: 10px; margin-bottom: 12px; }
+  #zoek { min-width: 0; }
+  #dichtbijKnop { flex: none; padding: 8px 12px; }
+
+  .kenmerkBewerken, .urenBewerken { grid-template-columns: 1fr; }
+}
+
+/* =====================================================
+   LAB-DETAILS: genummerde navigatie, rechte knoppen met pijlen
+   ===================================================== */
+
+/* Rechte hoeken overal, zoals op LAB */
+button, #kenmerkFilters button, .label { border-radius: 0; }
+
+/* Taalkeuze als "NL / FR / EN" */
+#talen { gap: 0; }
+#talen button + button::before { content: "/"; margin-right: 8px; color: var(--lijn); }
+#talen button { padding: 4px 0 4px 8px; }
+
+/* Steden genummerd: 01 ALLES  02 ANTWERPEN … */
+#steden, #landen { counter-reset: nummer; }
+#steden button, #landen button { counter-increment: nummer; display: inline-flex; align-items: flex-start; gap: 6px; }
+#steden button::before, #landen button::before {
+  content: counter(nummer, decimal-leading-zero);
+  font-family: var(--cijfers);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  margin-top: 4px;
+  color: inherit;
+}
+#landen button::before { margin-top: 0; font-size: 10px; }
+
+/* Bars in de lijst genummerd, in cijferletters */
+#lijst { counter-reset: bar; }
+#lijst > li { counter-increment: bar; padding-left: 44px; }
+#lijst > li::before {
+  content: counter(bar, decimal-leading-zero);
+  top: 26px;
+  width: auto;
+  height: auto;
+  background: none;
+  font-family: var(--cijfers);
+  font-size: 11px;
+  color: var(--grijs);
+}
+#lijst > li.wieler::before, #lijst > li.both::before { background: none; color: var(--accent); }
+#lijst .uren li::before, #lijst .reviews li::before { content: none; }
+
+/* Grote knoppen: tekst links, pijl rechts */
+.welkomFormulier button[type="submit"],
+#formulier button[type="submit"],
+#voorstelKnop, #dichtbijKnop, #uitlogKnop,
+.bewaarReview, .bewaarUren, #voorstellenBeheer li button {
+  display: inline-flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  text-align: left;
+}
+.welkomFormulier button[type="submit"]::after,
+#formulier button[type="submit"]::after,
+#voorstelKnop::after, .bewaarReview::after, .bewaarUren::after {
+  content: "→";
+  font-family: var(--lettertype);
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+button:hover::after { transform: translateX(4px); }
+.welkomFormulier button[type="submit"], #formulier button[type="submit"] { padding: 18px 22px; }
+
+/* Kopje van de lijst: "44 STOPS" links, lijn over de volle breedte */
+#teller { display: flex; justify-content: space-between; }
+#teller::after { content: "Roast Route"; }
+
+/* Accentlijn bovenaan de pagina */
+body::before {
+  content: "";
+  display: block;
+  height: 2px;
+  margin: 0 calc(-1 * clamp(16px, 4vw, 48px));
+  background: var(--accent);
+}

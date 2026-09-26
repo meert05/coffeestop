@@ -1,5 +1,5 @@
 // =====================================================
-//  KOFFIESTOP – alle logica van de app
+//  ROAST ROUTE – alle logica van de app
 // =====================================================
 
 // ---------- Hulpje: tekst veilig in HTML zetten ----------
@@ -46,10 +46,10 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 const stippen = L.layerGroup().addTo(kaart);
 
+// Wielercafés in de accentkleur, gewone koffiebars in grijs
 function kleur(type) {
-  if (type === "wieler") return "#D9A300";
-  if (type === "both") return "#0E7C7B";
-  return "#7A4A2E";
+  if (type === "coffee") return "#8E8D88";
+  return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#F2F1EE";
 }
 
 // ---------- 3. Welke stops tonen we? ----------
@@ -84,7 +84,7 @@ function tekenKaart(stops) {
   for (const stop of stops) {
     const stip = L.circleMarker([stop.lat, stop.lng], {
       radius: stop.id === gekozenStop ? 11 : 7,
-      color: "white",
+      color: "#0B0B0B",
       weight: 2,
       fillColor: kleur(stop.type),
       fillOpacity: 1
@@ -96,7 +96,7 @@ function tekenKaart(stops) {
 
   // Jouw locatie: een blauwe stip
   if (mijnPlek) {
-    L.circleMarker(mijnPlek, { radius: 8, color: "white", weight: 3, fillColor: "#2F80ED", fillOpacity: 1 })
+    L.circleMarker(mijnPlek, { radius: 8, color: "#0B0B0B", weight: 3, fillColor: "#8FA3B8", fillOpacity: 1 })
       .bindTooltip(t("jijBentHier")).addTo(stippen);
   }
 
@@ -773,6 +773,7 @@ function zetKleur(kleur) {
   document.querySelectorAll(".bolletje").forEach(b =>
     b.classList.toggle("actief", b.dataset.kleur === kleur));
   localStorage.setItem("kleur", kleur);
+  if (alleStops.length) teken();   // de stippen op de kaart krijgen de nieuwe kleur
 }
 
 document.querySelectorAll(".bolletje").forEach(b => {
@@ -780,7 +781,7 @@ document.querySelectorAll(".bolletje").forEach(b => {
 });
 document.getElementById("eigenKleur").oninput = (event) => zetKleur(event.target.value);
 
-zetKleur(localStorage.getItem("kleur") || "#0E7C7B");
+zetKleur(localStorage.getItem("kleur") || "#F2F1EE");
 
 // ---------- 9. Starten ----------
 async function start() {

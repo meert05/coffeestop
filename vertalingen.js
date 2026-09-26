@@ -68,7 +68,7 @@ const teksten = {
     zekerWeigeren: "Dit voorstel weigeren en verwijderen?",
     accountVerwijderen: "Account verwijderen",
     zekerAccount: "Weet je het zeker? Je account, je favorieten en je reviews worden definitief verwijderd.",
-    accountVerwijderd: "Je account is verwijderd. Bedankt dat je Koffiestop gebruikte!",
+    accountVerwijderd: "Je account is verwijderd. Bedankt dat je Roast Route gebruikte!",
     privacyLink: "Privacyverklaring",
     alles: "Alles",
     vlaanderen: "Vlaanderen",
@@ -81,8 +81,8 @@ const teksten = {
     checkMail: "Check je mailbox en klik op de link om in te loggen.",
     loginMislukt: "Inloggen lukte niet:",
     privacy: "We bewaren alleen je voornaam, je e-mailadres, je favorieten en je nieuwsbriefkeuze. Je kunt je altijd uitschrijven.",
-    welkomTitel: "Welkom bij Koffiestop",
-    welkomTekst: "Ontdek de beste koffiestops, bewaar je favorieten en mis geen enkele nieuwe bar.",
+    welkomTitel: "Welkom bij Roast Route",
+    welkomTekst: "Ontdek de beste koffiebars, bewaar je favorieten en mis geen enkele nieuwe bar.",
     voornaam: "Voornaam",
     nieuwsbriefVraag: "Ja, stuur me maandelijks een mail met nieuwe bars.",
     nieuwsbriefKort: "Maandelijkse mail",
@@ -185,7 +185,7 @@ const teksten = {
     zekerWeigeren: "Refuser et supprimer cette proposition ?",
     accountVerwijderen: "Supprimer le compte",
     zekerAccount: "Tu es sûr ? Ton compte, tes favoris et tes avis seront définitivement supprimés.",
-    accountVerwijderd: "Ton compte a été supprimé. Merci d'avoir utilisé Koffiestop !",
+    accountVerwijderd: "Ton compte a été supprimé. Merci d'avoir utilisé Roast Route !",
     privacyLink: "Politique de confidentialité",
     alles: "Tout",
     vlaanderen: "Flandre",
@@ -198,7 +198,7 @@ const teksten = {
     checkMail: "Vérifie ta boîte mail et clique sur le lien pour te connecter.",
     loginMislukt: "Connexion impossible :",
     privacy: "Nous gardons uniquement ton prénom, ton adresse e-mail, tes favoris et ton choix de newsletter. Tu peux te désinscrire à tout moment.",
-    welkomTitel: "Bienvenue sur Koffiestop",
+    welkomTitel: "Bienvenue sur Roast Route",
     welkomTekst: "Découvre les meilleurs arrêts café, garde tes favoris et ne rate aucun nouveau bar.",
     voornaam: "Prénom",
     nieuwsbriefVraag: "Oui, envoie-moi chaque mois un e-mail avec les nouveaux bars.",
@@ -302,7 +302,7 @@ const teksten = {
     zekerWeigeren: "Reject and delete this suggestion?",
     accountVerwijderen: "Delete account",
     zekerAccount: "Are you sure? Your account, favourites and reviews will be permanently deleted.",
-    accountVerwijderd: "Your account has been deleted. Thanks for using Koffiestop!",
+    accountVerwijderd: "Your account has been deleted. Thanks for using Roast Route!",
     privacyLink: "Privacy policy",
     alles: "All",
     vlaanderen: "Flanders",
@@ -315,7 +315,7 @@ const teksten = {
     checkMail: "Check your inbox and click the link to log in.",
     loginMislukt: "Couldn't log in:",
     privacy: "We only store your first name, email address, favourites and newsletter choice. You can unsubscribe at any time.",
-    welkomTitel: "Welcome to Koffiestop",
+    welkomTitel: "Welcome to Roast Route",
     welkomTekst: "Discover the best coffee stops, save your favourites and never miss a new bar.",
     voornaam: "First name",
     nieuwsbriefVraag: "Yes, send me a monthly email with new bars.",
@@ -376,6 +376,11 @@ function vertaalPagina() {
   // Invulvakken met data-t-placeholder="..." krijgen een vertaalde voorbeeldtekst
   document.querySelectorAll("[data-t-placeholder]").forEach(el => {
     el.placeholder = t(el.dataset.tPlaceholder);
+  });
+
+  // De link naar de privacyverklaring: Nederlands of Engels
+  document.querySelectorAll('a[data-t="privacyLink"]').forEach(link => {
+    link.href = taal === "nl" ? "privacy.html" : "privacy-en.html";
   });
 
   // Het actieve taalknopje markeren

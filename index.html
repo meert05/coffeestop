@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Koffiestop</title>
+  <title>Roast Route</title>
 
   <!-- Leaflet: een gratis bibliotheek voor kaarten -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <!-- Onze eigen opmaak -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,14 +21,14 @@
       <button data-taal="en">EN</button>
     </div>
 
-    <h1>Koffie<span>stop</span></h1>
+    <h1>Roast<span>route</span></h1>
     <p data-t="ondertitel">Koffiebars en wielercafés in Vlaanderen en Brussel</p>
   </header>
 
   <!-- ===== WELKOMSTSCHERM: zichtbaar zolang je niet bent ingelogd ===== -->
   <section id="welkom" hidden>
-    <h2 data-t="welkomTitel">Welkom bij Koffiestop</h2>
-    <p data-t="welkomTekst">Ontdek de beste koffiestops, bewaar je favorieten en mis geen enkele nieuwe bar.</p>
+    <h2 data-t="welkomTitel">Welkom bij Roast Route</h2>
+    <p data-t="welkomTekst">Ontdek de beste koffiebars, bewaar je favorieten en mis geen enkele nieuwe bar.</p>
 
     <!-- Tabbladen: account maken of inloggen -->
     <div id="tabs">
@@ -90,12 +90,12 @@
     <!-- Kleurkiezer: klik een bolletje of kies je eigen kleur -->
     <div id="kleuren">
       <span data-t="kleur">Kleur:</span>
-      <button class="bolletje" data-kleur="#0E7C7B" style="background:#0E7C7B" aria-label="Groenblauw"></button>
-      <button class="bolletje" data-kleur="#E4572E" style="background:#E4572E" aria-label="Oranje"></button>
-      <button class="bolletje" data-kleur="#2F5DDB" style="background:#2F5DDB" aria-label="Blauw"></button>
-      <button class="bolletje" data-kleur="#C2185B" style="background:#C2185B" aria-label="Roze"></button>
-      <button class="bolletje" data-kleur="#7A4A2E" style="background:#7A4A2E" aria-label="Koffiebruin"></button>
-      <input type="color" id="eigenKleur" value="#0E7C7B" aria-label="Eigen kleur">
+      <button class="bolletje" data-kleur="#F2F1EE" style="background:#F2F1EE" aria-label="Wit"></button>
+      <button class="bolletje" data-kleur="#C9B79C" style="background:#C9B79C" aria-label="Zand"></button>
+      <button class="bolletje" data-kleur="#A3B1A4" style="background:#A3B1A4" aria-label="Salie"></button>
+      <button class="bolletje" data-kleur="#B08A6E" style="background:#B08A6E" aria-label="Koffie"></button>
+      <button class="bolletje" data-kleur="#8FA3B8" style="background:#8FA3B8" aria-label="Staalblauw"></button>
+      <input type="color" id="eigenKleur" value="#F2F1EE" aria-label="Eigen kleur">
     </div>
 
     <!-- Knoppen per land en per stad: worden automatisch gemaakt in app.js -->
