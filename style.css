@@ -331,3 +331,97 @@ header p { color: #B9C4C6; }
   margin-top: 8px;
   font-size: 14px;
 }
+
+/* ---------- Dichtbij mij ---------- */
+#dichtbijKnop.actief {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.afstand {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ---------- Openingsuren ---------- */
+.uren { margin-top: 6px; font-size: 14px; }
+.uren summary { cursor: pointer; }
+.uren ul { list-style: none; padding: 0; margin: 6px 0 0; max-width: 240px; }
+.uren li { display: flex; justify-content: space-between; padding: 1px 0; }
+.uren li.vandaag { font-weight: 600; }
+.urenBewerken {
+  grid-column: 1 / -1;            /* over de volle breedte van het paneel */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--lijn);
+}
+.urenBewerken strong, .urenBewerken small, .urenBewerken button { grid-column: 1 / -1; }
+.urenBewerken label { display: flex; align-items: center; gap: 6px; }
+.urenBewerken input { flex: 1; min-width: 0; padding: 4px 6px; font-size: 13px; }
+.urenBewerken small { color: var(--grijs); }
+
+/* ---------- Reviews ---------- */
+.reviews {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--lijn);
+  font-size: 14px;
+}
+.reviews ul { list-style: none; padding: 0; margin: 0 0 8px; }
+.reviews li { padding: 6px 0; border-bottom: 1px solid var(--lijn); }
+.reviews li p { margin: 2px 0 0; }
+.reviews .leeg { color: var(--grijs); }
+.sterren { color: #E0A800; margin-left: 6px; }
+.kiesSterren button {
+  border: none;
+  background: none;
+  font-size: 24px;
+  padding: 0 2px;
+  color: var(--lijn);
+}
+.kiesSterren button.aan { color: #E0A800; }
+.reviewFormulier { display: flex; flex-direction: column; gap: 6px; }
+.reviewFormulier textarea { font: inherit; padding: 6px; border: 1px solid var(--lijn); border-radius: 6px; min-height: 50px; }
+.reviewFormulier .rij { display: flex; gap: 6px; }
+
+/* ---------- Bars voorstellen ---------- */
+#voorstelBlok, #voorstellenBeheer {
+  background: var(--kaartje);
+  border: 1px solid var(--lijn);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+#voorstelFormulier { margin-top: 10px; }
+#voorstelMelding { color: var(--accent); }
+#voorstellenBeheer ul { list-style: none; padding: 0; margin: 8px 0 0; }
+#voorstellenBeheer li { padding: 8px 0; border-top: 1px solid var(--lijn); }
+#voorstellenBeheer p { margin: 4px 0; font-size: 14px; }
+#voorstellenBeheer .leeg { color: var(--grijs); margin: 4px 0 0; }
+
+/* ---------- Account en voettekst ---------- */
+#ingelogd .link { margin: 0; font-size: 13px; }
+footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 13px;
+}
+footer a { color: var(--grijs); }
+
+/* Reviews en openingsuren staan in een bar-kaartje: niet opmaken als een kaartje */
+#lijst .reviews li, #lijst .uren li {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--lijn);
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+  cursor: default;
+  padding: 6px 0;
+}
+#lijst .uren li { border-bottom: none; padding: 1px 0; }
