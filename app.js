@@ -4,7 +4,8 @@
 
 // ---------- 1. De toestand van de app ----------
 let alleStops = [];          // komt uit de database
-let gekozenStad = "alles";
+let gekozenLand = "BE";      // landcode, of "alles"
+let gekozenStad = "alles";   // stad of regio binnen het gekozen land
 let gekozenStop = null;      // de id van de stop waarop je klikte
 let nieuwePlek = null;       // waar je klikte op de kaart voor een nieuwe stop
 
@@ -36,7 +37,8 @@ function zichtbareStops() {
   const type = document.getElementById("type").value;
 
   return alleStops.filter(stop => {
-    if (gekozenStad !== "alles" && stop.stad !== gekozenStad) return false;
+    if (gekozenLand !== "alles" && landVan(stop) !== gekozenLand) return false;
+    if (gekozenStad !== "alles" && groepVan(stop) !== gekozenStad) return false;
     if (type === "coffee" && stop.type === "wieler") return false;
     if (type === "wieler" && stop.type === "coffee") return false;
     if (type === "favoriet" && !favorieten.includes(stop.id)) return false;
@@ -47,6 +49,7 @@ function zichtbareStops() {
 
 // ---------- 4. Alles tekenen ----------
 function teken() {
+  tekenFilters();
   const stops = zichtbareStops();
   tekenKaart(stops);
   tekenLijst(stops);
@@ -68,8 +71,13 @@ function tekenKaart(stops) {
     stip.addTo(stippen);
   }
 
+  // De speld voor een nieuwe bar: je kunt ze verslepen als ze niet helemaal juist staat
   if (nieuwePlek) {
-    L.circleMarker(nieuwePlek, { radius: 9, color: "red", dashArray: "4" }).addTo(stippen);
+    const speld = L.marker(nieuwePlek, { draggable: true }).addTo(stippen);
+    speld.on("dragend", () => {
+      const plek = speld.getLatLng();
+      nieuwePlek = [plek.lat, plek.lng];
+    });
   }
 }
 
@@ -95,6 +103,7 @@ function tekenLijst(stops) {
       <p></p>
       <div class="acties">
         <a href="${route}" target="_blank">${t("route")}</a>
+        ${isBeheerder() ? `<button class="fotoKnop">${t("foto")}</button>` : ""}
         ${isBeheerder() ? `<button class="wis">${t("verwijder")}</button>` : ""}
       </div>`;
 
@@ -133,6 +142,16 @@ function tekenLijst(stops) {
       };
     }
 
+    // Foto toevoegen of vervangen (alleen de beheerder ziet deze knop)
+    const fotoKnop = li.querySelector(".fotoKnop");
+    if (fotoKnop) {
+      fotoKnop.onclick = (event) => {
+        event.stopPropagation();
+        fotoVoorStop = stop.id;                          // onthouden voor welke bar
+        document.getElementById("fotoKiezer").click();   // opent het venster om een foto te kiezen
+      };
+    }
+
     li.onclick = () => kies(stop.id);
     lijst.appendChild(li);
   }
@@ -148,16 +167,89 @@ function kies(id) {
 
 // ---------- 6. Reageren op wat de gebruiker doet ----------
 
-// Stad-knoppen
-document.querySelectorAll("#steden button").forEach(knop => {
-  knop.onclick = () => {
-    gekozenStad = knop.dataset.stad;
-    document.querySelectorAll("#steden button").forEach(k => k.classList.remove("actief"));
-    knop.classList.add("actief");
-    teken();
-    zoomNaarStops();
-  };
-});
+// ---------- Landen en steden: knoppen automatisch uit de data ----------
+
+// Het land van een bar, als code: "BE", "ES", "FR", …
+function landVan(stop) {
+  if (stop.landcode) return stop.landcode;
+  const belgie = ["België", "Belgique", "Belgium"];
+  return belgie.includes(stop.land || "België") ? "BE" : stop.land;
+}
+
+// De naam van een land in de gekozen taal: "ES" wordt "Spanje", "Espagne" of "Spain"
+function landNaam(code) {
+  try {
+    if (/^[A-Z]{2}$/.test(code)) return new Intl.DisplayNames([taal], { type: "region" }).of(code);
+  } catch {}
+  return code;
+}
+
+// De groep (stad of regio) van een bar: in België onze vaste regio's, elders de gemeente
+function groepVan(stop) {
+  if (landVan(stop) === "BE" && stop.stad !== "buitenland") return stop.stad;
+  return stop.plaats || landNaam(landVan(stop));
+}
+
+// De naam op de knop: onze vaste regio's worden vertaald, andere steden blijven zoals ze zijn
+const VASTE_REGIOS = { antwerpen: "antwerpen", gent: "gent", brussel: "brussel", hellingen: "vlaanderen" };
+function groepNaam(groep) {
+  return VASTE_REGIOS[groep] ? t(VASTE_REGIOS[groep]) : groep;
+}
+
+// Een knop maken en in een rij zetten
+function maakKnop(rij, tekst, actief, bijKlik) {
+  const knop = document.createElement("button");
+  knop.textContent = tekst;
+  if (actief) knop.classList.add("actief");
+  knop.onclick = bijKlik;
+  rij.appendChild(knop);
+}
+
+function tekenFilters() {
+  // Welke landen komen voor in onze bars?
+  const landen = [...new Set(alleStops.map(landVan))]
+    .sort((x, y) => (x === "BE" ? -1 : y === "BE" ? 1 : landNaam(x).localeCompare(landNaam(y))));
+
+  // Bestaat het gekozen land niet (meer)? Kies dan iets dat wel bestaat
+  if (gekozenLand !== "alles" && landen.length > 0 && !landen.includes(gekozenLand)) {
+    gekozenLand = landen.length === 1 ? landen[0] : "alles";
+  }
+
+  // Rij 1: landen (alleen tonen als er meer dan één land is)
+  const landenRij = document.getElementById("landen");
+  landenRij.innerHTML = "";
+  landenRij.hidden = landen.length < 2;
+  maakKnop(landenRij, t("alleLanden"), gekozenLand === "alles", () => kiesFilter("alles", "alles"));
+  for (const land of landen) {
+    maakKnop(landenRij, landNaam(land), gekozenLand === land, () => kiesFilter(land, "alles"));
+  }
+
+  // Rij 2: steden van het gekozen land
+  const stedenRij = document.getElementById("steden");
+  stedenRij.innerHTML = "";
+  stedenRij.hidden = gekozenLand === "alles";
+  if (gekozenLand === "alles") return;
+
+  const volgorde = Object.keys(VASTE_REGIOS);
+  const groepen = [...new Set(alleStops.filter(s => landVan(s) === gekozenLand).map(groepVan))]
+    .sort((x, y) => {
+      const ix = volgorde.indexOf(x), iy = volgorde.indexOf(y);
+      if (ix !== -1 || iy !== -1) return (ix === -1 ? 99 : ix) - (iy === -1 ? 99 : iy);
+      return x.localeCompare(y);
+    });
+
+  maakKnop(stedenRij, t("alles"), gekozenStad === "alles", () => kiesFilter(gekozenLand, "alles"));
+  for (const groep of groepen) {
+    maakKnop(stedenRij, groepNaam(groep), gekozenStad === groep, () => kiesFilter(gekozenLand, groep));
+  }
+}
+
+function kiesFilter(land, stad) {
+  gekozenLand = land;
+  gekozenStad = stad;
+  teken();
+  zoomNaarStops();
+}
 
 document.getElementById("zoek").oninput = teken;
 document.getElementById("type").onchange = teken;
@@ -196,27 +288,130 @@ document.getElementById("formulier").onsubmit = async (event) => {
   const naam = document.getElementById("nieuwNaam").value.trim();
   const nieuweStop = {
     // id op basis van de naam: "Café Labath" wordt "cafe-labath"
-    id: naam.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    id: naam.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
             .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
     naam: naam,
     adres: document.getElementById("nieuwAdres").value.trim(),
+    land: document.getElementById("nieuwLand").value.trim() || "België",
+    landcode: gevondenLandcode || null,
+    plaats: document.getElementById("nieuwPlaats").value.trim(),
     stad: stadVan(nieuwePlek[0], nieuwePlek[1]),
     type: document.getElementById("nieuwWieler").checked ? "both" : "coffee",
     lat: Number(nieuwePlek[0].toFixed(5)),
     lng: Number(nieuwePlek[1].toFixed(5)),
     info: document.getElementById("nieuwInfo").value.trim()
   };
+  // Landcode niet gevonden via het adres? Dan leiden we ze af uit de naam van het land
+  if (!nieuweStop.landcode) nieuweStop.landcode = landVan({ land: nieuweStop.land });
+  // Buiten België hoort de bar niet bij onze vaste regio's, maar bij zijn gemeente
+  if (nieuweStop.landcode !== "BE") nieuweStop.stad = "buitenland";
 
   try {
+    // Foto gekozen? Eerst verkleinen en uploaden, dan de link bewaren bij de bar
+    const fotoBestand = document.getElementById("nieuwFoto").files[0];
+    if (fotoBestand) {
+      document.getElementById("plekTekst").textContent = t("fotoBezig");
+      nieuweStop.foto = await uploadFoto(await verkleinFoto(fotoBestand), nieuweStop.id);
+    }
+
     await voegStopToeInDatabase(nieuweStop);
     alleStops.push(nieuweStop);
+    gekozenLand = landVan(nieuweStop);   // toon het land van de nieuwe bar
+    gekozenStad = "alles";
     event.target.reset();
     nieuwePlek = null;
+    gevondenLandcode = "";
     document.getElementById("plekTekst").textContent = t("kiesPlek");
     kies(nieuweStop.id);
   } catch (fout) {
     document.getElementById("plekTekst").textContent = t("opslaanMislukt") + " " + fout.message;
   }
+};
+
+// ---------- Adres opzoeken (geocoding) ----------
+// We vragen aan OpenStreetMap: "waar ligt dit adres?" en krijgen coördinaten terug.
+let gevondenLandcode = "";   // de landcode van het laatst opgezochte adres
+
+async function zoekAdres(adres) {
+  const url = "https://nominatim.openstreetmap.org/search"
+            + "?format=jsonv2&addressdetails=1&limit=1&accept-language=nl"
+            + "&q=" + encodeURIComponent(adres);
+  const antwoord = await fetch(url);
+  const resultaten = await antwoord.json();
+  if (resultaten.length === 0) return null;   // niets gevonden
+
+  const r = resultaten[0];
+  const a = r.address;
+  return {
+    lat: Number(r.lat),
+    lng: Number(r.lon),
+    land: a.country || "",
+    landcode: (a.country_code || "").toUpperCase(),   // bv. "BE" of "ES"
+    // Een adres heeft een "city", "town" of "village", afhankelijk van hoe groot de plaats is
+    plaats: a.city || a.town || a.village || a.municipality || ""
+  };
+}
+
+document.getElementById("zoekAdresKnop").onclick = async () => {
+  const adres = document.getElementById("nieuwAdres").value.trim();
+  const tekst = document.getElementById("plekTekst");
+  if (!adres) {
+    tekst.textContent = t("eerstAdres");
+    return;
+  }
+
+  tekst.textContent = t("adresZoeken");
+  try {
+    const gevonden = await zoekAdres(adres);
+    if (!gevonden) {
+      tekst.textContent = t("adresNietGevonden");
+      return;
+    }
+    nieuwePlek = [gevonden.lat, gevonden.lng];
+    document.getElementById("nieuwLand").value = gevonden.land;
+    gevondenLandcode = gevonden.landcode;
+    document.getElementById("nieuwPlaats").value = gevonden.plaats;
+    tekst.textContent = t("adresGevonden");
+    kaart.setView(nieuwePlek, 17);   // inzoomen op de gevonden plek
+    teken();
+  } catch (fout) {
+    console.error(fout);
+    tekst.textContent = t("adresNietGevonden");
+  }
+};
+
+// ---------- Foto's ----------
+let fotoVoorStop = null;   // de bar waarvoor je net op "📷 Foto" klikte
+
+// Maakt een foto kleiner (max. 1200 pixels breed of hoog), zodat de app snel blijft
+async function verkleinFoto(bestand, maximum = 1200) {
+  const beeld = await createImageBitmap(bestand);
+  const schaal = Math.min(1, maximum / Math.max(beeld.width, beeld.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(beeld.width * schaal);
+  canvas.height = Math.round(beeld.height * schaal);
+  canvas.getContext("2d").drawImage(beeld, 0, 0, canvas.width, canvas.height);
+  // Omzetten naar een JPEG-bestand met kwaliteit 80%
+  return new Promise(klaar => canvas.toBlob(klaar, "image/jpeg", 0.8));
+}
+
+// Een foto gekozen via de knop "📷 Foto" bij een bestaande bar
+document.getElementById("fotoKiezer").onchange = async (event) => {
+  const bestand = event.target.files[0];
+  const stop = alleStops.find(s => s.id === fotoVoorStop);
+  event.target.value = "";   // leegmaken, zodat je dezelfde foto nog eens kunt kiezen
+  if (!bestand || !stop) return;
+
+  const teller = document.getElementById("teller");
+  teller.textContent = t("fotoBezig");
+  try {
+    const url = await uploadFoto(await verkleinFoto(bestand), stop.id);
+    await zetFotoVanStop(stop.id, url);
+    stop.foto = url;
+  } catch (fout) {
+    alert(t("opslaanMislukt") + " " + fout.message);
+  }
+  teken();
 };
 
 function zoomNaarStops() {
@@ -233,7 +428,16 @@ let rondkijken = false;   // true als iemand op "Eerst even rondkijken" klikte
 
 // Toon het welkomstscherm of de app
 function toonScherm() {
-  const toonApp = gebruiker !== null || rondkijken;
+  if (wachtwoordHerstel) {           // eerst een nieuw wachtwoord kiezen
+    document.getElementById("welkom").hidden = false;
+    document.getElementById("app").hidden = true;
+    toonTab("reset");
+    return;
+  }
+  // Na een wachtwoordreset: terug naar het gewone inlogscherm
+  if (!document.getElementById("resetFormulier").hidden) toonTab("login");
+
+  const toonApp = (gebruiker !== null || rondkijken);
   document.getElementById("welkom").hidden = toonApp;
   document.getElementById("app").hidden = !toonApp;
   document.getElementById("ingelogd").hidden = gebruiker === null;
@@ -244,22 +448,94 @@ function toonScherm() {
   }
 }
 
-// Account maken of inloggen: we sturen een link per mail
-document.getElementById("loginFormulier").onsubmit = async (event) => {
-  event.preventDefault();
-  const bericht = document.getElementById("loginBericht");
+const bericht = document.getElementById("loginBericht");
+// Komt iemand binnen via de link "wachtwoord vergeten"? Dan staat er ?wachtwoord=nieuw in het adres
+let wachtwoordHerstel = new URLSearchParams(location.search).get("wachtwoord") === "nieuw";
 
-  // Voornaam en nieuwsbriefkeuze onthouden tot de gebruiker terugkomt via de link
-  localStorage.setItem("nieuwProfiel", JSON.stringify({
-    voornaam: document.getElementById("voornaam").value.trim(),
-    nieuwsbrief: document.getElementById("nieuwsbriefBijStart").checked
-  }));
+// Tabbladen: "Account maken" of "Inloggen"
+function toonTab(welke) {
+  document.getElementById("nieuwFormulier").hidden = welke !== "nieuw";
+  document.getElementById("loginFormulier").hidden = welke !== "login";
+  document.getElementById("resetFormulier").hidden = welke !== "reset";
+  document.getElementById("tabs").hidden = welke === "reset";
+  document.getElementById("tabNieuw").classList.toggle("actief", welke === "nieuw");
+  document.getElementById("tabLogin").classList.toggle("actief", welke === "login");
+  bericht.textContent = "";
+}
+document.getElementById("tabNieuw").onclick = () => toonTab("nieuw");
+document.getElementById("tabLogin").onclick = () => toonTab("login");
+
+// Foutmeldingen van Supabase omzetten naar een duidelijke zin
+function leesbareFout(fout) {
+  const tekst = (fout.message || "").toLowerCase();
+  if (tekst.includes("invalid login")) return t("foutGegevens");
+  if (tekst.includes("not confirmed")) return t("foutBevestigen");
+  if (tekst.includes("already registered")) return t("foutBestaat");
+  if (tekst.includes("password")) return t("foutWachtwoord");
+  return fout.message;
+}
+
+// Account maken
+document.getElementById("nieuwFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  const voornaam = document.getElementById("nieuwVoornaam").value.trim();
+  const nieuwsbrief = document.getElementById("nieuwsbriefBijStart").checked;
+
+  // Voornaam en nieuwsbriefkeuze onthouden tot het profiel gemaakt wordt
+  localStorage.setItem("nieuwProfiel", JSON.stringify({ voornaam, nieuwsbrief }));
 
   try {
-    await stuurInloglink(document.getElementById("email").value.trim());
-    bericht.textContent = t("checkMail");
+    const meteenIngelogd = await maakAccount(
+      document.getElementById("nieuwEmail").value.trim(),
+      document.getElementById("nieuwWachtwoord").value,
+      voornaam, nieuwsbrief
+    );
+    // Moet het e-mailadres eerst bevestigd worden? Dan vertellen we dat.
+    if (!meteenIngelogd) bericht.textContent = t("bevestigMail");
   } catch (fout) {
-    bericht.textContent = t("loginMislukt") + " " + fout.message;
+    localStorage.removeItem("nieuwProfiel");   // mislukt: niets onthouden
+    bericht.textContent = leesbareFout(fout);
+  }
+};
+
+// Inloggen
+document.getElementById("loginFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  try {
+    await logIn(
+      document.getElementById("loginEmail").value.trim(),
+      document.getElementById("loginWachtwoord").value
+    );
+  } catch (fout) {
+    bericht.textContent = leesbareFout(fout);
+  }
+};
+
+// Wachtwoord vergeten: een resetlink sturen
+document.getElementById("vergeten").onclick = async () => {
+  const email = document.getElementById("loginEmail").value.trim();
+  if (!email) {
+    bericht.textContent = t("eerstEmail");
+    return;
+  }
+  try {
+    await stuurWachtwoordReset(email);
+    bericht.textContent = t("resetVerstuurd");
+  } catch (fout) {
+    bericht.textContent = leesbareFout(fout);
+  }
+};
+
+// Nieuw wachtwoord bewaren (na de resetlink)
+document.getElementById("resetFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  try {
+    await kiesNieuwWachtwoord(document.getElementById("resetWachtwoord").value);
+    wachtwoordHerstel = false;
+    history.replaceState(null, "", location.pathname);   // "?wachtwoord=nieuw" uit het adres halen
+    naInloggen();
+  } catch (fout) {
+    bericht.textContent = leesbareFout(fout);
   }
 };
 
@@ -289,8 +565,12 @@ document.getElementById("nieuwsbrief").onchange = async (event) => {
 
 // Het profiel aanmaken of bijwerken na het inloggen
 async function regelProfiel() {
-  const wachtend = JSON.parse(localStorage.getItem("nieuwProfiel") || "null");
   let profiel = await haalProfielOp();
+
+  // Voornaam en nieuwsbrief: uit deze browser, of (bij een gloednieuw account)
+  // uit de gegevens die bij het aanmaken van het account werden meegestuurd
+  const wachtend = JSON.parse(localStorage.getItem("nieuwProfiel") || "null")
+                   || (!profiel ? gebruiker.user_metadata : null);
 
   if (!profiel || wachtend) {
     const velden = { taal: taal };
@@ -352,6 +632,15 @@ zetKleur(localStorage.getItem("kleur") || "#0E7C7B");
 
 // ---------- 9. Starten ----------
 async function start() {
+  // Eerst luisteren naar inloggen en uitloggen, zodat we niets missen
+  // (bijvoorbeeld het seintje dat iemand via de resetlink binnenkomt)
+  db.auth.onAuthStateChange((gebeurtenis, sessie) => {
+    gebruiker = sessie ? sessie.user : null;
+    if (gebeurtenis === "PASSWORD_RECOVERY") wachtwoordHerstel = true;
+    setTimeout(naInloggen, 0);   // even wachten tot Supabase klaar is
+  });
+
+  // Dan de bars ophalen
   try {
     alleStops = await haalStopsOp();
   } catch (fout) {
@@ -367,12 +656,6 @@ async function start() {
   }
   teken();
   zoomNaarStops();
-
-  // Luisteren naar inloggen en uitloggen
-  db.auth.onAuthStateChange((gebeurtenis, sessie) => {
-    gebruiker = sessie ? sessie.user : null;
-    setTimeout(naInloggen, 0);   // even wachten tot Supabase klaar is
-  });
 }
 
 start();

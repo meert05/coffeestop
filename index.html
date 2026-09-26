@@ -27,12 +27,20 @@
 
   <!-- ===== WELKOMSTSCHERM: zichtbaar zolang je niet bent ingelogd ===== -->
   <section id="welkom" hidden>
-    <h2 data-t="welkomTitel">Maak een gratis account</h2>
+    <h2 data-t="welkomTitel">Welkom bij Koffiestop</h2>
     <p data-t="welkomTekst">Ontdek de beste koffiestops, bewaar je favorieten en mis geen enkele nieuwe bar.</p>
 
-    <form id="loginFormulier">
-      <input id="voornaam" placeholder="Voornaam" data-t-placeholder="voornaam" autocomplete="given-name">
-      <input id="email" type="email" required placeholder="jouw@email.be" data-t-placeholder="email" autocomplete="email">
+    <!-- Tabbladen: account maken of inloggen -->
+    <div id="tabs">
+      <button id="tabNieuw" class="actief" data-t="tabNieuw">Account maken</button>
+      <button id="tabLogin" data-t="tabLogin">Inloggen</button>
+    </div>
+
+    <!-- Account maken -->
+    <form id="nieuwFormulier" class="welkomFormulier">
+      <input id="nieuwVoornaam" placeholder="Voornaam" data-t-placeholder="voornaam" autocomplete="given-name" required>
+      <input id="nieuwEmail" type="email" placeholder="jouw@email.be" data-t-placeholder="email" autocomplete="email" required>
+      <input id="nieuwWachtwoord" type="password" minlength="8" placeholder="Wachtwoord (min. 8 tekens)" data-t-placeholder="wachtwoordNieuw" autocomplete="new-password" required>
 
       <!-- Nieuwsbrief: standaard UIT, de gebruiker kiest zelf -->
       <label class="vinkje">
@@ -40,10 +48,26 @@
         <span data-t="nieuwsbriefVraag">Ja, stuur me maandelijks een mail met nieuwe bars.</span>
       </label>
 
-      <button type="submit" data-t="accountMaken">Account maken of inloggen</button>
-      <p id="loginBericht"></p>
+      <button type="submit" data-t="accountMaken">Account maken</button>
       <small data-t="privacy">We bewaren alleen je voornaam, je e-mailadres, je favorieten en je nieuwsbriefkeuze. Je kunt je altijd uitschrijven.</small>
     </form>
+
+    <!-- Inloggen -->
+    <form id="loginFormulier" class="welkomFormulier" hidden>
+      <input id="loginEmail" type="email" placeholder="jouw@email.be" data-t-placeholder="email" autocomplete="email" required>
+      <input id="loginWachtwoord" type="password" placeholder="Wachtwoord" data-t-placeholder="wachtwoord" autocomplete="current-password" required>
+      <button type="submit" data-t="inloggen">Inloggen</button>
+      <button type="button" id="vergeten" class="link" data-t="vergeten">Wachtwoord vergeten?</button>
+    </form>
+
+    <!-- Nieuw wachtwoord kiezen (na klikken op de resetlink in je mail) -->
+    <form id="resetFormulier" class="welkomFormulier" hidden>
+      <strong data-t="nieuwWachtwoordTitel">Kies een nieuw wachtwoord</strong>
+      <input id="resetWachtwoord" type="password" minlength="8" placeholder="Wachtwoord (min. 8 tekens)" data-t-placeholder="wachtwoordNieuw" autocomplete="new-password" required>
+      <button type="submit" data-t="bewaarWachtwoord">Bewaar wachtwoord</button>
+    </form>
+
+    <p id="loginBericht"></p>
 
     <button id="zonderAccount" class="link" hidden data-t="zonderAccount">Eerst even rondkijken</button>
   </section>
@@ -72,14 +96,9 @@
       <input type="color" id="eigenKleur" value="#0E7C7B" aria-label="Eigen kleur">
     </div>
 
-    <!-- Knoppen om per stad te filteren -->
-    <nav id="steden">
-      <button data-stad="alles" class="actief" data-t="alles">Alles</button>
-      <button data-stad="antwerpen" data-t="antwerpen">Antwerpen</button>
-      <button data-stad="gent" data-t="gent">Gent</button>
-      <button data-stad="brussel" data-t="brussel">Brussel</button>
-      <button data-stad="hellingen" data-t="vlaanderen">Vlaanderen</button>
-    </nav>
+    <!-- Knoppen per land en per stad: worden automatisch gemaakt in app.js -->
+    <nav id="landen" hidden></nav>
+    <nav id="steden"></nav>
 
     <!-- Zoeken en filteren op type -->
     <div id="filters">
@@ -100,12 +119,26 @@
         <form id="formulier" hidden>
           <strong data-t="nieuweStop">Nieuwe stop</strong>
           <input id="nieuwNaam" placeholder="Naam" data-t-placeholder="naam" required>
-          <input id="nieuwAdres" placeholder="Adres" data-t-placeholder="adres">
+          <!-- Adres ingeven en laten opzoeken op de kaart -->
+          <div class="adresRij">
+            <input id="nieuwAdres" placeholder="Straat nr, gemeente" data-t-placeholder="adres">
+            <button type="button" id="zoekAdresKnop" data-t="zoekOpKaart">📍 Zoek op kaart</button>
+          </div>
+          <div class="adresRij">
+            <input id="nieuwPlaats" placeholder="Gemeente" data-t-placeholder="plaats">
+            <input id="nieuwLand" placeholder="Land" data-t-placeholder="land">
+          </div>
           <input id="nieuwInfo" placeholder="Korte beschrijving" data-t-placeholder="beschrijving">
           <label><input id="nieuwWieler" type="checkbox"> <span data-t="wielervriendelijk">Wielervriendelijk</span></label>
+          <label class="fotoVeld"><span data-t="fotoKiezen">Foto (optioneel)</span>
+            <input id="nieuwFoto" type="file" accept="image/*">
+          </label>
           <p id="plekTekst" data-t="kiesPlek">Klik op de kaart om de plek te kiezen.</p>
           <button type="submit" data-t="toevoegen">Toevoegen</button>
         </form>
+
+        <!-- Onzichtbaar: wordt geopend door de knop "📷 Foto" bij een bar -->
+        <input id="fotoKiezer" type="file" accept="image/*" hidden>
 
         <p id="teller"></p>
         <ul id="lijst"></ul>

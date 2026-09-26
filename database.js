@@ -37,6 +37,22 @@ async function verwijderStopUitDatabase(id) {
   if (error) throw error;
 }
 
+// ---------- Foto's (Supabase Storage) ----------
+async function uploadFoto(bestand, stopId) {
+  // Elke upload krijgt een unieke naam, bv. "bar-bidon-1727350000000.jpg"
+  const pad = stopId + "-" + Date.now() + ".jpg";
+  const { error } = await db.storage.from("fotos")
+    .upload(pad, bestand, { contentType: "image/jpeg" });
+  if (error) throw error;
+  // De openbare link naar de foto teruggeven
+  return db.storage.from("fotos").getPublicUrl(pad).data.publicUrl;
+}
+
+async function zetFotoVanStop(stopId, url) {
+  const { error } = await db.from("stops").update({ foto: url }).eq("id", stopId);
+  if (error) throw error;
+}
+
 // ---------- Favorieten ----------
 async function haalFavorietenOp() {
   const { data, error } = await db.from("favorieten").select("stop_id");
@@ -51,13 +67,39 @@ async function bewaarFavoriet(stopId, aan) {
   if (error) throw error;
 }
 
-// ---------- Inloggen ----------
-async function stuurInloglink(email) {
-  const { error } = await db.auth.signInWithOtp({
+// ---------- Inloggen met e-mail en wachtwoord ----------
+// Waar de links in de mails (bevestigen, wachtwoord resetten) naartoe gaan
+const TERUG_NAAR = location.origin + location.pathname;
+
+async function maakAccount(email, wachtwoord, voornaam, nieuwsbrief) {
+  const { data, error } = await db.auth.signUp({
     email: email,
-    // Na het klikken op de link in je mail kom je terug op deze pagina
-    options: { emailRedirectTo: location.origin + location.pathname }
+    password: wachtwoord,
+    options: {
+      emailRedirectTo: TERUG_NAAR,
+      // Extra info bij het account, zodat we ze later in het profiel kunnen zetten
+      data: { voornaam: voornaam, nieuwsbrief: nieuwsbrief }
+    }
   });
+  if (error) throw error;
+  return data.session !== null;   // true = meteen ingelogd, false = eerst mail bevestigen
+}
+
+async function logIn(email, wachtwoord) {
+  const { error } = await db.auth.signInWithPassword({ email: email, password: wachtwoord });
+  if (error) throw error;
+}
+
+async function stuurWachtwoordReset(email) {
+  // "?wachtwoord=nieuw" achter de link: zo weet de app dat je een nieuw wachtwoord komt kiezen
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: TERUG_NAAR + "?wachtwoord=nieuw"
+  });
+  if (error) throw error;
+}
+
+async function kiesNieuwWachtwoord(wachtwoord) {
+  const { error } = await db.auth.updateUser({ password: wachtwoord });
   if (error) throw error;
 }
 

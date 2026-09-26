@@ -207,19 +207,39 @@ header p { color: #B9C4C6; }
 #welkom h2 { margin: 0 0 8px; }
 #welkom > p { margin: 0 0 20px; color: var(--grijs); }
 
-#loginFormulier {
+.welkomFormulier {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-#loginFormulier button {
+.welkomFormulier button[type="submit"] {
   background: var(--accent);
   color: white;
   border: none;
   font-weight: 600;
 }
-#loginFormulier small { color: var(--grijs); }
-#loginBericht { margin: 0; font-size: 14px; color: var(--accent); }
+.welkomFormulier small { color: var(--grijs); }
+.welkomFormulier .link { margin: 0; align-self: flex-start; padding: 0; }
+
+#tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--lijn);
+}
+#tabs button {
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: none;
+  font-weight: 600;
+  color: var(--grijs);
+}
+#tabs button.actief {
+  color: var(--tekst);
+  border-bottom-color: var(--accent);
+}
+#loginBericht { margin: 12px 0 0; font-size: 14px; color: var(--accent); }
 
 .vinkje {
   display: flex;
@@ -247,3 +267,31 @@ header p { color: #B9C4C6; }
   margin-bottom: 12px;
 }
 #wie { font-weight: 600; }
+/* ---------- Foto-upload ---------- */
+.fotoVeld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--grijs);
+}
+.acties button {
+  margin-left: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+/* ---------- Adres opzoeken ---------- */
+.adresRij {
+  display: flex;
+  gap: 8px;
+}
+.adresRij input { flex: 1; min-width: 0; }
+#zoekAdresKnop { white-space: nowrap; }
+/* ---------- Landen ---------- */
+#landen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+#landen button { font-weight: 600; }
