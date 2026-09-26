@@ -23,6 +23,43 @@
 
     <h1>Koffie<span>stop</span></h1>
     <p data-t="ondertitel">Koffiebars en wielercafés in Vlaanderen en Brussel</p>
+  </header>
+
+  <!-- ===== WELKOMSTSCHERM: zichtbaar zolang je niet bent ingelogd ===== -->
+  <section id="welkom" hidden>
+    <h2 data-t="welkomTitel">Maak een gratis account</h2>
+    <p data-t="welkomTekst">Ontdek de beste koffiestops, bewaar je favorieten en mis geen enkele nieuwe bar.</p>
+
+    <form id="loginFormulier">
+      <input id="voornaam" placeholder="Voornaam" data-t-placeholder="voornaam" autocomplete="given-name">
+      <input id="email" type="email" required placeholder="jouw@email.be" data-t-placeholder="email" autocomplete="email">
+
+      <!-- Nieuwsbrief: standaard UIT, de gebruiker kiest zelf -->
+      <label class="vinkje">
+        <input id="nieuwsbriefBijStart" type="checkbox">
+        <span data-t="nieuwsbriefVraag">Ja, stuur me maandelijks een mail met nieuwe bars.</span>
+      </label>
+
+      <button type="submit" data-t="accountMaken">Account maken of inloggen</button>
+      <p id="loginBericht"></p>
+      <small data-t="privacy">We bewaren alleen je voornaam, je e-mailadres, je favorieten en je nieuwsbriefkeuze. Je kunt je altijd uitschrijven.</small>
+    </form>
+
+    <button id="zonderAccount" class="link" hidden data-t="zonderAccount">Eerst even rondkijken</button>
+  </section>
+
+  <!-- ===== DE APP: zichtbaar na het inloggen ===== -->
+  <div id="app" hidden>
+
+    <!-- Ingelogd als… met nieuwsbrief-schakelaar en uitloggen -->
+    <div id="ingelogd">
+      <span id="wie"></span>
+      <label class="vinkje">
+        <input id="nieuwsbrief" type="checkbox">
+        <span data-t="nieuwsbriefKort">Maandelijkse mail</span>
+      </label>
+      <button id="uitlogKnop" data-t="uitloggen">Uitloggen</button>
+    </div>
 
     <!-- Kleurkiezer: klik een bolletje of kies je eigen kleur -->
     <div id="kleuren">
@@ -34,50 +71,55 @@
       <button class="bolletje" data-kleur="#7A4A2E" style="background:#7A4A2E" aria-label="Koffiebruin"></button>
       <input type="color" id="eigenKleur" value="#0E7C7B" aria-label="Eigen kleur">
     </div>
-  </header>
 
-  <!-- Knoppen om per stad te filteren -->
-  <nav id="steden">
-    <button data-stad="alles" class="actief" data-t="alles">Alles</button>
-    <button data-stad="antwerpen" data-t="antwerpen">Antwerpen</button>
-    <button data-stad="gent" data-t="gent">Gent</button>
-    <button data-stad="brussel" data-t="brussel">Brussel</button>
-    <button data-stad="hellingen" data-t="vlaanderen">Vlaanderen</button>
-  </nav>
+    <!-- Knoppen om per stad te filteren -->
+    <nav id="steden">
+      <button data-stad="alles" class="actief" data-t="alles">Alles</button>
+      <button data-stad="antwerpen" data-t="antwerpen">Antwerpen</button>
+      <button data-stad="gent" data-t="gent">Gent</button>
+      <button data-stad="brussel" data-t="brussel">Brussel</button>
+      <button data-stad="hellingen" data-t="vlaanderen">Vlaanderen</button>
+    </nav>
 
-  <!-- Zoeken en filteren op type -->
-  <div id="filters">
-    <input id="zoek" type="search" placeholder="Zoek een stop…" data-t-placeholder="zoek">
-    <select id="type">
-      <option value="alles" data-t="alleTypes">Alle types</option>
-      <option value="coffee" data-t="koffie">Specialty koffie</option>
-      <option value="wieler" data-t="wieler">Wielercafé</option>
-      <option value="favoriet" data-t="favorieten">★ Mijn favorieten</option>
-    </select>
+    <!-- Zoeken en filteren op type -->
+    <div id="filters">
+      <input id="zoek" type="search" placeholder="Zoek een stop…" data-t-placeholder="zoek">
+      <select id="type">
+        <option value="alles" data-t="alleTypes">Alle types</option>
+        <option value="coffee" data-t="koffie">Specialty koffie</option>
+        <option value="wieler" data-t="wieler">Wielercafé</option>
+        <option value="favoriet" data-t="favorieten">★ Mijn favorieten</option>
+      </select>
+    </div>
+
+    <main>
+      <div id="kaart"></div>
+
+      <section>
+        <!-- Formulier voor nieuwe bars: alleen zichtbaar voor de beheerder -->
+        <form id="formulier" hidden>
+          <strong data-t="nieuweStop">Nieuwe stop</strong>
+          <input id="nieuwNaam" placeholder="Naam" data-t-placeholder="naam" required>
+          <input id="nieuwAdres" placeholder="Adres" data-t-placeholder="adres">
+          <input id="nieuwInfo" placeholder="Korte beschrijving" data-t-placeholder="beschrijving">
+          <label><input id="nieuwWieler" type="checkbox"> <span data-t="wielervriendelijk">Wielervriendelijk</span></label>
+          <p id="plekTekst" data-t="kiesPlek">Klik op de kaart om de plek te kiezen.</p>
+          <button type="submit" data-t="toevoegen">Toevoegen</button>
+        </form>
+
+        <p id="teller"></p>
+        <ul id="lijst"></ul>
+      </section>
+    </main>
   </div>
 
-  <main>
-    <div id="kaart"></div>
-
-    <section>
-      <!-- Formulier om zelf een stop toe te voegen -->
-      <form id="formulier">
-        <strong data-t="nieuweStop">Nieuwe stop</strong>
-        <input id="nieuwNaam" placeholder="Naam" data-t-placeholder="naam" required>
-        <input id="nieuwInfo" placeholder="Korte beschrijving" data-t-placeholder="beschrijving">
-        <label><input id="nieuwWieler" type="checkbox"> <span data-t="wielervriendelijk">Wielervriendelijk</span></label>
-        <p id="plekTekst" data-t="kiesPlek">Klik op de kaart om de plek te kiezen.</p>
-        <button type="submit" data-t="toevoegen">Toevoegen</button>
-      </form>
-
-      <p id="teller"></p>
-      <ul id="lijst"></ul>
-    </section>
-  </main>
-
-  <!-- Eerst Leaflet laden, dan onze eigen code -->
+  <!-- Bibliotheken: kaart en database -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Onze eigen code, in deze volgorde -->
+  <script src="database.js"></script>
   <script src="vertalingen.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

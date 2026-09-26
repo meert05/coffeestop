@@ -3,31 +3,26 @@
 // =====================================================
 
 // ---------- 1. De toestand van de app ----------
-// Alles wat kan veranderen, bewaren we op één plek.
-let alleStops = [];          // wordt gevuld uit stops.json
+let alleStops = [];          // komt uit de database
 let gekozenStad = "alles";
 let gekozenStop = null;      // de id van de stop waarop je klikte
 let nieuwePlek = null;       // waar je klikte op de kaart voor een nieuwe stop
 
-// Favorieten en eigen stops bewaren we in de browser (localStorage),
-// zodat ze er nog zijn als je de pagina ververst.
+// Favorieten: in de browser voor bezoekers, in de database als je bent ingelogd
 let favorieten = JSON.parse(localStorage.getItem("favorieten") || "[]");
-let eigenStops = JSON.parse(localStorage.getItem("eigenStops") || "[]");
 
-function bewaar() {
+function bewaarLokaal() {
   localStorage.setItem("favorieten", JSON.stringify(favorieten));
-  localStorage.setItem("eigenStops", JSON.stringify(eigenStops));
 }
 
 // ---------- 2. De kaart ----------
-const kaart = L.map("kaart").setView([50.95, 4.1], 8);   // [breedte, lengte], zoom
+const kaart = L.map("kaart").setView([50.95, 4.1], 8);
 
-// De achtergrond van de kaart komt van OpenStreetMap
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(kaart);
 
-const stippen = L.layerGroup().addTo(kaart);   // hierin komen alle stippen
+const stippen = L.layerGroup().addTo(kaart);
 
 function kleur(type) {
   if (type === "wieler") return "#D9A300";
@@ -73,7 +68,6 @@ function tekenKaart(stops) {
     stip.addTo(stippen);
   }
 
-  // De stip voor een nieuwe stop die je aan het toevoegen bent
   if (nieuwePlek) {
     L.circleMarker(nieuwePlek, { radius: 9, color: "red", dashArray: "4" }).addTo(stippen);
   }
@@ -91,48 +85,55 @@ function tekenLijst(stops) {
 
     const isFavoriet = favorieten.includes(stop.id);
     const route = "https://www.google.com/maps/search/?api=1&query=" +
-                  encodeURIComponent(stop.naam + " " + stop.adres);
+                  encodeURIComponent(stop.naam + " " + (stop.adres || ""));
 
     li.innerHTML = `
-      ${stop.foto ? `<img class="foto" src="${stop.foto}" alt="Foto van ${stop.naam}">` : ""}
+      ${stop.foto ? `<img class="foto" src="${stop.foto}" alt="">` : ""}
       <button class="ster">${isFavoriet ? "★" : "☆"}</button>
       <h3></h3>
       <small></small>
       <p></p>
       <div class="acties">
         <a href="${route}" target="_blank">${t("route")}</a>
-        ${stop.eigen ? `<button class="wis">${t("verwijder")}</button>` : ""}
+        ${isBeheerder() ? `<button class="wis">${t("verwijder")}</button>` : ""}
       </div>`;
 
-    // Tekst zetten we apart met textContent: dat is veiliger dan innerHTML
     li.querySelector("h3").textContent = stop.naam;
-    li.querySelector("small").textContent = stop.adres;
-    li.querySelector("p").textContent = stop["info_" + taal] || stop.info;
+    li.querySelector("small").textContent = stop.adres || "";
+    li.querySelector("p").textContent = stop["info_" + taal] || stop.info || "";
 
-    // Klikken op de ster: favoriet aan/uit
-    li.querySelector(".ster").onclick = (event) => {
-      event.stopPropagation();          // zodat de klik niet ook de hele stop kiest
+    // Favoriet aan/uit
+    li.querySelector(".ster").onclick = async (event) => {
+      event.stopPropagation();
       if (isFavoriet) favorieten = favorieten.filter(id => id !== stop.id);
       else favorieten.push(stop.id);
-      bewaar();
+      bewaarLokaal();
       teken();
+
+      // Ingelogd? Dan ook in de database bewaren
+      if (gebruiker) {
+        try { await bewaarFavoriet(stop.id, !isFavoriet); }
+        catch (fout) { console.error(fout); }
+      }
     };
 
-    // Klikken op "Verwijder" (alleen bij je eigen stops)
+    // Verwijderen (alleen de beheerder ziet deze knop)
     const wisKnop = li.querySelector(".wis");
     if (wisKnop) {
-      wisKnop.onclick = (event) => {
+      wisKnop.onclick = async (event) => {
         event.stopPropagation();
-        eigenStops = eigenStops.filter(s => s.id !== stop.id);
-        alleStops = alleStops.filter(s => s.id !== stop.id);
-        bewaar();
-        teken();
+        if (!confirm(t("zekerVerwijderen") + " " + stop.naam)) return;
+        try {
+          await verwijderStopUitDatabase(stop.id);
+          alleStops = alleStops.filter(s => s.id !== stop.id);
+          teken();
+        } catch (fout) {
+          alert(t("opslaanMislukt") + " " + fout.message);
+        }
       };
     }
 
-    // Klikken op de kaart: zoom naar die stop
     li.onclick = () => kies(stop.id);
-
     lijst.appendChild(li);
   }
 }
@@ -158,65 +159,188 @@ document.querySelectorAll("#steden button").forEach(knop => {
   };
 });
 
-// Zoeken en type: bij elke letter opnieuw tekenen
 document.getElementById("zoek").oninput = teken;
 document.getElementById("type").onchange = teken;
 
-// Klikken op de kaart: plek kiezen voor een nieuwe stop
+// Klikken op de kaart: plek kiezen (alleen voor de beheerder)
 kaart.on("click", (event) => {
+  if (!isBeheerder()) return;
   nieuwePlek = [event.latlng.lat, event.latlng.lng];
   document.getElementById("plekTekst").textContent = t("plekGekozen");
   teken();
 });
 
-// Het formulier versturen: nieuwe stop toevoegen
-document.getElementById("formulier").onsubmit = (event) => {
-  event.preventDefault();   // anders herlaadt de pagina
+// Welke stad ligt het dichtst bij een plek? Verder dan 9 km = "hellingen"
+function stadVan(lat, lng) {
+  const centra = {
+    antwerpen: [51.2194, 4.4025],
+    gent: [51.0543, 3.7174],
+    brussel: [50.8467, 4.3525]
+  };
+  for (const [stad, [clat, clng]] of Object.entries(centra)) {
+    const km = Math.hypot((lat - clat) * 111, (lng - clng) * 70);
+    if (km < 9) return stad;
+  }
+  return "hellingen";
+}
+
+// Nieuwe stop opslaan in de database (alleen de beheerder)
+document.getElementById("formulier").onsubmit = async (event) => {
+  event.preventDefault();
 
   if (!nieuwePlek) {
     document.getElementById("plekTekst").textContent = t("eerstKlikken");
     return;
   }
 
+  const naam = document.getElementById("nieuwNaam").value.trim();
   const nieuweStop = {
-    id: "eigen-" + Date.now(),                 // unieke id op basis van de tijd
-    naam: document.getElementById("nieuwNaam").value,
-    adres: "",
-    stad: gekozenStad === "alles" ? "hellingen" : gekozenStad,
+    // id op basis van de naam: "Café Labath" wordt "cafe-labath"
+    id: naam.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+            .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+    naam: naam,
+    adres: document.getElementById("nieuwAdres").value.trim(),
+    stad: stadVan(nieuwePlek[0], nieuwePlek[1]),
     type: document.getElementById("nieuwWieler").checked ? "both" : "coffee",
-    lat: nieuwePlek[0],
-    lng: nieuwePlek[1],
-    info: document.getElementById("nieuwInfo").value,
-    eigen: true
+    lat: Number(nieuwePlek[0].toFixed(5)),
+    lng: Number(nieuwePlek[1].toFixed(5)),
+    info: document.getElementById("nieuwInfo").value.trim()
   };
 
-  eigenStops.push(nieuweStop);
-  alleStops.push(nieuweStop);
-  bewaar();
-
-  // Formulier leegmaken
-  event.target.reset();
-  nieuwePlek = null;
-  document.getElementById("plekTekst").textContent = t("kiesPlek");
-  kies(nieuweStop.id);
+  try {
+    await voegStopToeInDatabase(nieuweStop);
+    alleStops.push(nieuweStop);
+    event.target.reset();
+    nieuwePlek = null;
+    document.getElementById("plekTekst").textContent = t("kiesPlek");
+    kies(nieuweStop.id);
+  } catch (fout) {
+    document.getElementById("plekTekst").textContent = t("opslaanMislukt") + " " + fout.message;
+  }
 };
 
-// Zoom de kaart zodat alle zichtbare stops erop passen
 function zoomNaarStops() {
   const stops = zichtbareStops();
   if (stops.length === 0) return;
-  const grenzen = L.latLngBounds(stops.map(s => [s.lat, s.lng]));
-  kaart.fitBounds(grenzen, { padding: [30, 30] });
+  kaart.fitBounds(L.latLngBounds(stops.map(s => [s.lat, s.lng])), { padding: [30, 30] });
+}
+
+// ---------- 7. Account: welkomstscherm, inloggen en nieuwsbrief ----------
+
+// Moet je een account hebben om de app te zien? Zet op false om bezoekers toe te laten.
+const ACCOUNT_VERPLICHT = true;
+let rondkijken = false;   // true als iemand op "Eerst even rondkijken" klikte
+
+// Toon het welkomstscherm of de app
+function toonScherm() {
+  const toonApp = gebruiker !== null || rondkijken;
+  document.getElementById("welkom").hidden = toonApp;
+  document.getElementById("app").hidden = !toonApp;
+  document.getElementById("ingelogd").hidden = gebruiker === null;
+
+  if (toonApp) {
+    // Een kaart die eerst verborgen was, moet zijn grootte opnieuw meten
+    setTimeout(() => { kaart.invalidateSize(); zoomNaarStops(); }, 0);
+  }
+}
+
+// Account maken of inloggen: we sturen een link per mail
+document.getElementById("loginFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  const bericht = document.getElementById("loginBericht");
+
+  // Voornaam en nieuwsbriefkeuze onthouden tot de gebruiker terugkomt via de link
+  localStorage.setItem("nieuwProfiel", JSON.stringify({
+    voornaam: document.getElementById("voornaam").value.trim(),
+    nieuwsbrief: document.getElementById("nieuwsbriefBijStart").checked
+  }));
+
+  try {
+    await stuurInloglink(document.getElementById("email").value.trim());
+    bericht.textContent = t("checkMail");
+  } catch (fout) {
+    bericht.textContent = t("loginMislukt") + " " + fout.message;
+  }
+};
+
+// "Eerst even rondkijken" (alleen als een account niet verplicht is)
+document.getElementById("zonderAccount").hidden = ACCOUNT_VERPLICHT;
+document.getElementById("zonderAccount").onclick = () => {
+  rondkijken = true;
+  toonScherm();
+};
+
+document.getElementById("uitlogKnop").onclick = logUit;
+
+// De nieuwsbrief aan- of uitzetten in de app
+document.getElementById("nieuwsbrief").onchange = async (event) => {
+  const aan = event.target.checked;
+  try {
+    await bewaarProfiel({
+      nieuwsbrief: aan,
+      // Het moment van toestemming bewaren: dat moet je kunnen aantonen (GDPR)
+      nieuwsbrief_toestemming_op: aan ? new Date().toISOString() : null
+    });
+  } catch (fout) {
+    console.error(fout);
+    event.target.checked = !aan;   // mislukt? zet het vinkje terug
+  }
+};
+
+// Het profiel aanmaken of bijwerken na het inloggen
+async function regelProfiel() {
+  const wachtend = JSON.parse(localStorage.getItem("nieuwProfiel") || "null");
+  let profiel = await haalProfielOp();
+
+  if (!profiel || wachtend) {
+    const velden = { taal: taal };
+    if (wachtend && wachtend.voornaam) velden.voornaam = wachtend.voornaam;
+    // Alleen AANzetten vanuit het welkomstscherm, nooit per ongeluk uitzetten
+    if (wachtend && wachtend.nieuwsbrief) {
+      velden.nieuwsbrief = true;
+      velden.nieuwsbrief_toestemming_op = new Date().toISOString();
+    }
+    await bewaarProfiel(velden);
+    localStorage.removeItem("nieuwProfiel");
+    profiel = await haalProfielOp();
+  }
+
+  document.getElementById("wie").textContent =
+    (profiel && profiel.voornaam) ? profiel.voornaam : gebruiker.email;
+  document.getElementById("nieuwsbrief").checked = Boolean(profiel && profiel.nieuwsbrief);
+}
+
+// Wordt uitgevoerd bij het openen van de pagina, na inloggen en na uitloggen
+async function naInloggen() {
+  toonScherm();
+
+  // Het formulier voor nieuwe bars: alleen voor jou
+  document.getElementById("formulier").hidden = !isBeheerder();
+
+  if (gebruiker) {
+    try {
+      await regelProfiel();
+
+      // Favorieten uit de database, en favorieten van vóór het inloggen meenemen
+      const uitDatabase = await haalFavorietenOp();
+      const nogNietBewaard = favorieten.filter(id => !uitDatabase.includes(id));
+      for (const id of nogNietBewaard) await bewaarFavoriet(id, true);
+      favorieten = uitDatabase.concat(nogNietBewaard);
+      bewaarLokaal();
+    } catch (fout) {
+      console.error(fout);
+    }
+  }
+  teken();
 }
 
 // ---------- 8. Kleur van de app ----------
 function zetKleur(kleur) {
-  // Verander de variabele --accent uit style.css: alles wat die kleur gebruikt, verandert mee
   document.documentElement.style.setProperty("--accent", kleur);
   document.getElementById("eigenKleur").value = kleur;
   document.querySelectorAll(".bolletje").forEach(b =>
     b.classList.toggle("actief", b.dataset.kleur === kleur));
-  localStorage.setItem("kleur", kleur);   // onthouden voor de volgende keer
+  localStorage.setItem("kleur", kleur);
 }
 
 document.querySelectorAll(".bolletje").forEach(b => {
@@ -226,15 +350,29 @@ document.getElementById("eigenKleur").oninput = (event) => zetKleur(event.target
 
 zetKleur(localStorage.getItem("kleur") || "#0E7C7B");
 
-// ---------- 7. Starten: data inladen ----------
-fetch("stops.json")
-  .then(antwoord => antwoord.json())
-  .then(data => {
-    alleStops = data.concat(eigenStops);
-    teken();
-    zoomNaarStops();
-  })
-  .catch(() => {
-    document.getElementById("teller").textContent =
-      t("fout");
+// ---------- 9. Starten ----------
+async function start() {
+  try {
+    alleStops = await haalStopsOp();
+  } catch (fout) {
+    // Database onbereikbaar? Dan gebruiken we stops.json als reserve
+    console.error(fout);
+    try {
+      const antwoord = await fetch("stops.json");
+      alleStops = await antwoord.json();
+    } catch {
+      document.getElementById("teller").textContent = t("fout");
+      return;
+    }
+  }
+  teken();
+  zoomNaarStops();
+
+  // Luisteren naar inloggen en uitloggen
+  db.auth.onAuthStateChange((gebeurtenis, sessie) => {
+    gebruiker = sessie ? sessie.user : null;
+    setTimeout(naInloggen, 0);   // even wachten tot Supabase klaar is
   });
+}
+
+start();
