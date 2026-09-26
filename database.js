@@ -132,3 +132,49 @@ async function bewaarProfiel(velden) {
     .upsert({ id: gebruiker.id, email: gebruiker.email, ...velden });
   if (error) throw error;
 }
+
+// ---------- Reviews ----------
+async function haalReviewsOp() {
+  const { data, error } = await db.from("reviews")
+    .select("stop_id, user_id, score, tekst, voornaam, gemaakt_op")
+    .order("gemaakt_op", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+async function bewaarReview(stopId, score, tekst, voornaam) {
+  // upsert: een nieuwe review, of je bestaande review voor deze bar bijwerken
+  const { error } = await db.from("reviews").upsert({
+    stop_id: stopId, user_id: gebruiker.id, score: score, tekst: tekst, voornaam: voornaam
+  });
+  if (error) throw error;
+}
+
+async function verwijderReview(stopId, userId) {
+  const { error } = await db.from("reviews").delete().eq("stop_id", stopId).eq("user_id", userId);
+  if (error) throw error;
+}
+
+// ---------- Bars voorstellen ----------
+async function stuurVoorstel(naam, adres, info) {
+  const { error } = await db.from("voorstellen").insert({ naam: naam, adres: adres, info: info });
+  if (error) throw error;
+}
+
+async function haalVoorstellenOp() {
+  const { data, error } = await db.from("voorstellen").select("*").order("gemaakt_op");
+  if (error) throw error;
+  return data;
+}
+
+async function verwijderVoorstel(id) {
+  const { error } = await db.from("voorstellen").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ---------- Account verwijderen ----------
+// Roept de functie "verwijder_mijn_account" in de database aan (zie SQL)
+async function verwijderMijnAccount() {
+  const { error } = await db.rpc("verwijder_mijn_account");
+  if (error) throw error;
+}

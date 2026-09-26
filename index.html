@@ -50,6 +50,7 @@
 
       <button type="submit" data-t="accountMaken">Account maken</button>
       <small data-t="privacy">We bewaren alleen je voornaam, je e-mailadres, je favorieten en je nieuwsbriefkeuze. Je kunt je altijd uitschrijven.</small>
+      <small><a href="privacy.html" target="_blank" data-t="privacyLink">Privacyverklaring</a></small>
     </form>
 
     <!-- Inloggen -->
@@ -83,6 +84,7 @@
         <span data-t="nieuwsbriefKort">Maandelijkse mail</span>
       </label>
       <button id="uitlogKnop" data-t="uitloggen">Uitloggen</button>
+      <button id="verwijderAccountKnop" class="link" data-t="accountVerwijderen">Account verwijderen</button>
     </div>
 
     <!-- Kleurkiezer: klik een bolletje of kies je eigen kleur -->
@@ -103,6 +105,7 @@
     <!-- Zoeken en filteren op type -->
     <div id="filters">
       <input id="zoek" type="search" placeholder="Zoek een stop…" data-t-placeholder="zoek">
+      <button id="dichtbijKnop" type="button" data-t="dichtbij">📍 Dichtbij mij</button>
     </div>
 
     <!-- Knopjes: Alles · Wielercafé · PC-friendly · Mijn favorieten (gemaakt in app.js) -->
@@ -141,10 +144,29 @@
         <!-- Onzichtbaar: wordt geopend door de knop "📷 Foto" bij een bar -->
         <input id="fotoKiezer" type="file" accept="image/*" hidden>
 
+        <!-- Voor de beheerder: voorstellen van gebruikers -->
+        <div id="voorstellenBeheer" hidden></div>
+
+        <!-- Voor gebruikers: een bar voorstellen -->
+        <div id="voorstelBlok" hidden>
+          <button id="voorstelKnop" type="button" data-t="barVoorstellen">➕ Bar voorstellen</button>
+          <form id="voorstelFormulier" class="welkomFormulier" hidden>
+            <input id="voorstelNaam" required maxlength="100" placeholder="Naam van de bar" data-t-placeholder="voorstelNaam">
+            <input id="voorstelAdres" required maxlength="200" placeholder="Straat nr, gemeente" data-t-placeholder="adres">
+            <input id="voorstelInfo" maxlength="500" placeholder="Waarom is ze de moeite?" data-t-placeholder="voorstelWaarom">
+            <button type="submit" data-t="voorstelSturen">Voorstel sturen</button>
+          </form>
+          <small id="voorstelMelding"></small>
+        </div>
+
         <p id="teller"></p>
         <ul id="lijst"></ul>
       </section>
     </main>
+
+    <footer>
+      <a href="privacy.html" target="_blank" data-t="privacyLink">Privacyverklaring</a>
+    </footer>
   </div>
 
   <!-- Bibliotheken: kaart en database -->
@@ -154,6 +176,10 @@
   <!-- Onze eigen code, in deze volgorde -->
   <script src="database.js"></script>
   <script src="vertalingen.js"></script>
+  <script src="locatie.js"></script>
+  <script src="openingsuren.js"></script>
+  <script src="reviews.js"></script>
+  <script src="voorstellen.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

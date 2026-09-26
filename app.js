@@ -2,6 +2,14 @@
 //  KOFFIESTOP – alle logica van de app
 // =====================================================
 
+// ---------- Hulpje: tekst veilig in HTML zetten ----------
+// Zet tekens zoals < en > om, zodat tekst van gebruikers (reviews, voorstellen)
+// nooit als code wordt uitgevoerd. Dat heet "escapen".
+function esc(tekst) {
+  return String(tekst ?? "").replace(/[&<>"']/g, teken =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[teken]);
+}
+
 // ---------- 1. De toestand van de app ----------
 let alleStops = [];          // komt uit de database
 let gekozenLand = "BE";      // landcode, of "alles"
@@ -17,7 +25,8 @@ let favorieten = JSON.parse(localStorage.getItem("favorieten") || "[]");
 const KENMERKEN = {
   laptop: { icoon: "💻", groep: "werkplek" }
 };
-let gekozenCategorie = "alles";   // "alles", "wieler", "laptop" of "favoriet"
+// De aangeklikte filterknopjes. Leeg = alles tonen. Meerdere = ze moeten allemaal kloppen.
+let gekozenFilters = [];
 let bewerkKenmerkenVan = null;   // de bar waarvan de beheerder de kenmerken aan het aanpassen is
 
 function kenmerkenVan(stop) {
@@ -50,9 +59,11 @@ function zichtbareStops() {
   return alleStops.filter(stop => {
     if (gekozenLand !== "alles" && landVan(stop) !== gekozenLand) return false;
     if (gekozenStad !== "alles" && groepVan(stop) !== gekozenStad) return false;
-    if (gekozenCategorie === "wieler" && stop.type === "coffee") return false;
-    if (gekozenCategorie === "laptop" && !kenmerkenVan(stop).includes("laptop")) return false;
-    if (gekozenCategorie === "favoriet" && !favorieten.includes(stop.id)) return false;
+    if (gekozenFilters.includes("wieler") && stop.type === "coffee") return false;
+    if (gekozenFilters.includes("laptop") && !kenmerkenVan(stop).includes("laptop")) return false;
+    if (gekozenFilters.includes("nuOpen") && !isNuOpen(stop)) return false;
+    if (gekozenFilters.includes("zondagVroeg") && !zondagVroegOpen(stop)) return false;
+    if (gekozenFilters.includes("favoriet") && !favorieten.includes(stop.id)) return false;
     if (!stop.naam.toLowerCase().includes(zoekterm)) return false;
     return true;
   });
@@ -61,6 +72,7 @@ function zichtbareStops() {
 // ---------- 4. Alles tekenen ----------
 function teken() {
   tekenFilters();
+  if (isBeheerder()) tekenVoorstellen();   // in de juiste taal
   const stops = zichtbareStops();
   tekenKaart(stops);
   tekenLijst(stops);
@@ -82,6 +94,12 @@ function tekenKaart(stops) {
     stip.addTo(stippen);
   }
 
+  // Jouw locatie: een blauwe stip
+  if (mijnPlek) {
+    L.circleMarker(mijnPlek, { radius: 8, color: "white", weight: 3, fillColor: "#2F80ED", fillOpacity: 1 })
+      .bindTooltip(t("jijBentHier")).addTo(stippen);
+  }
+
   // De speld voor een nieuwe bar: je kunt ze verslepen als ze niet helemaal juist staat
   if (nieuwePlek) {
     const speld = L.marker(nieuwePlek, { draggable: true }).addTo(stippen);
@@ -98,6 +116,12 @@ function tekenLijst(stops) {
   const lijst = document.getElementById("lijst");
   lijst.innerHTML = "";
 
+  // Je locatie bekend? Dan de dichtstbijzijnde bars eerst
+  if (mijnPlek) {
+    stops = [...stops].sort((a, b) =>
+      afstandKm(mijnPlek, [a.lat, a.lng]) - afstandKm(mijnPlek, [b.lat, b.lng]));
+  }
+
   for (const stop of stops) {
     const li = document.createElement("li");
     li.className = stop.type + (stop.id === gekozenStop ? " gekozen" : "");
@@ -111,7 +135,9 @@ function tekenLijst(stops) {
       <button class="ster">${isFavoriet ? "★" : "☆"}</button>
       <h3></h3>
       <small></small>
+      ${mijnPlek ? `<span class="afstand">📍 ${afstandTekst(stop)}</span>` : ""}
       <p></p>
+      ${openingsurenHTML(stop)}
       <div class="labels">
         ${stop.type !== "coffee" ? `<span class="label">🚴 ${t("wieler")}</span>` : ""}
         ${kenmerkenVan(stop).filter(k => KENMERKEN[k])
@@ -122,13 +148,16 @@ function tekenLijst(stops) {
             ${stop.type !== "coffee" ? "checked" : ""}> 🚴 ${t("wieler")}</label>
         ${Object.keys(KENMERKEN).map(k => `<label class="vinkje"><input type="checkbox" class="kenmerk" value="${k}"
             ${kenmerkenVan(stop).includes(k) ? "checked" : ""}> ${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</label>`).join("")}
+        ${urenBewerkenHTML(stop)}
       </div>` : ""}
       <div class="acties">
         <a href="${route}" target="_blank">${t("route")}</a>
+        <button class="reviewKnop">${reviewKnopTekst(stop)}</button>
         ${isBeheerder() ? `<button class="kenmerkKnop">${t("kenmerkenBewerken")}</button>` : ""}
         ${isBeheerder() ? `<button class="fotoKnop">${t("foto")}</button>` : ""}
         ${isBeheerder() ? `<button class="wis">${t("verwijder")}</button>` : ""}
-      </div>`;
+      </div>
+      ${reviewsBlokHTML(stop)}`;
 
     li.querySelector("h3").textContent = stop.naam;
     li.querySelector("small").textContent = stop.adres || "";
@@ -185,7 +214,8 @@ function tekenLijst(stops) {
         teken();
       };
     }
-    li.querySelectorAll(".kenmerkBewerken input").forEach(vakje => {
+    // Alleen de vinkjes (niet de invulvakjes voor de openingsuren)
+    li.querySelectorAll('.kenmerkBewerken input[type="checkbox"]').forEach(vakje => {
       vakje.onclick = (event) => event.stopPropagation();
       vakje.onchange = async () => {
         try {
@@ -206,6 +236,27 @@ function tekenLijst(stops) {
         teken();
       };
     });
+
+    // Openingsuren bewaren (alleen de beheerder)
+    const bewaarUrenKnop = li.querySelector(".bewaarUren");
+    if (bewaarUrenKnop) {
+      li.querySelector(".urenBewerken").onclick = (event) => event.stopPropagation();
+      bewaarUrenKnop.onclick = async () => {
+        try {
+          await bewaarUrenVan(stop, li.querySelector(".urenBewerken"));
+          teken();
+        } catch (fout) {
+          alert(t("opslaanMislukt") + " " + fout.message);
+        }
+      };
+    }
+
+    // De openingsuren openklappen mag de kaart niet laten verspringen
+    const uren = li.querySelector(".uren");
+    if (uren) uren.onclick = (event) => event.stopPropagation();
+
+    // Reviews
+    koppelReviews(li, stop);
 
     li.onclick = () => kies(stop.id);
     lijst.appendChild(li);
@@ -260,19 +311,27 @@ function maakKnop(rij, tekst, actief, bijKlik) {
   rij.appendChild(knop);
 }
 
-// De rij knopjes: Alles · Wielercafé · PC-friendly · Mijn favorieten (je kiest er één)
+// De rij filterknopjes. "Alles" zet alle filters uit; de andere kun je combineren.
 function tekenCategorieen() {
   const rij = document.getElementById("kenmerkFilters");
   rij.innerHTML = "";
-  const categorieen = [
-    ["alles",    t("alles")],
-    ["wieler",   "🚴 " + t("wieler")],
-    ["laptop",   "💻 " + t("kenmerk_laptop")],
-    ["favoriet", t("favorieten")]
+  maakKnop(rij, t("alles"), gekozenFilters.length === 0, () => {
+    gekozenFilters = [];
+    teken();
+  });
+  const filters = [
+    ["wieler",      "🚴 " + t("wieler")],
+    ["laptop",      "💻 " + t("kenmerk_laptop")],
+    ["nuOpen",      "🟢 " + t("nuOpen")],
+    ["zondagVroeg", "☀️ " + t("zondagVroeg")],
+    ["favoriet",    t("favorieten")]
   ];
-  for (const [sleutel, tekst] of categorieen) {
-    maakKnop(rij, tekst, gekozenCategorie === sleutel, () => {
-      gekozenCategorie = sleutel;
+  for (const [sleutel, tekst] of filters) {
+    maakKnop(rij, tekst, gekozenFilters.includes(sleutel), () => {
+      // Aan- of uitzetten
+      gekozenFilters = gekozenFilters.includes(sleutel)
+        ? gekozenFilters.filter(f => f !== sleutel)
+        : [...gekozenFilters, sleutel];
       teken();
     });
   }
@@ -284,10 +343,10 @@ function tekenFilters() {
   const landen = [...new Set(alleStops.map(landVan))]
     .sort((x, y) => (x === "BE" ? -1 : y === "BE" ? 1 : landNaam(x).localeCompare(landNaam(y))));
 
-  // Bestaat het gekozen land niet (meer)? Kies dan iets dat wel bestaat
-  if (gekozenLand !== "alles" && landen.length > 0 && !landen.includes(gekozenLand)) {
-    gekozenLand = landen.length === 1 ? landen[0] : "alles";
-  }
+  // Maar één land? Dan is "alle landen" hetzelfde als dat ene land (zo blijven de stadsknoppen zichtbaar)
+  if (landen.length === 1) gekozenLand = landen[0];
+  // Bestaat het gekozen land niet (meer)? Toon dan alle landen
+  if (gekozenLand !== "alles" && landen.length > 1 && !landen.includes(gekozenLand)) gekozenLand = "alles";
 
   // Rij 1: landen (alleen tonen als er meer dan één land is)
   const landenRij = document.getElementById("landen");
@@ -397,6 +456,7 @@ document.getElementById("formulier").onsubmit = async (event) => {
     gevondenLandcode = "";
     document.getElementById("plekTekst").textContent = t("kiesPlek");
     kies(nieuweStop.id);
+    voorstelAfgewerkt();   // kwam deze bar uit een voorstel? Dan is dat voorstel nu afgewerkt
   } catch (fout) {
     document.getElementById("plekTekst").textContent = t("opslaanMislukt") + " " + fout.message;
   }
@@ -622,6 +682,20 @@ document.getElementById("zonderAccount").onclick = () => {
 
 document.getElementById("uitlogKnop").onclick = logUit;
 
+// Account verwijderen (GDPR: iedereen moet zijn gegevens kunnen laten wissen)
+document.getElementById("verwijderAccountKnop").onclick = async () => {
+  if (!confirm(t("zekerAccount"))) return;
+  try {
+    await verwijderMijnAccount();
+    localStorage.removeItem("favorieten");
+    favorieten = [];
+    await logUit();
+    alert(t("accountVerwijderd"));
+  } catch (fout) {
+    alert(t("opslaanMislukt") + " " + fout.message);
+  }
+};
+
 // De nieuwsbrief aan- of uitzetten in de app
 document.getElementById("nieuwsbrief").onchange = async (event) => {
   const aan = event.target.checked;
@@ -659,8 +733,8 @@ async function regelProfiel() {
     profiel = await haalProfielOp();
   }
 
-  document.getElementById("wie").textContent =
-    (profiel && profiel.voornaam) ? profiel.voornaam : gebruiker.email;
+  mijnVoornaam = (profiel && profiel.voornaam) ? profiel.voornaam : "";
+  document.getElementById("wie").textContent = mijnVoornaam || gebruiker.email;
   document.getElementById("nieuwsbrief").checked = Boolean(profiel && profiel.nieuwsbrief);
 }
 
@@ -670,6 +744,10 @@ async function naInloggen() {
 
   // Het formulier voor nieuwe bars: alleen voor jou
   document.getElementById("formulier").hidden = !isBeheerder();
+  // "Bar voorstellen": voor ingelogde gebruikers (niet voor de beheerder, die voegt zelf toe)
+  document.getElementById("voorstelBlok").hidden = !gebruiker || isBeheerder();
+  // Voorstellen van gebruikers: alleen de beheerder ziet ze
+  laadVoorstellen();
 
   if (gebruiker) {
     try {
@@ -728,6 +806,13 @@ async function start() {
       return;
     }
   }
+  // Reviews ophalen (lukt het niet, dan werkt de rest gewoon verder)
+  try {
+    alleReviews = await haalReviewsOp();
+  } catch (fout) {
+    console.error(fout);
+  }
+
   teken();
   zoomNaarStops();
 }
