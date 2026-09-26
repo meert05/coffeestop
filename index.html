@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Koffiestop</title>
+
+  <!-- Leaflet: een gratis bibliotheek voor kaarten -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <!-- Onze eigen opmaak -->
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;600&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Koffie<span>stop</span></h1>
+    <p>Koffiebars en wielercafés in Vlaanderen en Brussel</p>
+  </header>
+
+  <!-- Knoppen om per stad te filteren -->
+  <nav id="steden">
+    <button data-stad="alles" class="actief">Alles</button>
+    <button data-stad="antwerpen">Antwerpen</button>
+    <button data-stad="gent">Gent</button>
+    <button data-stad="brussel">Brussel</button>
+    <button data-stad="hellingen">Vlaanderen</button>
+  </nav>
+
+  <!-- Zoeken en filteren op type -->
+  <div id="filters">
+    <input id="zoek" type="search" placeholder="Zoek een stop…">
+    <select id="type">
+      <option value="alles">Alle types</option>
+      <option value="coffee">Specialty koffie</option>
+      <option value="wieler">Wielercafé</option>
+      <option value="favoriet">★ Mijn favorieten</option>
+    </select>
+  </div>
+
+  <main>
+    <div id="kaart"></div>
+
+    <section>
+      <!-- Formulier om zelf een stop toe te voegen -->
+      <form id="formulier">
+        <strong>Nieuwe stop</strong>
+        <input id="nieuwNaam" placeholder="Naam" required>
+        <input id="nieuwInfo" placeholder="Korte beschrijving">
+        <label><input id="nieuwWieler" type="checkbox"> Wielervriendelijk</label>
+        <p id="plekTekst">Klik op de kaart om de plek te kiezen.</p>
+        <button type="submit">Toevoegen</button>
+      </form>
+
+      <p id="teller"></p>
+      <ul id="lijst"></ul>
+    </section>
+  </main>
+
+  <!-- Eerst Leaflet laden, dan onze eigen code -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

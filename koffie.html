@@ -1,0 +1,41 @@
+<h1>Mijn Koffiestops</h1>
+
+<button id="knopAlles">Alles</button>
+<button id="knopWieler">Alleen wielercafés</button>
+
+<ul id="lijst"></ul>
+
+<style>
+  body   { font-family: sans-serif; padding: 20px; }
+  button { padding: 8px 14px; margin-right: 6px; cursor: pointer; }
+  li     { padding: 6px 0; }
+</style>
+
+<script>
+  const stops = [
+    { naam: "OR Coffee",       stad: "Gent",      wieler: false },
+    { naam: "Bar Bidon",       stad: "Gent",      wieler: true  },
+    { naam: "Normo",           stad: "Antwerpen", wieler: false },
+    { naam: "'t Nief Veloken", stad: "Kwaremont", wieler: true  },
+        { naam: "Vitesse", stad: "Antwerpen", wieler: true }
+  ];
+
+  function toon(welke) {
+    const lijst = document.getElementById("lijst");
+    lijst.innerHTML = "";
+    for (const stop of welke) {
+      const li = document.createElement("li");
+      li.textContent = stop.naam + " – " + stop.stad;
+      lijst.appendChild(li);
+    }
+  }
+
+  document.getElementById("knopAlles").onclick = function () {
+    toon(stops);
+  };
+  document.getElementById("knopWieler").onclick = function () {
+    toon(stops.filter(s => s.wieler === true));
+  };
+
+  toon(stops);
+</script>

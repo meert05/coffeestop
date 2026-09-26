@@ -1,0 +1,442 @@
+[
+  {
+    "id": "andy-roasters",
+    "naam": "Andy Roasters",
+    "adres": "Amerikalei 82",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.2072,
+    "lng": 4.3962,
+    "info": "Eigen branderij, open vanaf 7u30: handig voor een vroege rit."
+  },
+  {
+    "id": "black-yellow",
+    "naam": "Black & Yellow",
+    "adres": "Nassaustraat 7",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.2302,
+    "lng": 4.4072,
+    "info": "Specialty koffie met een hiphop-attitude op het Eilandje."
+  },
+  {
+    "id": "caffenation",
+    "naam": "Caffènation",
+    "adres": "Mechelsesteenweg 16",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.2128,
+    "lng": 4.4085,
+    "info": "Het stadsfiliaal van Caffènation, vlak bij de Meir."
+  },
+  {
+    "id": "caffenation-roastery",
+    "naam": "Caffènation Roastery",
+    "adres": "Lamorinièrestraat 161",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.204,
+    "lng": 4.42,
+    "info": "De bekendste branderij van Antwerpen, met bar in de branderij."
+  },
+  {
+    "id": "koffie-dealers",
+    "naam": "Koffie Dealers",
+    "adres": "Paardenmarkt 117",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.223,
+    "lng": 4.4118,
+    "info": "Populair om de baristas én het eten."
+  },
+  {
+    "id": "kolonel-reede",
+    "naam": "Kolonel & Reede",
+    "adres": "Ankerrui 15",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.2285,
+    "lng": 4.4062,
+    "info": "Tweede zaak van Kolonel, ruim en licht."
+  },
+  {
+    "id": "kolonel-coffee",
+    "naam": "Kolonel Coffee",
+    "adres": "Montignystraat 51",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.206,
+    "lng": 4.392,
+    "info": "Sinds 2011 een vaste waarde op het Zuid."
+  },
+  {
+    "id": "nives",
+    "naam": "Nives",
+    "adres": "Harmoniestraat 25B",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.202,
+    "lng": 4.412,
+    "info": "Aan het Harmoniepark, handig op weg naar de Singel."
+  },
+  {
+    "id": "normo",
+    "naam": "Normo",
+    "adres": "Minderbroedersrui 30",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.2226,
+    "lng": 4.406,
+    "info": "Industriële specialty bar, al meer dan tien jaar open."
+  },
+  {
+    "id": "rush-rush",
+    "naam": "Rush Rush",
+    "adres": "Lange Altaarstraat 29",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.2075,
+    "lng": 4.4272,
+    "info": "Specialty bar in Zurenborg met ontbijt en lunch."
+  },
+  {
+    "id": "tartoer",
+    "naam": "Tartoer",
+    "adres": "Korte Koepoortstraat 2",
+    "stad": "antwerpen",
+    "type": "coffee",
+    "lat": 51.2224,
+    "lng": 4.4032,
+    "info": "Caffènation-bonen en gebak in het centrum."
+  },
+  {
+    "id": "vitesse-coffee-cycling",
+    "naam": "Vitesse Coffee & Cycling",
+    "adres": "Provinciestraat 82",
+    "stad": "antwerpen",
+    "type": "both",
+    "lat": 51.211,
+    "lng": 4.425,
+    "info": "Eigen Vitesse-koffie, vintage koersfietsen, wielerfoto's en filmavonden."
+  },
+  {
+    "id": "aksum",
+    "naam": "Aksum",
+    "adres": "Koninginnegalerij",
+    "stad": "brussel",
+    "type": "coffee",
+    "lat": 50.8476,
+    "lng": 4.3553,
+    "info": "Ethiopische koffie in de Sint-Hubertusgalerijen."
+  },
+  {
+    "id": "belga-co",
+    "naam": "Belga & Co",
+    "adres": "Baljuwstraat, Elsene",
+    "stad": "brussel",
+    "type": "coffee",
+    "lat": 50.8262,
+    "lng": 4.3625,
+    "info": "Belgische branderij met bar in de Baljuwwijk."
+  },
+  {
+    "id": "bouche-saint-gery",
+    "naam": "Bouche Saint-Géry",
+    "adres": "Sint-Goriks",
+    "stad": "brussel",
+    "type": "coffee",
+    "lat": 50.8481,
+    "lng": 4.3472,
+    "info": "Specialty en brunch in de Sint-Goriksbuurt."
+  },
+  {
+    "id": "cyclovia",
+    "naam": "Cyclovia",
+    "adres": "Waterloosesteenweg 521, Elsene",
+    "stad": "brussel",
+    "type": "both",
+    "lat": 50.821,
+    "lng": 4.3572,
+    "info": "Fietsenmaker voor koersfietsen met specialty koffie en wielerkunst aan de muur."
+  },
+  {
+    "id": "frank",
+    "naam": "Frank.",
+    "adres": "Zavel",
+    "stad": "brussel",
+    "type": "coffee",
+    "lat": 50.8396,
+    "lng": 4.3538,
+    "info": "Specialty koffie en gebak in de Zavelwijk."
+  },
+  {
+    "id": "hors-categorie-bosvoorde",
+    "naam": "Hors Catégorie Bosvoorde",
+    "adres": "Watermaal-Bosvoorde",
+    "stad": "brussel",
+    "type": "both",
+    "lat": 50.796,
+    "lng": 4.411,
+    "info": "Tweede HC-vestiging, ideaal vertrek richting Zoniënwoud."
+  },
+  {
+    "id": "hors-categorie-elsene",
+    "naam": "Hors Catégorie Elsene",
+    "adres": "Elsene",
+    "stad": "brussel",
+    "type": "both",
+    "lat": 50.8305,
+    "lng": 4.369,
+    "info": "“Basiskamp” van de Brusselse fietsgemeenschap: koffie, verkoop, herstellingen en events."
+  },
+  {
+    "id": "mok-coffee",
+    "naam": "MOK Coffee",
+    "adres": "Dansaertwijk",
+    "stad": "brussel",
+    "type": "coffee",
+    "lat": 50.8513,
+    "lng": 4.3442,
+    "info": "Een van de pioniers van specialty koffie in Brussel, met eigen branding."
+  },
+  {
+    "id": "terres-de-cafe-sablon",
+    "naam": "Terres de Café Sablon",
+    "adres": "Zavel",
+    "stad": "brussel",
+    "type": "coffee",
+    "lat": 50.8405,
+    "lng": 4.3558,
+    "info": "Specialty koffie aan de Zavel."
+  },
+  {
+    "id": "bar-bidon",
+    "naam": "Bar Bidon",
+    "adres": "Bisdomkaai 25",
+    "stad": "gent",
+    "type": "both",
+    "lat": 51.0512,
+    "lng": 3.7295,
+    "info": "Specialty koffie en wielercultuur onder één dak, vlak bij Sint-Baafs."
+  },
+  {
+    "id": "cafe-labath",
+    "naam": "Café Labath",
+    "adres": "Oude Houtlei 1",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.0551,
+    "lng": 3.717,
+    "info": "Lichte hoekzaak vlak bij de Korenmarkt."
+  },
+  {
+    "id": "full-circle-coffee",
+    "naam": "Full Circle Coffee",
+    "adres": "Zuidstationstraat 5",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.0497,
+    "lng": 3.7302,
+    "info": "Eerste volledig plantaardige specialty bar van België."
+  },
+  {
+    "id": "goya-coffee",
+    "naam": "Goya Coffee",
+    "adres": "Verlorenkost 5",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.0572,
+    "lng": 3.7108,
+    "info": "Specialty met een Argentijnse inslag."
+  },
+  {
+    "id": "koffeine",
+    "naam": "Koffeine",
+    "adres": "Lange Kruisstraat 6",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.054,
+    "lng": 3.7277,
+    "info": "Kleine zaak met een wisselende specialty-selectie."
+  },
+  {
+    "id": "or-coffee",
+    "naam": "OR Coffee",
+    "adres": "Sint-Pietersnieuwstraat 126A",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.0445,
+    "lng": 3.7275,
+    "info": "De bekendste specialty bar van Gent, sinds 2009."
+  },
+  {
+    "id": "or-espresso-bar",
+    "naam": "OR Espresso Bar",
+    "adres": "Dok-Noord 7",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.0682,
+    "lng": 3.7318,
+    "info": "Tweede OR-zaak aan de Oude Dokken."
+  },
+  {
+    "id": "take-five-espressobar",
+    "naam": "Take Five Espressobar",
+    "adres": "Voldersstraat 10",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.0521,
+    "lng": 3.7226,
+    "info": "Klein, centraal en jazzy."
+  },
+  {
+    "id": "vandekerckhove-bar",
+    "naam": "Vandekerckhove & Bar",
+    "adres": "Brabantdam 55",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.049,
+    "lng": 3.7312,
+    "info": "Familiebranderij sinds 1854, nu ook specialty."
+  },
+  {
+    "id": "way-coffee",
+    "naam": "WAY Coffee",
+    "adres": "Voldersstraat 58",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.051,
+    "lng": 3.724,
+    "info": "Vooral bekend om coffee to go in het centrum."
+  },
+  {
+    "id": "way-roasters",
+    "naam": "WAY Roasters",
+    "adres": "Dok Noord 4E",
+    "stad": "gent",
+    "type": "coffee",
+    "lat": 51.0678,
+    "lng": 3.7335,
+    "info": "Branderij en café van WAY in Dok Noord."
+  },
+  {
+    "id": "t-juiste-verzet",
+    "naam": "'t Juiste Verzet",
+    "adres": "Oude Kwaremont, Kluisbergen",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.7788,
+    "lng": 3.5245,
+    "info": "Nog een Kwaremonts koerscafé, vaste halte in de Ronde-streek."
+  },
+  {
+    "id": "t-nief-veloken",
+    "naam": "'t Nief Veloken",
+    "adres": "Oude Kwaremont, Kluisbergen",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.7805,
+    "lng": 3.5268,
+    "info": "Koerscafé op de Oude Kwaremont."
+  },
+  {
+    "id": "t-velohofke",
+    "naam": "'t Velohofke",
+    "adres": "Tongeren",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.7805,
+    "lng": 5.464,
+    "info": "Wielercafé in Tongeren, vertrekpunt voor Haspengouw."
+  },
+  {
+    "id": "apres-velo",
+    "naam": "Après-Velo",
+    "adres": "Parike",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.77,
+    "lng": 3.835,
+    "info": "Wielercafé tussen Brakel en Geraardsbergen."
+  },
+  {
+    "id": "bar-gidon",
+    "naam": "Bar Gidon",
+    "adres": "Geraardsbergen",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.7718,
+    "lng": 3.879,
+    "info": "Wielercafé in Geraardsbergen."
+  },
+  {
+    "id": "d-oude-hoeve",
+    "naam": "D'Oude Hoeve",
+    "adres": "Ronde van Vlaanderenstraat, Kwaremont",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.7796,
+    "lng": 3.532,
+    "info": "Handige stop na de beklimming van de Oude Kwaremont."
+  },
+  {
+    "id": "falco",
+    "naam": "Falco",
+    "adres": "Halle",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.735,
+    "lng": 4.237,
+    "info": "Wielercafé in Halle, aan de rand van het Pajottenland."
+  },
+  {
+    "id": "flandrien-hotel",
+    "naam": "Flandrien Hotel",
+    "adres": "Brakel",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.7995,
+    "lng": 3.764,
+    "info": "Wielerhotel met café in de Vlaamse Ardennen."
+  },
+  {
+    "id": "koerscafe-centrum-ronde-van-vlaanderen",
+    "naam": "Koerscafé Centrum Ronde van Vlaanderen",
+    "adres": "Markt, Oudenaarde",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.845,
+    "lng": 3.6045,
+    "info": "Café bij het museum van de Ronde, start en finish van veel routes."
+  },
+  {
+    "id": "koerskaffee",
+    "naam": "KOERSkaffee",
+    "adres": "KOERS Museum, Roeselare",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.946,
+    "lng": 3.124,
+    "info": "Café in het wielermuseum, met relikwieën van de Flandriens."
+  },
+  {
+    "id": "paddenbroek",
+    "naam": "Paddenbroek",
+    "adres": "Gooik, Pajottenland",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.792,
+    "lng": 4.103,
+    "info": "Fiets- en wandelcafé tussen de Pajotse heuvels, met lambiek en geuze."
+  },
+  {
+    "id": "the-cycling-hub",
+    "naam": "The Cycling Hub",
+    "adres": "Geraardsbergen",
+    "stad": "hellingen",
+    "type": "wieler",
+    "lat": 50.7732,
+    "lng": 3.8818,
+    "info": "Fietsvriendelijke stop aan de voet van de Muur."
+  }
+]
