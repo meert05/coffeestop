@@ -37,6 +37,17 @@ async function verwijderStopUitDatabase(id) {
   if (error) throw error;
 }
 
+// Eén of meer velden van een bar aanpassen, bv. werkStopBij("bar-bidon", { type: "both" })
+async function werkStopBij(stopId, velden) {
+  const { error } = await db.from("stops").update(velden).eq("id", stopId);
+  if (error) throw error;
+}
+
+async function zetKenmerken(stopId, kenmerken) {
+  const { error } = await db.from("stops").update({ kenmerken: kenmerken }).eq("id", stopId);
+  if (error) throw error;
+}
+
 // ---------- Foto's (Supabase Storage) ----------
 async function uploadFoto(bestand, stopId) {
   // Elke upload krijgt een unieke naam, bv. "bar-bidon-1727350000000.jpg"

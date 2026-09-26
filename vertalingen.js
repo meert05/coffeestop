@@ -21,6 +21,11 @@ const teksten = {
     ondertitel: "Koffiebars en wielercafés in Vlaanderen en Brussel",
     kleur: "Kleur:",
     alleLanden: "Alle landen",
+    kenmerk_laptop: "PC-friendly",
+    kenmerk_wifi: "Gratis wifi",
+    kenmerk_stopcontact: "Stopcontacten",
+    kenmerk_rustig: "Rustig",
+    kenmerkenBewerken: "✏️ Aanpassen",
     alles: "Alles",
     vlaanderen: "Vlaanderen",
     antwerpen: "Antwerpen",
@@ -89,6 +94,11 @@ const teksten = {
     ondertitel: "Bars à café et cafés cyclistes en Flandre et à Bruxelles",
     kleur: "Couleur :",
     alleLanden: "Tous les pays",
+    kenmerk_laptop: "PC bienvenu",
+    kenmerk_wifi: "Wifi gratuit",
+    kenmerk_stopcontact: "Prises",
+    kenmerk_rustig: "Calme",
+    kenmerkenBewerken: "✏️ Modifier",
     alles: "Tout",
     vlaanderen: "Flandre",
     antwerpen: "Anvers",
@@ -157,6 +167,11 @@ const teksten = {
     ondertitel: "Coffee bars and cycling cafés in Flanders and Brussels",
     kleur: "Colour:",
     alleLanden: "All countries",
+    kenmerk_laptop: "PC-friendly",
+    kenmerk_wifi: "Free wifi",
+    kenmerk_stopcontact: "Power outlets",
+    kenmerk_rustig: "Quiet",
+    kenmerkenBewerken: "✏️ Edit",
     alles: "All",
     vlaanderen: "Flanders",
     antwerpen: "Antwerp",
@@ -213,7 +228,8 @@ let taal = localStorage.getItem("taal") || "nl";
 
 // t("zoek") geeft de tekst "zoek" terug in de gekozen taal
 function t(sleutel) {
-  return teksten[taal][sleutel];
+  // Ontbreekt een vertaling? Dan tonen we de Nederlandse tekst, en anders de sleutel zelf
+  return teksten[taal][sleutel] ?? teksten.nl[sleutel] ?? sleutel;
 }
 
 // Zet alle teksten op de pagina in de gekozen taal

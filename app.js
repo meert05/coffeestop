@@ -12,6 +12,18 @@ let nieuwePlek = null;       // waar je klikte op de kaart voor een nieuwe stop
 // Favorieten: in de browser voor bezoekers, in de database als je bent ingelogd
 let favorieten = JSON.parse(localStorage.getItem("favorieten") || "[]");
 
+// ---------- Kenmerken: wat heeft een bar te bieden? ----------
+// Een nieuw kenmerk toevoegen? Zet hier één regel bij, en een vertaling in vertalingen.js
+const KENMERKEN = {
+  laptop: { icoon: "💻", groep: "werkplek" }
+};
+let gekozenCategorie = "alles";   // "alles", "wieler", "laptop" of "favoriet"
+let bewerkKenmerkenVan = null;   // de bar waarvan de beheerder de kenmerken aan het aanpassen is
+
+function kenmerkenVan(stop) {
+  return Array.isArray(stop.kenmerken) ? stop.kenmerken : [];
+}
+
 function bewaarLokaal() {
   localStorage.setItem("favorieten", JSON.stringify(favorieten));
 }
@@ -34,14 +46,13 @@ function kleur(type) {
 // ---------- 3. Welke stops tonen we? ----------
 function zichtbareStops() {
   const zoekterm = document.getElementById("zoek").value.toLowerCase();
-  const type = document.getElementById("type").value;
 
   return alleStops.filter(stop => {
     if (gekozenLand !== "alles" && landVan(stop) !== gekozenLand) return false;
     if (gekozenStad !== "alles" && groepVan(stop) !== gekozenStad) return false;
-    if (type === "coffee" && stop.type === "wieler") return false;
-    if (type === "wieler" && stop.type === "coffee") return false;
-    if (type === "favoriet" && !favorieten.includes(stop.id)) return false;
+    if (gekozenCategorie === "wieler" && stop.type === "coffee") return false;
+    if (gekozenCategorie === "laptop" && !kenmerkenVan(stop).includes("laptop")) return false;
+    if (gekozenCategorie === "favoriet" && !favorieten.includes(stop.id)) return false;
     if (!stop.naam.toLowerCase().includes(zoekterm)) return false;
     return true;
   });
@@ -101,8 +112,20 @@ function tekenLijst(stops) {
       <h3></h3>
       <small></small>
       <p></p>
+      <div class="labels">
+        ${stop.type !== "coffee" ? `<span class="label">🚴 ${t("wieler")}</span>` : ""}
+        ${kenmerkenVan(stop).filter(k => KENMERKEN[k])
+            .map(k => `<span class="label">${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</span>`).join("")}
+      </div>
+      ${bewerkKenmerkenVan === stop.id ? `<div class="kenmerkBewerken">
+        <label class="vinkje"><input type="checkbox" class="soortWieler"
+            ${stop.type !== "coffee" ? "checked" : ""}> 🚴 ${t("wieler")}</label>
+        ${Object.keys(KENMERKEN).map(k => `<label class="vinkje"><input type="checkbox" class="kenmerk" value="${k}"
+            ${kenmerkenVan(stop).includes(k) ? "checked" : ""}> ${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</label>`).join("")}
+      </div>` : ""}
       <div class="acties">
         <a href="${route}" target="_blank">${t("route")}</a>
+        ${isBeheerder() ? `<button class="kenmerkKnop">${t("kenmerkenBewerken")}</button>` : ""}
         ${isBeheerder() ? `<button class="fotoKnop">${t("foto")}</button>` : ""}
         ${isBeheerder() ? `<button class="wis">${t("verwijder")}</button>` : ""}
       </div>`;
@@ -151,6 +174,38 @@ function tekenLijst(stops) {
         document.getElementById("fotoKiezer").click();   // opent het venster om een foto te kiezen
       };
     }
+
+    // Kenmerken aanpassen (alleen de beheerder)
+    const kenmerkKnop = li.querySelector(".kenmerkKnop");
+    if (kenmerkKnop) {
+      kenmerkKnop.onclick = (event) => {
+        event.stopPropagation();
+        // Nog eens klikken sluit het lijstje met vinkjes weer
+        bewerkKenmerkenVan = bewerkKenmerkenVan === stop.id ? null : stop.id;
+        teken();
+      };
+    }
+    li.querySelectorAll(".kenmerkBewerken input").forEach(vakje => {
+      vakje.onclick = (event) => event.stopPropagation();
+      vakje.onchange = async () => {
+        try {
+          if (vakje.classList.contains("soortWieler")) {
+            // Wielercafé aan of uit: dat is het "type" van de bar
+            const nieuwType = vakje.checked ? "both" : "coffee";
+            await werkStopBij(stop.id, { type: nieuwType });
+            stop.type = nieuwType;
+          } else {
+            // Alle aangevinkte kenmerken van deze bar verzamelen en bewaren
+            const nieuw = [...li.querySelectorAll(".kenmerkBewerken input.kenmerk:checked")].map(v => v.value);
+            await zetKenmerken(stop.id, nieuw);
+            stop.kenmerken = nieuw;
+          }
+        } catch (fout) {
+          alert(t("opslaanMislukt") + " " + fout.message);
+        }
+        teken();
+      };
+    });
 
     li.onclick = () => kies(stop.id);
     lijst.appendChild(li);
@@ -205,7 +260,26 @@ function maakKnop(rij, tekst, actief, bijKlik) {
   rij.appendChild(knop);
 }
 
+// De rij knopjes: Alles · Wielercafé · PC-friendly · Mijn favorieten (je kiest er één)
+function tekenCategorieen() {
+  const rij = document.getElementById("kenmerkFilters");
+  rij.innerHTML = "";
+  const categorieen = [
+    ["alles",    t("alles")],
+    ["wieler",   "🚴 " + t("wieler")],
+    ["laptop",   "💻 " + t("kenmerk_laptop")],
+    ["favoriet", t("favorieten")]
+  ];
+  for (const [sleutel, tekst] of categorieen) {
+    maakKnop(rij, tekst, gekozenCategorie === sleutel, () => {
+      gekozenCategorie = sleutel;
+      teken();
+    });
+  }
+}
+
 function tekenFilters() {
+  tekenCategorieen();
   // Welke landen komen voor in onze bars?
   const landen = [...new Set(alleStops.map(landVan))]
     .sort((x, y) => (x === "BE" ? -1 : y === "BE" ? 1 : landNaam(x).localeCompare(landNaam(y))));
@@ -252,7 +326,6 @@ function kiesFilter(land, stad) {
 }
 
 document.getElementById("zoek").oninput = teken;
-document.getElementById("type").onchange = teken;
 
 // Klikken op de kaart: plek kiezen (alleen voor de beheerder)
 kaart.on("click", (event) => {
@@ -299,7 +372,8 @@ document.getElementById("formulier").onsubmit = async (event) => {
     type: document.getElementById("nieuwWieler").checked ? "both" : "coffee",
     lat: Number(nieuwePlek[0].toFixed(5)),
     lng: Number(nieuwePlek[1].toFixed(5)),
-    info: document.getElementById("nieuwInfo").value.trim()
+    info: document.getElementById("nieuwInfo").value.trim(),
+    kenmerken: [...document.querySelectorAll("#nieuwKenmerken input:checked")].map(v => v.value)
   };
   // Landcode niet gevonden via het adres? Dan leiden we ze af uit de naam van het land
   if (!nieuweStop.landcode) nieuweStop.landcode = landVan({ land: nieuweStop.land });

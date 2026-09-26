@@ -295,3 +295,39 @@ header p { color: #B9C4C6; }
   margin-bottom: 8px;
 }
 #landen button { font-weight: 600; }
+/* ---------- Filterknopjes en kenmerken ---------- */
+#kenmerkFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+#kenmerkFilters button {
+  padding: 4px 10px;
+  font-size: 14px;
+  border-radius: 999px;
+}
+#kenmerkFilters button.actief {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.label {
+  font-size: 12px;
+  background: var(--achtergrond);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.kenmerkBewerken {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin-top: 8px;
+  font-size: 14px;
+}

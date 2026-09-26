@@ -103,13 +103,10 @@
     <!-- Zoeken en filteren op type -->
     <div id="filters">
       <input id="zoek" type="search" placeholder="Zoek een stop…" data-t-placeholder="zoek">
-      <select id="type">
-        <option value="alles" data-t="alleTypes">Alle types</option>
-        <option value="coffee" data-t="koffie">Specialty koffie</option>
-        <option value="wieler" data-t="wieler">Wielercafé</option>
-        <option value="favoriet" data-t="favorieten">★ Mijn favorieten</option>
-      </select>
     </div>
+
+    <!-- Knopjes: Alles · Wielercafé · PC-friendly · Mijn favorieten (gemaakt in app.js) -->
+    <div id="kenmerkFilters"></div>
 
     <main>
       <div id="kaart"></div>
@@ -129,7 +126,11 @@
             <input id="nieuwLand" placeholder="Land" data-t-placeholder="land">
           </div>
           <input id="nieuwInfo" placeholder="Korte beschrijving" data-t-placeholder="beschrijving">
-          <label><input id="nieuwWieler" type="checkbox"> <span data-t="wielervriendelijk">Wielervriendelijk</span></label>
+          <label><input id="nieuwWieler" type="checkbox"> 🚴 <span data-t="wieler">Wielercafé</span></label>
+          <!-- Kenmerken van de nieuwe bar -->
+          <div id="nieuwKenmerken" class="kenmerkBewerken">
+            <label class="vinkje"><input type="checkbox" value="laptop"> 💻 <span data-t="kenmerk_laptop">PC-friendly</span></label>
+          </div>
           <label class="fotoVeld"><span data-t="fotoKiezen">Foto (optioneel)</span>
             <input id="nieuwFoto" type="file" accept="image/*">
           </label>
