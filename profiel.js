@@ -5,7 +5,7 @@
 let mijnProfiel = null;              // de rij uit de tabel "profielen"
 let voorkeurenToegepast = false;     // regio en filters maar één keer per bezoek instellen
 
-// Welke fiets → welke routestijl en snelheid (als je zelf geen snelheid invult)
+// Welke fiets → welke routestijl en snelheid (voor de geschatte rijtijd)
 const FIETSEN = {
   koersfiets: { stijl: "snel",       snelheid: 27 },
   gravel:     { stijl: "fietspaden", snelheid: 22 },
@@ -34,6 +34,11 @@ function profielGeladen(profiel) {
   mijnProfiel = profiel || {};
   mijnFoto = mijnProfiel.foto || null;
   toonAvatarKlein();
+  // Nieuw account? Dan eerst het profiel afmaken, vóór de homepage
+  if (!mijnProfiel.onboarding_klaar) {
+    toonProfielStart();
+    return;
+  }
   pasVoorkeurenToe();
 }
 
@@ -64,14 +69,14 @@ function vulProfiel() {
   document.querySelectorAll('input[name="profielGebruik"]').forEach(v => v.checked = gebruik.includes(v.value));
   vulRegioKeuze(p.favoriete_regio || "");
   document.getElementById("profielFiets").value = p.fiets || "";
-  document.getElementById("profielSnelheid").value = p.snelheid || "";
+  toonFietsKeuze("profielGebruik", "profielFietsLabel");
 
   tekenStatistieken();
 }
 
 // De keuzelijst met regio's, automatisch uit de bars
-function vulRegioKeuze(gekozen) {
-  const keuze = document.getElementById("profielRegio");
+function vulRegioKeuze(gekozen, keuzeId = "profielRegio") {
+  const keuze = document.getElementById(keuzeId);
   const groepen = [...new Set(alleStops.map(groepVan))]
     .sort((x, y) => groepNaam(x).localeCompare(groepNaam(y)));
   keuze.innerHTML = `<option value="">${t("geenKeuze")}</option>` +
@@ -144,12 +149,12 @@ document.getElementById("gegevensFormulier").onsubmit = async (event) => {
 // ---------- Voorkeuren bewaren ----------
 document.getElementById("voorkeurenFormulier").onsubmit = async (event) => {
   event.preventDefault();
-  const snelheid = Number(document.getElementById("profielSnelheid").value);
+  const gebruik = [...document.querySelectorAll('input[name="profielGebruik"]:checked')].map(v => v.value);
   const velden = {
-    gebruik: [...document.querySelectorAll('input[name="profielGebruik"]:checked')].map(v => v.value),
+    gebruik: gebruik,
     favoriete_regio: document.getElementById("profielRegio").value || null,
-    fiets: document.getElementById("profielFiets").value || null,
-    snelheid: snelheid >= 8 && snelheid <= 45 ? Math.round(snelheid) : null
+    // Je fiets telt alleen als je Roast Route gebruikt om te koersen
+    fiets: gebruik.includes("koersen") ? (document.getElementById("profielFiets").value || null) : null
   };
   try {
     await bewaarProfiel(velden);
@@ -165,7 +170,7 @@ document.getElementById("voorkeurenFormulier").onsubmit = async (event) => {
 function pasFietsToe() {
   const fiets = FIETSEN[mijnProfiel && mijnProfiel.fiets];
   if (typeof routeSnelheid !== "undefined") {
-    routeSnelheid = (mijnProfiel && mijnProfiel.snelheid) || (fiets && fiets.snelheid) || 25;
+    routeSnelheid = (fiets && fiets.snelheid) || 25;
   }
   if (fiets && typeof routeStijl !== "undefined") {
     routeStijl = fiets.stijl;
@@ -265,6 +270,97 @@ document.getElementById("wachtwoordFormulier").onsubmit = async (event) => {
     profielMelding.textContent = leesbareFout(fout);
   }
 };
+
+// ---------- "Mijn fiets" alleen tonen als je "Koersen" aanvinkt ----------
+function toonFietsKeuze(naam, labelId) {
+  const koersen = document.querySelector(`input[name="${naam}"][value="koersen"]`);
+  document.getElementById(labelId).hidden = !koersen.checked;
+}
+document.querySelector('input[name="profielGebruik"][value="koersen"]').onchange =
+  () => toonFietsKeuze("profielGebruik", "profielFietsLabel");
+document.querySelector('input[name="startGebruik"][value="koersen"]').onchange =
+  () => toonFietsKeuze("startGebruik", "startFietsLabel");
+
+// =====================================================
+//  PROFIEL AFMAKEN – één keer, net na het aanmaken van je account
+// =====================================================
+let startFoto = null;   // de foto die je op het startscherm koos
+
+function toonProfielStart(poging = 0) {
+  document.getElementById("welkom").hidden = true;
+  document.getElementById("app").hidden = true;
+  document.getElementById("profielStart").hidden = false;
+
+  // Wat we al weten (bv. van een oudere versie van het aanmeldformulier) alvast aanvinken
+  const gebruik = mijnProfiel.gebruik || [];
+  document.querySelectorAll('input[name="startGebruik"]').forEach(v => v.checked = gebruik.includes(v.value));
+  document.getElementById("startFiets").value = mijnProfiel.fiets || "";
+  toonFietsKeuze("startGebruik", "startFietsLabel");
+  startFoto = mijnFoto;
+  toonStartAvatar();
+
+  // De regio's komen uit de bars: zijn die nog niet geladen, dan even wachten
+  if (alleStops.length === 0 && poging < 40) {
+    setTimeout(() => { if (!document.getElementById("profielStart").hidden) vulRegioKeuze(mijnProfiel.favoriete_regio || "", "startRegio"); }, 300 * (poging + 1));
+  }
+  vulRegioKeuze(mijnProfiel.favoriete_regio || "", "startRegio");
+}
+
+function toonStartAvatar() {
+  document.getElementById("startAvatar").outerHTML =
+    avatarHTML(startFoto, mijnVoornaam || gebruiker.email, "groot").replace('class="avatar ', 'id="startAvatar" class="avatar ');
+}
+
+// Foto kiezen op het startscherm: meteen uploaden en tonen
+document.getElementById("startFotoKiezer").onchange = async (event) => {
+  const bestand = event.target.files[0];
+  event.target.value = "";
+  if (!bestand) return;
+  const melding = document.getElementById("startMelding");
+  melding.textContent = t("fotoBezig");
+  try {
+    startFoto = await uploadProfielfoto(await vierkanteFoto(bestand, 320));
+    toonStartAvatar();
+    melding.textContent = "";
+  } catch (fout) {
+    melding.textContent = t("opslaanMislukt") + " " + fout.message;
+  }
+};
+
+// "Klaar": alles bewaren en naar de homepage
+document.getElementById("startFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  const gebruik = [...document.querySelectorAll('input[name="startGebruik"]:checked')].map(v => v.value);
+  await rondStartAf({
+    gebruik: gebruik,
+    favoriete_regio: document.getElementById("startRegio").value || null,
+    fiets: gebruik.includes("koersen") ? (document.getElementById("startFiets").value || null) : null,
+    foto: startFoto
+  });
+};
+
+// "Overslaan": niets invullen, wel onthouden dat je het scherm gezien hebt
+document.getElementById("startOverslaan").onclick = () => rondStartAf({ foto: startFoto });
+
+async function rondStartAf(velden) {
+  const melding = document.getElementById("startMelding");
+  try {
+    await bewaarProfiel({ ...velden, onboarding_klaar: true });
+    Object.assign(mijnProfiel, velden, { onboarding_klaar: true });
+    if (velden.foto !== mijnFoto) {
+      mijnFoto = velden.foto || null;
+      await werkMijnReviewsBij({ foto: mijnFoto });   // (een nieuw account heeft meestal nog geen reviews)
+    }
+    toonAvatarKlein();
+    document.getElementById("profielStart").hidden = true;
+    toonScherm();                 // de homepage tonen
+    pasVoorkeurenToe();           // je favoriete regio en filters klaarzetten
+    // Kwam je binnen via een gedeelde routelink? Die tonen we nu
+    if (typeof openGedeeldeRoute === "function") openGedeeldeRoute();
+  } catch (fout) {
+    melding.textContent = t("opslaanMislukt") + " " + fout.message;
+  }
+}
 
 // Uitgelogd of account verwijderd: het venster sluiten
 document.getElementById("uitlogKnop").addEventListener("click", () => venster.open && venster.close());

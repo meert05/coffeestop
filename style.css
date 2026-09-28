@@ -1067,3 +1067,20 @@ body::before {
   .stats { grid-template-columns: repeat(2, 1fr); }
   #profiel > * { padding: 18px; }
 }
+
+/* ---------- Profiel afmaken (na het aanmaken van je account) ---------- */
+#profielStart { max-width: 480px; margin: 56px auto; }
+#profielStart h2 {
+  margin: 0 0 10px;
+  font-family: var(--kop);
+  font-weight: 800;
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+#profielStart > p { margin: 0 0 28px; color: var(--grijs); font-size: 16px; }
+.startFoto { display: flex; align-items: center; gap: 18px; margin-bottom: 8px; }
+#startMelding { color: var(--grijs); font-family: var(--cijfers); }
+#startMelding:empty { display: none; }
+#profielStart .veld select { background: var(--achtergrond); }

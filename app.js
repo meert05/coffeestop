@@ -581,6 +581,11 @@ function toonScherm() {
   // Na een wachtwoordreset: terug naar het gewone inlogscherm
   if (!document.getElementById("resetFormulier").hidden) toonTab("login");
 
+  // Nog bezig met "profiel afmaken"? Dan dat scherm laten staan
+  const startScherm = document.getElementById("profielStart");
+  if (!gebruiker) startScherm.hidden = true;
+  if (!startScherm.hidden) return;
+
   const toonApp = (gebruiker !== null || rondkijken);
   document.getElementById("welkom").hidden = toonApp;
   document.getElementById("app").hidden = !toonApp;
