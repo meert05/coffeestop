@@ -776,3 +776,15 @@ body::before {
   margin: 0 calc(-1 * clamp(16px, 4vw, 48px));
   background: var(--accent);
 }
+
+/* ---------- Knoppen van de beheerder: duidelijk zichtbaar ---------- */
+.acties .kenmerkKnop, .acties .fotoKnop, .acties .wis {
+  padding: 6px 10px;
+  border: 1px solid var(--lijn);
+  color: var(--tekst);
+}
+/* Beheerknoppen op een eigen regel, onder Route en reviews */
+.acties:has(.wis)::before { content: ""; flex-basis: 100%; height: 0; order: 1; }
+.acties .kenmerkKnop, .acties .fotoKnop, .acties .wis { order: 2; }
+.acties .kenmerkKnop:hover, .acties .fotoKnop:hover { border-color: var(--tekst); }
+.acties .wis:hover { border-color: #E07A6F; color: #E07A6F; }
