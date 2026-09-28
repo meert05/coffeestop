@@ -87,10 +87,15 @@ function tekenKaart(stops) {
       color: "#0B0B0B",
       weight: 2,
       fillColor: kleur(stop.type),
-      fillOpacity: 1
+      fillOpacity: 1,
+      bubblingMouseEvents: false   // een klik op een bar is geen klik op de kaart
     });
     stip.bindTooltip(stop.naam);
-    stip.on("click", () => kies(stop.id));
+    stip.on("click", () => {
+      // Route plannen staat aan? Dan gaat de bar in (of uit) je route
+      if (typeof routeKlikOpBar === "function" && routeKlikOpBar(stop)) return;
+      kies(stop.id);
+    });
     stip.addTo(stippen);
   }
 
@@ -151,6 +156,7 @@ function tekenLijst(stops) {
         ${urenBewerkenHTML(stop)}
       </div>` : ""}
       <div class="acties">
+        ${typeof routeKnopHTML === "function" ? routeKnopHTML(stop) : ""}
         <a href="${route}" target="_blank">${t("route")}</a>
         <button class="reviewKnop">${reviewKnopTekst(stop)}</button>
         ${isBeheerder() ? `<button class="kenmerkKnop">${t("kenmerkenBewerken")}</button>` : ""}
@@ -257,6 +263,9 @@ function tekenLijst(stops) {
 
     // Reviews
     koppelReviews(li, stop);
+
+    // "➕ In route" (alleen als Route plannen aanstaat)
+    if (typeof koppelRouteKnop === "function") koppelRouteKnop(li, stop);
 
     li.onclick = () => kies(stop.id);
     lijst.appendChild(li);
@@ -389,6 +398,7 @@ document.getElementById("zoek").oninput = teken;
 // Klikken op de kaart: plek kiezen (alleen voor de beheerder)
 kaart.on("click", (event) => {
   if (!isBeheerder()) return;
+  if (typeof routeModus !== "undefined" && routeModus) return;   // dan tekent route.js een punt
   nieuwePlek = [event.latlng.lat, event.latlng.lng];
   document.getElementById("plekTekst").textContent = t("plekGekozen");
   teken();
@@ -614,15 +624,17 @@ document.getElementById("nieuwFormulier").onsubmit = async (event) => {
   event.preventDefault();
   const voornaam = document.getElementById("nieuwVoornaam").value.trim();
   const nieuwsbrief = document.getElementById("nieuwsbriefBijStart").checked;
+  // Waarvoor gebruik je Roast Route? (optioneel, meerdere vakjes mogelijk)
+  const gebruik = [...document.querySelectorAll('input[name="gebruik"]:checked')].map(v => v.value);
 
-  // Voornaam en nieuwsbriefkeuze onthouden tot het profiel gemaakt wordt
-  localStorage.setItem("nieuwProfiel", JSON.stringify({ voornaam, nieuwsbrief }));
+  // Voornaam, nieuwsbriefkeuze en gebruik onthouden tot het profiel gemaakt wordt
+  localStorage.setItem("nieuwProfiel", JSON.stringify({ voornaam, nieuwsbrief, gebruik }));
 
   try {
     const meteenIngelogd = await maakAccount(
       document.getElementById("nieuwEmail").value.trim(),
       document.getElementById("nieuwWachtwoord").value,
-      voornaam, nieuwsbrief
+      voornaam, nieuwsbrief, gebruik
     );
     // Moet het e-mailadres eerst bevestigd worden? Dan vertellen we dat.
     if (!meteenIngelogd) bericht.textContent = t("bevestigMail");
@@ -728,6 +740,10 @@ async function regelProfiel() {
       velden.nieuwsbrief = true;
       velden.nieuwsbrief_toestemming_op = new Date().toISOString();
     }
+    // Waarvoor je Roast Route gebruikt (alleen als je iets aanvinkte)
+    if (wachtend && Array.isArray(wachtend.gebruik) && wachtend.gebruik.length) {
+      velden.gebruik = wachtend.gebruik;
+    }
     await bewaarProfiel(velden);
     localStorage.removeItem("nieuwProfiel");
     profiel = await haalProfielOp();
@@ -763,7 +779,11 @@ async function naInloggen() {
       console.error(fout);
     }
   }
+  // Je bewaarde routes (of een lege lijst na het uitloggen)
+  if (typeof laadMijnRoutes === "function") laadMijnRoutes();
   teken();
+  // Kwam je binnen via een gedeelde routelink? Dan tonen we die route nu
+  if (typeof openGedeeldeRoute === "function") openGedeeldeRoute();
 }
 
 // ---------- 8. Kleur van de app ----------
@@ -816,6 +836,7 @@ async function start() {
 
   teken();
   zoomNaarStops();
+  if (typeof openGedeeldeRoute === "function") openGedeeldeRoute();
 }
 
 start();

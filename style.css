@@ -788,3 +788,130 @@ body::before {
 .acties .kenmerkKnop, .acties .fotoKnop, .acties .wis { order: 2; }
 .acties .kenmerkKnop:hover, .acties .fotoKnop:hover { border-color: var(--tekst); }
 .acties .wis:hover { border-color: #E07A6F; color: #E07A6F; }
+
+/* ---------- Route plannen ---------- */
+#routeKnop.actief { background: var(--accent); border-color: var(--accent); color: var(--achtergrond); }
+
+#routePaneel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  margin-bottom: 24px;
+  background: var(--vlak);
+}
+#routePaneel > strong {
+  font-family: var(--kop);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grijs);
+}
+#routeLeeg { margin: 0; font-size: 13px; color: var(--grijs); }
+
+#routeStops { list-style: none; padding: 0; margin: 0; }
+#routeStops li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--lijn);
+  font-size: 14px;
+}
+#routeStops .nr { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); }
+#routeStops li.bar .naam { font-family: var(--kop); font-weight: 700; text-transform: uppercase; }
+#routeStops li.bar .naam::before { content: "☕ "; }
+#routeStops .naam { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#routeStops .knopjes { display: flex; gap: 2px; }
+#routeStops .knopjes button {
+  width: 26px; height: 26px; padding: 0;
+  border: none; background: none;
+  color: var(--grijs); font-family: var(--lettertype); font-size: 13px;
+}
+#routeStops .knopjes button:hover { background: none; color: var(--tekst); }
+#routeStops .knopjes button:disabled { opacity: 0.25; cursor: default; }
+
+#routeSamenvatting { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+#routeSamenvatting:empty { display: none; }
+#routeSamenvatting b { font-family: var(--kop); font-size: 32px; font-weight: 800; letter-spacing: -0.03em; }
+#routeSamenvatting span { font-family: var(--cijfers); font-size: 12px; color: var(--grijs); }
+#routeMelding { font-family: var(--cijfers); font-size: 12px; color: var(--grijs); }
+#routeMelding:empty { display: none; }
+#routePaneel .vinkje { padding: 0; }
+
+.routeKnoppen { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.routeKnoppen button { padding: 7px 12px; font-size: 11px; }
+.routeKnoppen button:disabled { opacity: 0.35; cursor: default; }
+.routeKnoppen button:disabled:hover { background: transparent; color: var(--tekst); }
+.routeKnoppen .link { margin: 0 0 0 auto; }
+
+#routeTips:empty { display: none; }
+#routeTips { padding-top: 12px; border-top: 1px solid var(--lijn); }
+#routeTips > strong { font-family: var(--kop); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grijs); }
+#routeTips ul { list-style: none; padding: 0; margin: 8px 0 0; }
+#routeTips li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--lijn); }
+#routeTips li span { display: flex; flex-direction: column; min-width: 0; }
+#routeTips li b { font-family: var(--kop); font-size: 14px; text-transform: uppercase; }
+#routeTips li small { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); }
+#routeTips li button { padding: 4px 10px; flex: none; }
+#routeTips .leeg { margin: 6px 0 0; font-size: 13px; color: var(--grijs); }
+
+/* Genummerde punten op de kaart */
+.routePunt {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--achtergrond);
+  border: 2px solid var(--accent);
+  color: var(--tekst);
+  font-family: var(--cijfers);
+  font-size: 11px;
+  font-weight: 600;
+}
+.routePunt.bar { background: var(--accent); color: var(--achtergrond); }
+
+/* "➕ In route" in de lijst met bars */
+.acties .routeToevoegen {
+  padding: 6px 10px;
+  border: 1px solid var(--tekst);
+  color: var(--tekst);
+}
+.acties .routeToevoegen.actief { background: var(--accent); border-color: var(--accent); color: var(--achtergrond); }
+
+/* Fietsstijlen: Snel · Fietspaden · Weinig verkeer */
+#routeStijlen { display: flex; flex-wrap: wrap; gap: 6px; }
+#routeStijlen button { padding: 6px 12px; font-size: 11px; border-color: var(--lijn); }
+#routeStijlen button:hover { border-color: var(--tekst); background: none; color: var(--tekst); }
+#routeStijlen button.actief { background: var(--accent); border-color: var(--accent); color: var(--achtergrond); }
+#routeSamenvatting b.hm { font-size: 20px; color: var(--grijs); }
+
+/* ---------- Waarvoor gebruik je Roast Route? (welkomstscherm) ---------- */
+.gebruikVraag {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 18px;
+  margin: 10px 0 0;
+  padding: 0;
+  border: none;
+}
+.gebruikVraag legend {
+  width: 100%;
+  padding: 0 0 4px;
+  font-size: 13px;
+  color: var(--grijs);
+}
+
+/* ---------- Mijn routes ---------- */
+#mijnRoutes:empty { display: none; }
+#mijnRoutes { padding-top: 12px; border-top: 1px solid var(--lijn); }
+#mijnRoutes > strong { font-family: var(--kop); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grijs); }
+#mijnRoutes ul { list-style: none; padding: 0; margin: 8px 0 0; }
+#mijnRoutes li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--lijn); }
+#mijnRoutes li > span:first-child { display: flex; flex-direction: column; min-width: 0; }
+#mijnRoutes li b { font-family: var(--kop); font-size: 14px; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mijnRoutes li small { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); }
+#mijnRoutes .knopjes { display: flex; gap: 4px; flex: none; }
+#mijnRoutes .knopjes button { padding: 4px 10px; font-size: 11px; }
+#mijnRoutes .knopjes [data-wisroute] { border-color: var(--lijn); color: var(--grijs); }

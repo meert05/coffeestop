@@ -42,6 +42,14 @@
       <input id="nieuwEmail" type="email" placeholder="jouw@email.be" data-t-placeholder="email" autocomplete="email" required>
       <input id="nieuwWachtwoord" type="password" minlength="8" placeholder="Wachtwoord (min. 8 tekens)" data-t-placeholder="wachtwoordNieuw" autocomplete="new-password" required>
 
+      <!-- Waarvoor gebruik je Roast Route? Optioneel, meerdere vakjes mogelijk -->
+      <fieldset class="gebruikVraag">
+        <legend data-t="gebruikVraag">Waarvoor gebruik je Roast Route? (optioneel)</legend>
+        <label class="vinkje"><input type="checkbox" name="gebruik" value="koersen"> <span data-t="gebruik_koersen">🚴 Koersen</span></label>
+        <label class="vinkje"><input type="checkbox" name="gebruik" value="ontspannen"> <span data-t="gebruik_ontspannen">☕ Ontspannen</span></label>
+        <label class="vinkje"><input type="checkbox" name="gebruik" value="werken"> <span data-t="gebruik_werken">💻 Werken</span></label>
+      </fieldset>
+
       <!-- Nieuwsbrief: standaard UIT, de gebruiker kiest zelf -->
       <label class="vinkje">
         <input id="nieuwsbriefBijStart" type="checkbox">
@@ -49,7 +57,7 @@
       </label>
 
       <button type="submit" data-t="accountMaken">Account maken</button>
-      <small data-t="privacy">We bewaren alleen je voornaam, je e-mailadres, je favorieten en je nieuwsbriefkeuze. Je kunt je altijd uitschrijven.</small>
+      <small data-t="privacy">We bewaren alleen je voornaam, je e-mailadres, je favorieten, je bewaarde routes, je nieuwsbriefkeuze en (als je het invult) waarvoor je de app gebruikt. Je kunt je altijd uitschrijven.</small>
       <small><a href="privacy.html" target="_blank" data-t="privacyLink">Privacyverklaring</a></small>
     </form>
 
@@ -106,6 +114,7 @@
     <div id="filters">
       <input id="zoek" type="search" placeholder="Zoek een stop…" data-t-placeholder="zoek">
       <button id="dichtbijKnop" type="button" data-t="dichtbij">📍 Dichtbij mij</button>
+      <button id="routeKnop" type="button" data-t="routePlannen">🚴 Route plannen</button>
     </div>
 
     <!-- Knopjes: Alles · Wielercafé · PC-friendly · Mijn favorieten (gemaakt in app.js) -->
@@ -115,6 +124,27 @@
       <div id="kaart"></div>
 
       <section>
+        <!-- Route plannen: zichtbaar na een klik op "🚴 Route plannen" -->
+        <div id="routePaneel" hidden>
+          <strong data-t="jouwRoute">Jouw route</strong>
+          <div id="routeStijlen"></div>
+          <p id="routeLeeg" data-t="routeUitleg">Klik op de kaart om punten toe te voegen, en op een bar om ze mee te nemen.</p>
+          <ol id="routeStops"></ol>
+          <div id="routeSamenvatting"></div>
+          <small id="routeMelding"></small>
+          <label class="vinkje"><input id="routeRondrit" type="checkbox"> <span data-t="rondrit">Rondrit: terug naar de start</span></label>
+          <div class="routeKnoppen">
+            <button id="routeHier" type="button" data-t="startHier">📍 Start bij mij</button>
+            <button id="routeGpx" type="button" data-t="gpx">⬇️ GPX</button>
+            <button id="routeGoogle" type="button" data-t="googleMaps">Google Maps</button>
+            <button id="routeDelen" type="button" data-t="routeDelen">🔗 Delen</button>
+            <button id="routeBewaar" type="button" data-t="routeBewaren">💾 Bewaren</button>
+            <button id="routeWissen" type="button" class="link" data-t="routeWissen">Wissen</button>
+          </div>
+          <div id="routeTips"></div>
+          <div id="mijnRoutes"></div>
+        </div>
+
         <!-- Formulier voor nieuwe bars: alleen zichtbaar voor de beheerder -->
         <form id="formulier" hidden>
           <strong data-t="nieuweStop">Nieuwe stop</strong>
@@ -181,5 +211,6 @@
   <script src="reviews.js"></script>
   <script src="voorstellen.js"></script>
   <script src="app.js"></script>
+  <script src="route.js"></script>
 </body>
 </html>

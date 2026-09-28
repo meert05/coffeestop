@@ -82,14 +82,14 @@ async function bewaarFavoriet(stopId, aan) {
 // Waar de links in de mails (bevestigen, wachtwoord resetten) naartoe gaan
 const TERUG_NAAR = location.origin + location.pathname;
 
-async function maakAccount(email, wachtwoord, voornaam, nieuwsbrief) {
+async function maakAccount(email, wachtwoord, voornaam, nieuwsbrief, gebruik) {
   const { data, error } = await db.auth.signUp({
     email: email,
     password: wachtwoord,
     options: {
       emailRedirectTo: TERUG_NAAR,
       // Extra info bij het account, zodat we ze later in het profiel kunnen zetten
-      data: { voornaam: voornaam, nieuwsbrief: nieuwsbrief }
+      data: { voornaam: voornaam, nieuwsbrief: nieuwsbrief, gebruik: gebruik }
     }
   });
   if (error) throw error;
@@ -176,5 +176,23 @@ async function verwijderVoorstel(id) {
 // Roept de functie "verwijder_mijn_account" in de database aan (zie SQL)
 async function verwijderMijnAccount() {
   const { error } = await db.rpc("verwijder_mijn_account");
+  if (error) throw error;
+}
+
+// ---------- Bewaarde routes (alleen jij ziet je eigen routes) ----------
+async function haalRoutesOp() {
+  const { data, error } = await db.from("routes")
+    .select("*").order("gemaakt_op", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+async function bewaarRouteInDatabase(route) {
+  const { error } = await db.from("routes").insert(route);
+  if (error) throw error;
+}
+
+async function verwijderRouteUitDatabase(id) {
+  const { error } = await db.from("routes").delete().eq("id", id);
   if (error) throw error;
 }
