@@ -282,6 +282,19 @@
           <button type="submit" data-t="toevoegen">Toevoegen</button>
         </form>
 
+        <!-- Bars importeren uit een lijst: alleen voor de beheerder -->
+        <div id="importBlok" hidden>
+          <strong data-t="importTitel">📥 Bars importeren</strong>
+          <p data-t="importUitleg">Kies een lijst (.json of .csv). De app zoekt elk adres op de kaart; jij kijkt na en voegt toe.</p>
+          <label class="knopLabel">
+            <span data-t="importKiezen">📂 Lijst kiezen</span>
+            <input id="importBestand" type="file" accept=".json,.csv,application/json,text/csv">
+          </label>
+          <small id="importMelding"></small>
+          <ul id="importLijst"></ul>
+          <button id="importToevoegen" type="button" hidden>Toevoegen</button>
+        </div>
+
         <!-- Onzichtbaar: wordt geopend door de knop "📷 Foto" bij een bar -->
         <input id="fotoKiezer" type="file" accept="image/*" hidden>
 
@@ -324,5 +337,6 @@
   <script src="app.js"></script>
   <script src="route.js"></script>
   <script src="profiel.js"></script>
+  <script src="import.js"></script>
 </body>
 </html>

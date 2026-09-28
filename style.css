@@ -1084,3 +1084,28 @@ body::before {
 #startMelding { color: var(--grijs); font-family: var(--cijfers); }
 #startMelding:empty { display: none; }
 #profielStart .veld select { background: var(--achtergrond); }
+
+/* ---------- Bars importeren (beheerder) ---------- */
+#importBlok {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  margin-bottom: 24px;
+  border: 1px dashed var(--lijn);
+}
+#importBlok > strong { font-family: var(--kop); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grijs); }
+#importBlok > p { margin: 0; font-size: 13px; color: var(--grijs); }
+#importMelding { font-family: var(--cijfers); font-size: 12px; color: var(--grijs); }
+#importMelding:empty, #importLijst:empty { display: none; }
+#importLijst { list-style: none; padding: 0; margin: 0; max-height: 420px; overflow-y: auto; border-top: 1px solid var(--lijn); }
+#importLijst li { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--lijn); }
+#importLijst .vinkje { flex: 1; min-width: 0; }
+#importLijst .vinkje span { display: flex; flex-direction: column; min-width: 0; }
+#importLijst b { font-family: var(--kop); font-size: 13px; text-transform: uppercase; }
+#importLijst small { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); }
+#importLijst li.nietGevonden small, #importLijst li.fout small { color: #E07A6F; }
+#importLijst li.bestaat { opacity: 0.5; }
+#importLijst button { border: none; padding: 4px 6px; }
+#importToevoegen { align-self: flex-start; }
+#importToevoegen:disabled { opacity: 0.4; cursor: default; }

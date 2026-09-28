@@ -771,6 +771,8 @@ async function naInloggen() {
 
   // Het formulier voor nieuwe bars: alleen voor jou
   document.getElementById("formulier").hidden = !isBeheerder();
+  // Bars importeren uit een lijst: ook alleen voor jou
+  if (typeof toonImportBlok === "function") toonImportBlok();
   // "Bar voorstellen": voor ingelogde gebruikers (niet voor de beheerder, die voegt zelf toe)
   document.getElementById("voorstelBlok").hidden = !gebruiker || isBeheerder();
   // Voorstellen van gebruikers: alleen de beheerder ziet ze
