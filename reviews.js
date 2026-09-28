@@ -5,6 +5,7 @@
 let alleReviews = [];        // alle reviews, geladen bij het starten
 let openReviewsVan = null;   // de bar waarvan de reviews openstaan
 let mijnVoornaam = "";       // komt uit je profiel, en staat bij je review
+let mijnFoto = null;         // je profielfoto (of null), staat ook bij je review
 
 function reviewsVan(stopId) {
   return alleReviews.filter(r => r.stop_id === stopId);
@@ -12,6 +13,12 @@ function reviewsVan(stopId) {
 
 function mijnReviewVan(stopId) {
   return gebruiker ? alleReviews.find(r => r.stop_id === stopId && r.user_id === gebruiker.id) : null;
+}
+
+// Een ronde profielfoto, of de eerste letter van de naam als er geen foto is
+function avatarHTML(foto, naam, maat = "") {
+  if (foto) return `<img class="avatar ${maat}" src="${esc(foto)}" alt="">`;
+  return `<span class="avatar ${maat}">${esc((naam || "?").trim().charAt(0).toUpperCase() || "?")}</span>`;
 }
 
 // 4 → "★★★★☆"
@@ -34,6 +41,7 @@ function reviewsBlokHTML(stop) {
 
   const lijst = reviewsVan(stop.id).map(r => `
     <li>
+      ${avatarHTML(r.foto, r.voornaam, "mini")}
       <strong>${esc(r.voornaam || t("anoniem"))}</strong>
       <span class="sterren">${sterren(r.score)}</span>
       ${isBeheerder() && r.user_id !== gebruiker.id
@@ -92,10 +100,10 @@ function koppelReviews(li, stop) {
     if (gekozenScore === 0) { melding.textContent = t("kiesSterren"); return; }
     const tekst = blok.querySelector("textarea").value.trim();
     try {
-      await bewaarReview(stop.id, gekozenScore, tekst, mijnVoornaam);
+      await bewaarReview(stop.id, gekozenScore, tekst, mijnVoornaam, mijnFoto);
       alleReviews = alleReviews.filter(r => !(r.stop_id === stop.id && r.user_id === gebruiker.id));
       alleReviews.unshift({ stop_id: stop.id, user_id: gebruiker.id, score: gekozenScore,
-                            tekst: tekst, voornaam: mijnVoornaam });
+                            tekst: tekst, voornaam: mijnVoornaam, foto: mijnFoto });
       teken();
     } catch (fout) {
       melding.textContent = t("opslaanMislukt") + " " + fout.message;

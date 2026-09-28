@@ -915,3 +915,155 @@ body::before {
 #mijnRoutes .knopjes { display: flex; gap: 4px; flex: none; }
 #mijnRoutes .knopjes button { padding: 4px 10px; font-size: 11px; }
 #mijnRoutes .knopjes [data-wisroute] { border-color: var(--lijn); color: var(--grijs); }
+
+/* ---------- Eigen GPX inladen: een bestandsknop die eruitziet als een knop ---------- */
+.knopLabel {
+  position: relative;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border: 1px dashed var(--grijs);
+  font-family: var(--kop);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.knopLabel:hover { border-color: var(--tekst); }
+.knopLabel input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+#routeStops li.import .naam { font-family: var(--kop); font-weight: 700; text-transform: uppercase; }
+#routeStops li.import .nr { color: var(--tekst); }
+#routeStops .omwegKm { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); flex: none; }
+
+/* ---------- Routes van Roast Route (zelfde stijl als Mijn routes) ---------- */
+#publiekeRoutes:empty { display: none; }
+#publiekeRoutes { padding-top: 12px; border-top: 1px solid var(--lijn); }
+#publiekeRoutes > strong { font-family: var(--kop); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grijs); }
+#publiekeRoutes ul { list-style: none; padding: 0; margin: 8px 0 0; }
+#publiekeRoutes li, #mijnRoutes li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--lijn); }
+#publiekeRoutes li > span:first-child { display: flex; flex-direction: column; min-width: 0; }
+#publiekeRoutes li b { font-family: var(--kop); font-size: 14px; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#publiekeRoutes li small { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); }
+#publiekeRoutes .knopjes { display: flex; gap: 4px; flex: none; }
+#publiekeRoutes .knopjes button { padding: 4px 10px; font-size: 11px; }
+#mijnRoutes .knopjes [data-publiek] { border-color: var(--lijn); }
+#mijnRoutes .knopjes [data-publiek].actief { background: var(--accent); border-color: var(--accent); }
+
+/* =====================================================
+   MIJN PROFIEL
+   ===================================================== */
+
+/* Ronde profielfoto, of een letter als er geen foto is */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--vlak);
+  border: 1px solid var(--lijn);
+  color: var(--tekst);
+  font-family: var(--kop);
+  font-size: 12px;
+  font-weight: 700;
+}
+.avatar.mini { width: 22px; height: 22px; font-size: 10px; vertical-align: middle; margin-right: 6px; }
+.avatar.groot { width: 72px; height: 72px; font-size: 28px; }
+
+/* De knop met je naam, bovenaan */
+#profielKnop {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 14px 4px 4px;
+  border-color: var(--lijn);
+}
+#profielKnop:hover { border-color: var(--tekst); background: none; color: var(--tekst); }
+#profielKnop #wie { font-size: 12px; }
+
+/* Het venster */
+#profiel {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--lijn);
+  background: var(--achtergrond);
+  color: var(--tekst);
+}
+#profiel::backdrop { background: rgba(0, 0, 0, 0.75); }
+#profiel > * { padding: 22px 26px; border-bottom: 1px solid var(--lijn); margin: 0; }
+#profiel > #profielMelding { padding: 10px 26px; border: none; font-family: var(--cijfers); font-size: 12px; color: var(--grijs); }
+#profiel > #profielMelding:empty { display: none; }
+
+.profielKop { display: flex; align-items: center; gap: 18px; position: sticky; top: 0; background: var(--achtergrond); z-index: 1; }
+.profielKop h2 {
+  margin: 0;
+  font-family: var(--kop);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.profielKop small { color: var(--grijs); font-size: 12px; }
+.profielKop .sluiten { margin-left: auto; align-self: flex-start; border: none; padding: 6px 8px; font-size: 16px; }
+.profielKop .sluiten:hover { background: none; color: var(--grijs); }
+
+#profiel h3 {
+  margin: 0 0 14px;
+  font-family: var(--kop);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grijs);
+}
+#profiel .uitleg { margin: -6px 0 12px; font-size: 13px; color: var(--grijs); }
+#profiel .rij { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+#profiel .rij .link { margin: 0; }
+#profiel form { display: flex; flex-direction: column; gap: 6px; }
+#profiel form button[type="submit"] { align-self: flex-start; margin-top: 8px; }
+
+.veld { display: flex; flex-direction: column; gap: 0; font-size: 12px; color: var(--grijs); }
+.veld input, .veld select { color: var(--tekst); font-size: 15px; }
+.veld select { padding: 10px 0; background: var(--achtergrond); }
+
+/* Statistieken */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--lijn); border: 1px solid var(--lijn); }
+.tegel { display: flex; flex-direction: column; gap: 2px; padding: 14px 12px; background: var(--achtergrond); }
+.tegel b { font-family: var(--kop); font-size: 28px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.tegel span { font-family: var(--cijfers); font-size: 10px; color: var(--grijs); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Badges */
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px dashed var(--lijn);
+  font-family: var(--kop);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #55554F;
+  cursor: help;
+}
+.badge i { font-style: normal; filter: grayscale(1); opacity: 0.4; }
+.badge.behaald { border-style: solid; border-color: var(--accent); color: var(--tekst); }
+.badge.behaald i { filter: none; opacity: 1; }
+
+.gevaar .link { margin: 0; }
+.gevaar .link:hover { color: #E07A6F; }
+
+@media (max-width: 560px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  #profiel > * { padding: 18px; }
+}

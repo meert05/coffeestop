@@ -136,16 +136,16 @@ async function bewaarProfiel(velden) {
 // ---------- Reviews ----------
 async function haalReviewsOp() {
   const { data, error } = await db.from("reviews")
-    .select("stop_id, user_id, score, tekst, voornaam, gemaakt_op")
+    .select("stop_id, user_id, score, tekst, voornaam, foto, gemaakt_op")
     .order("gemaakt_op", { ascending: false });
   if (error) throw error;
   return data;
 }
 
-async function bewaarReview(stopId, score, tekst, voornaam) {
+async function bewaarReview(stopId, score, tekst, voornaam, foto) {
   // upsert: een nieuwe review, of je bestaande review voor deze bar bijwerken
   const { error } = await db.from("reviews").upsert({
-    stop_id: stopId, user_id: gebruiker.id, score: score, tekst: tekst, voornaam: voornaam
+    stop_id: stopId, user_id: gebruiker.id, score: score, tekst: tekst, voornaam: voornaam, foto: foto || null
   });
   if (error) throw error;
 }
@@ -179,20 +179,70 @@ async function verwijderMijnAccount() {
   if (error) throw error;
 }
 
-// ---------- Bewaarde routes (alleen jij ziet je eigen routes) ----------
+// ---------- Bewaarde routes ----------
+// Mijn eigen routes (niet de gepubliceerde routes van anderen)
 async function haalRoutesOp() {
   const { data, error } = await db.from("routes")
-    .select("*").order("gemaakt_op", { ascending: false });
+    .select("*").eq("user_id", gebruiker.id).order("gemaakt_op", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+// De routes die de beheerder publiceerde: iedereen ziet ze
+async function haalPubliekeRoutesOp() {
+  const { data, error } = await db.from("routes")
+    .select("*").eq("publiek", true).order("gemaakt_op", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+// Eén route (voor een gedeelde link naar een gepubliceerde route)
+async function haalRouteOp(id) {
+  const { data, error } = await db.from("routes").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return data;
 }
 
 async function bewaarRouteInDatabase(route) {
-  const { error } = await db.from("routes").insert(route);
+  const { data, error } = await db.from("routes").insert(route).select();
   if (error) throw error;
+  return data && data[0];   // de bewaarde route, met haar id
 }
 
 async function verwijderRouteUitDatabase(id) {
   const { error } = await db.from("routes").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// Alleen de beheerder: een route publiceren (of weer privé maken)
+async function zetRoutePubliek(id, publiek) {
+  const { error } = await db.from("routes").update({ publiek: publiek }).eq("id", id);
+  if (error) throw error;
+}
+
+// ---------- Profielfoto (in de map "avatars/<jouw id>/") ----------
+async function uploadProfielfoto(bestand) {
+  const pad = gebruiker.id + "/avatar-" + Date.now() + ".jpg";
+  const { error } = await db.storage.from("avatars").upload(pad, bestand, { contentType: "image/jpeg" });
+  if (error) throw error;
+  // Oudere foto's opruimen: we bewaren er maar één
+  await verwijderMijnProfielfotos(pad);
+  return db.storage.from("avatars").getPublicUrl(pad).data.publicUrl;
+}
+
+// Al je profielfoto's wissen (behalve eventueel de foto die je wil houden)
+async function verwijderMijnProfielfotos(behalve = null) {
+  const { data, error } = await db.storage.from("avatars").list(gebruiker.id);
+  if (error) throw error;
+  const weg = (data || []).map(f => gebruiker.id + "/" + f.name).filter(pad => pad !== behalve);
+  if (weg.length) {
+    const { error: fout } = await db.storage.from("avatars").remove(weg);
+    if (fout) throw fout;
+  }
+}
+
+// Je naam of foto ook aanpassen bij al je reviews
+async function werkMijnReviewsBij(velden) {
+  const { error } = await db.from("reviews").update(velden).eq("user_id", gebruiker.id);
   if (error) throw error;
 }

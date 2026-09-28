@@ -86,14 +86,97 @@
 
     <!-- Ingelogd als… met nieuwsbrief-schakelaar en uitloggen -->
     <div id="ingelogd">
-      <span id="wie"></span>
-      <label class="vinkje">
-        <input id="nieuwsbrief" type="checkbox">
-        <span data-t="nieuwsbriefKort">Maandelijkse mail</span>
-      </label>
+      <!-- Klik op je naam of foto: je profiel openen -->
+      <button id="profielKnop" type="button">
+        <span id="avatarKlein" class="avatar"></span>
+        <span id="wie"></span>
+      </button>
       <button id="uitlogKnop" data-t="uitloggen">Uitloggen</button>
-      <button id="verwijderAccountKnop" class="link" data-t="accountVerwijderen">Account verwijderen</button>
     </div>
+
+    <!-- ===== MIJN PROFIEL: een venster boven de app ===== -->
+    <dialog id="profiel">
+      <div class="profielKop">
+        <span id="avatarGroot" class="avatar groot"></span>
+        <div>
+          <h2 id="profielNaam"></h2>
+          <small id="profielInfo"></small>
+        </div>
+        <button id="profielSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+
+      <section>
+        <h3 data-t="statistieken">Statistieken</h3>
+        <div id="profielStats" class="stats"></div>
+        <div id="profielBadges" class="badges"></div>
+      </section>
+
+      <section>
+        <h3 data-t="profielfoto">Profielfoto</h3>
+        <p class="uitleg" data-t="profielfotoUitleg">Je foto staat bij je naam en bij je reviews.</p>
+        <div class="rij">
+          <label class="knopLabel">
+            <span data-t="fotoKiezenProfiel">📷 Foto kiezen</span>
+            <input id="profielFotoKiezer" type="file" accept="image/*">
+          </label>
+          <button id="profielFotoWeg" type="button" class="link" data-t="fotoVerwijderen">Foto verwijderen</button>
+        </div>
+      </section>
+
+      <form id="gegevensFormulier">
+        <h3 data-t="mijnGegevens">Mijn gegevens</h3>
+        <label class="veld"><span data-t="voornaamLabel">Voornaam</span>
+          <input id="profielVoornaam" maxlength="40" autocomplete="given-name"></label>
+        <label class="veld"><span data-t="taalLabel">Taal</span>
+          <select id="profielTaal">
+            <option value="nl">Nederlands</option>
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+          </select></label>
+        <label class="vinkje">
+          <input id="nieuwsbrief" type="checkbox">
+          <span data-t="nieuwsbriefKort">Maandelijkse mail</span>
+        </label>
+        <button type="submit" data-t="bewaren">Bewaren</button>
+      </form>
+
+      <form id="voorkeurenFormulier">
+        <h3 data-t="voorkeuren">Voorkeuren</h3>
+        <p class="uitleg" data-t="voorkeurenUitleg">De app past zich hieraan aan: je favoriete regio staat klaar bij het openen, en routes gebruiken jouw fiets en snelheid.</p>
+        <fieldset class="gebruikVraag">
+          <legend data-t="gebruikVraagKort">Waarvoor gebruik je Roast Route?</legend>
+          <label class="vinkje"><input type="checkbox" name="profielGebruik" value="koersen"> <span data-t="gebruik_koersen">🚴 Koersen</span></label>
+          <label class="vinkje"><input type="checkbox" name="profielGebruik" value="ontspannen"> <span data-t="gebruik_ontspannen">☕ Ontspannen</span></label>
+          <label class="vinkje"><input type="checkbox" name="profielGebruik" value="werken"> <span data-t="gebruik_werken">💻 Werken</span></label>
+        </fieldset>
+        <label class="veld"><span data-t="favorieteRegio">Favoriete regio</span>
+          <select id="profielRegio"></select></label>
+        <label class="veld"><span data-t="fietsType">Mijn fiets</span>
+          <select id="profielFiets">
+            <option value="" data-t="geenKeuze">—</option>
+            <option value="koersfiets" data-t="fiets_koersfiets">Koersfiets</option>
+            <option value="gravel" data-t="fiets_gravel">Gravelbike</option>
+            <option value="stadsfiets" data-t="fiets_stadsfiets">Stadsfiets</option>
+            <option value="ebike" data-t="fiets_ebike">E-bike</option>
+          </select></label>
+        <label class="veld"><span data-t="snelheidLabel">Gemiddelde snelheid (km/u)</span>
+          <input id="profielSnelheid" type="number" min="8" max="45" step="1" placeholder="25"></label>
+        <button type="submit" data-t="bewaren">Bewaren</button>
+      </form>
+
+      <form id="wachtwoordFormulier">
+        <h3 data-t="wachtwoordWijzigen">Wachtwoord wijzigen</h3>
+        <input id="profielWachtwoord" type="password" minlength="8" autocomplete="new-password" required
+               placeholder="Nieuw wachtwoord (min. 8 tekens)" data-t-placeholder="wachtwoordNieuw">
+        <button type="submit" data-t="wachtwoordWijzigenKnop">Wachtwoord wijzigen</button>
+      </form>
+
+      <p id="profielMelding" role="status"></p>
+
+      <section class="gevaar">
+        <button id="verwijderAccountKnop" type="button" class="link" data-t="accountVerwijderen">Account verwijderen</button>
+      </section>
+    </dialog>
 
     <!-- Kleurkiezer: klik een bolletje of kies je eigen kleur -->
     <div id="kleuren">
@@ -129,12 +212,21 @@
           <strong data-t="jouwRoute">Jouw route</strong>
           <div id="routeStijlen"></div>
           <p id="routeLeeg" data-t="routeUitleg">Klik op de kaart om punten toe te voegen, en op een bar om ze mee te nemen.</p>
+          <!-- Eigen GPX inladen (Strava, Garmin, Komoot, …) -->
+          <label id="gpxImportLabel" class="knopLabel">
+            <span data-t="gpxImporteren">📂 Eigen GPX inladen</span>
+            <input id="gpxImport" type="file" accept=".gpx,application/gpx+xml">
+          </label>
           <ol id="routeStops"></ol>
           <div id="routeSamenvatting"></div>
           <small id="routeMelding"></small>
-          <label class="vinkje"><input id="routeRondrit" type="checkbox"> <span data-t="rondrit">Rondrit: terug naar de start</span></label>
+          <label id="rondritLabel" class="vinkje"><input id="routeRondrit" type="checkbox"> <span data-t="rondrit">Rondrit: terug naar de start</span></label>
           <div class="routeKnoppen">
+            <button id="routeTerug" type="button" data-t="ongedaanMaken">↶ Ongedaan maken</button>
+            <button id="routeOptimaliseer" type="button" data-t="optimaliseren">🔀 Volgorde optimaliseren</button>
             <button id="routeHier" type="button" data-t="startHier">📍 Start bij mij</button>
+          </div>
+          <div class="routeKnoppen">
             <button id="routeGpx" type="button" data-t="gpx">⬇️ GPX</button>
             <button id="routeGoogle" type="button" data-t="googleMaps">Google Maps</button>
             <button id="routeDelen" type="button" data-t="routeDelen">🔗 Delen</button>
@@ -142,6 +234,7 @@
             <button id="routeWissen" type="button" class="link" data-t="routeWissen">Wissen</button>
           </div>
           <div id="routeTips"></div>
+          <div id="publiekeRoutes"></div>
           <div id="mijnRoutes"></div>
         </div>
 
@@ -212,5 +305,6 @@
   <script src="voorstellen.js"></script>
   <script src="app.js"></script>
   <script src="route.js"></script>
+  <script src="profiel.js"></script>
 </body>
 </html>

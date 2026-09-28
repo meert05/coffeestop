@@ -698,6 +698,7 @@ document.getElementById("uitlogKnop").onclick = logUit;
 document.getElementById("verwijderAccountKnop").onclick = async () => {
   if (!confirm(t("zekerAccount"))) return;
   try {
+    try { await verwijderMijnProfielfotos(); } catch (fout) { console.error(fout); }   // ook je foto wissen
     await verwijderMijnAccount();
     localStorage.removeItem("favorieten");
     favorieten = [];
@@ -752,11 +753,16 @@ async function regelProfiel() {
   mijnVoornaam = (profiel && profiel.voornaam) ? profiel.voornaam : "";
   document.getElementById("wie").textContent = mijnVoornaam || gebruiker.email;
   document.getElementById("nieuwsbrief").checked = Boolean(profiel && profiel.nieuwsbrief);
+  // Profielfoto en voorkeuren (profiel.js)
+  if (typeof profielGeladen === "function") profielGeladen(profiel);
 }
 
 // Wordt uitgevoerd bij het openen van de pagina, na inloggen en na uitloggen
 async function naInloggen() {
   toonScherm();
+  // Uitgelogd of account verwijderd? Dan het profielvenster sluiten
+  const profielVenster = document.getElementById("profiel");
+  if (!gebruiker && profielVenster.open) profielVenster.close();
 
   // Het formulier voor nieuwe bars: alleen voor jou
   document.getElementById("formulier").hidden = !isBeheerder();
