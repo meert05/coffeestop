@@ -793,21 +793,9 @@ async function naInloggen() {
 }
 
 // ---------- 8. Kleur van de app ----------
-function zetKleur(kleur) {
-  document.documentElement.style.setProperty("--accent", kleur);
-  document.getElementById("eigenKleur").value = kleur;
-  document.querySelectorAll(".bolletje").forEach(b =>
-    b.classList.toggle("actief", b.dataset.kleur === kleur));
-  localStorage.setItem("kleur", kleur);
-  if (alleStops.length) teken();   // de stippen op de kaart krijgen de nieuwe kleur
-}
-
-document.querySelectorAll(".bolletje").forEach(b => {
-  b.onclick = () => zetKleur(b.dataset.kleur);
-});
-document.getElementById("eigenKleur").oninput = (event) => zetKleur(event.target.value);
-
-zetKleur(localStorage.getItem("kleur") || "#F2F1EE");
+// De app is zwart-wit: de kleuren staan vast in style.css (--accent).
+// Een oude kleurkeuze uit vroegere versies wissen we.
+localStorage.removeItem("kleur");
 
 // ---------- 9. Starten ----------
 async function start() {
