@@ -319,6 +319,22 @@ const STADNAMEN = {
   wenen:      { nl: "Wenen",      fr: "Vienne",     en: "Vienna",     ook: ["wien", "vienna", "vienne"] },
   munchen:    { nl: "München",    fr: "Munich",     en: "Munich",     ook: ["munich", "muenchen"] },
   keulen:     { nl: "Keulen",     fr: "Cologne",    en: "Cologne",    ook: ["koln", "koeln", "cologne"] },
+  // Belgische steden en gemeenten (in het Frans en Engels soms anders)
+  oudenaarde:     { nl: "Oudenaarde",     fr: "Audenarde", en: "Oudenaarde", ook: ["audenarde"] },
+  geraardsbergen: { nl: "Geraardsbergen", fr: "Grammont",  en: "Geraardsbergen", ook: ["grammont"] },
+  kluisbergen:    { nl: "Kluisbergen",    fr: "Kluisbergen", en: "Kluisbergen", ook: ["kwaremont", "oude-kwaremont", "ruien", "berchem-kluisbergen"] },
+  brakel:         { nl: "Brakel",         fr: "Brakel",    en: "Brakel", ook: ["parike", "nederbrakel", "opbrakel"] },
+  roeselare:      { nl: "Roeselare",      fr: "Roulers",   en: "Roeselare", ook: ["roulers"] },
+  tongeren:       { nl: "Tongeren",       fr: "Tongres",   en: "Tongeren", ook: ["tongres"] },
+  halle:          { nl: "Halle",          fr: "Hal",       en: "Halle", ook: ["hal"] },
+  gooik:          { nl: "Gooik",          fr: "Gooik",     en: "Gooik", ook: ["pajottenland"] },
+  kortrijk:       { nl: "Kortrijk",       fr: "Courtrai",  en: "Kortrijk", ook: ["courtrai"] },
+  brugge:         { nl: "Brugge",         fr: "Bruges",    en: "Bruges", ook: ["bruges"] },
+  leuven:         { nl: "Leuven",         fr: "Louvain",   en: "Leuven", ook: ["louvain"] },
+  mechelen:       { nl: "Mechelen",       fr: "Malines",   en: "Mechelen", ook: ["malines"] },
+  ieper:          { nl: "Ieper",          fr: "Ypres",     en: "Ypres", ook: ["ypres"] },
+  ronse:          { nl: "Ronse",          fr: "Renaix",    en: "Ronse", ook: ["renaix"] },
+  zottegem:       { nl: "Zottegem",       fr: "Zottegem",  en: "Zottegem" },
   "den-haag": { nl: "Den Haag",   fr: "La Haye",    en: "The Hague",  ook: ["la-haye", "the-hague", "s-gravenhage"] },
   geneve:     { nl: "Genève",     fr: "Genève",     en: "Geneva",     ook: ["geneva", "genf"] }
 };
@@ -342,10 +358,15 @@ function stadSleutel(naam) {
   return naam;
 }
 
-// De groep (stad of regio) van een bar: in België onze vaste regio's, elders de stad
+// De groep (stad) van een bar: Antwerpen, Gent en Brussel (met hun rand) als vaste groepen,
+// alle andere bars onder hun eigen gemeente
 function groepVan(stop) {
-  if (landVan(stop) === "BE" && stop.stad !== "buitenland") return stop.stad;
-  return stop.plaats ? stadSleutel(stop.plaats) : landNaam(landVan(stop));
+  if (landVan(stop) === "BE" && ["antwerpen", "gent", "brussel"].includes(stop.stad)) return stop.stad;
+  if (stop.plaats) return stadSleutel(stop.plaats);
+  // Geen gemeente ingevuld? Dan nemen we het laatste stuk van het adres ("Markt, Oudenaarde" → Oudenaarde)
+  const uitAdres = (stop.adres || "").split(",").pop().replace(/\d{4,5}/g, "").trim();
+  if (uitAdres) return stadSleutel(uitAdres);
+  return landVan(stop) === "BE" ? "hellingen" : landNaam(landVan(stop));
 }
 
 // De naam op de knop, in de gekozen taal
