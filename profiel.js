@@ -81,7 +81,7 @@ function vulRegioKeuze(gekozen, keuzeId = "profielRegio") {
     .sort((x, y) => groepNaam(x).localeCompare(groepNaam(y)));
   keuze.innerHTML = `<option value="">${t("geenKeuze")}</option>` +
     groepen.map(g => `<option value="${esc(g)}">${esc(groepNaam(g))}</option>`).join("");
-  keuze.value = gekozen;
+  keuze.value = gekozen ? stadSleutel(gekozen) : "";
 }
 
 // ---------- Statistieken en badges ----------
@@ -190,7 +190,7 @@ function pasVoorkeurenToe(poging = 0) {
   voorkeurenToegepast = true;
 
   // Favoriete regio
-  const regio = mijnProfiel.favoriete_regio;
+  const regio = mijnProfiel.favoriete_regio ? stadSleutel(mijnProfiel.favoriete_regio) : null;
   const stopInRegio = regio ? alleStops.find(s => groepVan(s) === regio) : null;
   if (stopInRegio) {
     gekozenLand = landVan(stopInRegio);

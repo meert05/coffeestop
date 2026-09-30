@@ -299,16 +299,60 @@ function landNaam(code) {
   return code;
 }
 
-// De groep (stad of regio) van een bar: in België onze vaste regio's, elders de gemeente
-function groepVan(stop) {
-  if (landVan(stop) === "BE" && stop.stad !== "buitenland") return stop.stad;
-  return stop.plaats || landNaam(landVan(stop));
+// Steden in het buitenland, in elke taal. "ook" = andere schrijfwijzen van dezelfde stad,
+// zodat "Paris", "Parijs" en "Paris" (FR) samen onder één knop komen.
+const STADNAMEN = {
+  amsterdam:  { nl: "Amsterdam",  fr: "Amsterdam",  en: "Amsterdam" },
+  kopenhagen: { nl: "Kopenhagen", fr: "Copenhague", en: "Copenhagen", ook: ["copenhagen", "kobenhavn", "copenhague", "klampenborg"] },
+  berlijn:    { nl: "Berlijn",    fr: "Berlin",     en: "Berlin",     ook: ["berlin"] },
+  parijs:     { nl: "Parijs",     fr: "Paris",      en: "Paris",      ook: ["paris"] },
+  londen:     { nl: "Londen",     fr: "Londres",    en: "London",     ook: ["london", "londres"] },
+  nice:       { nl: "Nice",       fr: "Nice",       en: "Nice",       ook: ["nizza"] },
+  barcelona:  { nl: "Barcelona",  fr: "Barcelone",  en: "Barcelona",  ook: ["barcelone"] },
+  girona:     { nl: "Girona",     fr: "Gérone",     en: "Girona",     ook: ["gerona", "gerone"] },
+  palma:      { nl: "Palma",      fr: "Palma",      en: "Palma",      ook: ["palma-de-mallorca", "palma-de-majorque"] },
+  milaan:     { nl: "Milaan",     fr: "Milan",      en: "Milan",      ook: ["milano", "milan"] },
+  rome:       { nl: "Rome",       fr: "Rome",       en: "Rome",       ook: ["roma"] },
+  madrid:     { nl: "Madrid",     fr: "Madrid",     en: "Madrid" },
+  lissabon:   { nl: "Lissabon",   fr: "Lisbonne",   en: "Lisbon",     ook: ["lisboa", "lisbon", "lisbonne"] },
+  wenen:      { nl: "Wenen",      fr: "Vienne",     en: "Vienna",     ook: ["wien", "vienna", "vienne"] },
+  munchen:    { nl: "München",    fr: "Munich",     en: "Munich",     ook: ["munich", "muenchen"] },
+  keulen:     { nl: "Keulen",     fr: "Cologne",    en: "Cologne",    ook: ["koln", "koeln", "cologne"] },
+  "den-haag": { nl: "Den Haag",   fr: "La Haye",    en: "The Hague",  ook: ["la-haye", "the-hague", "s-gravenhage"] },
+  geneve:     { nl: "Genève",     fr: "Genève",     en: "Geneva",     ook: ["geneva", "genf"] }
+};
+
+// "København Ø" → "kobenhavn-o", "Paris" → "paris"
+function stadSlug(naam) {
+  return String(naam || "").toLowerCase().replace(/ø/g, "o").replace(/æ/g, "ae")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-// De naam op de knop: onze vaste regio's worden vertaald, andere steden blijven zoals ze zijn
+// Welke stad uit STADNAMEN is dit? Onbekende steden blijven zoals ze zijn.
+function stadSleutel(naam) {
+  const slug = stadSlug(naam);
+  // Ook zonder wijkaanduiding proberen: "København Ø" → "kobenhavn", "Paris 11e" → "paris"
+  for (const poging of [slug, slug.replace(/-[a-z0-9]{1,3}$/, "")]) {
+    if (STADNAMEN[poging]) return poging;
+    for (const [sleutel, stad] of Object.entries(STADNAMEN)) {
+      if ((stad.ook || []).includes(poging)) return sleutel;
+    }
+  }
+  return naam;
+}
+
+// De groep (stad of regio) van een bar: in België onze vaste regio's, elders de stad
+function groepVan(stop) {
+  if (landVan(stop) === "BE" && stop.stad !== "buitenland") return stop.stad;
+  return stop.plaats ? stadSleutel(stop.plaats) : landNaam(landVan(stop));
+}
+
+// De naam op de knop, in de gekozen taal
 const VASTE_REGIOS = { antwerpen: "antwerpen", gent: "gent", brussel: "brussel", hellingen: "vlaanderen" };
 function groepNaam(groep) {
-  return VASTE_REGIOS[groep] ? t(VASTE_REGIOS[groep]) : groep;
+  if (VASTE_REGIOS[groep]) return t(VASTE_REGIOS[groep]);
+  if (STADNAMEN[groep]) return STADNAMEN[groep][taal] || STADNAMEN[groep].nl;
+  return groep;
 }
 
 // Een knop maken en in een rij zetten
@@ -377,7 +421,7 @@ function tekenFilters() {
     .sort((x, y) => {
       const ix = volgorde.indexOf(x), iy = volgorde.indexOf(y);
       if (ix !== -1 || iy !== -1) return (ix === -1 ? 99 : ix) - (iy === -1 ? 99 : iy);
-      return x.localeCompare(y);
+      return groepNaam(x).localeCompare(groepNaam(y));   // alfabetisch in de gekozen taal
     });
 
   maakKnop(stedenRij, t("alles"), gekozenStad === "alles", () => kiesFilter(gekozenLand, "alles"));
