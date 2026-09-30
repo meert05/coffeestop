@@ -203,6 +203,7 @@ document.getElementById("importToevoegen").onclick = async () => {
       lat: Number(g.lat.toFixed(5)),
       lng: Number(g.lng.toFixed(5)),
       info: (r.info || "").trim(),
+      provincie: r.provincie || g.provincie || null,
       kenmerken: []
     };
     try {

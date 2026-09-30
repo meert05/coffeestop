@@ -335,6 +335,7 @@ const STADNAMEN = {
   ieper:          { nl: "Ieper",          fr: "Ypres",     en: "Ypres", ook: ["ypres"] },
   ronse:          { nl: "Ronse",          fr: "Renaix",    en: "Ronse", ook: ["renaix"] },
   zottegem:       { nl: "Zottegem",       fr: "Zottegem",  en: "Zottegem" },
+  knokke:         { nl: "Knokke",         fr: "Knokke",    en: "Knokke", ook: ["knokke-heist", "heist", "duinbergen"] },
   "den-haag": { nl: "Den Haag",   fr: "La Haye",    en: "The Hague",  ook: ["la-haye", "the-hague", "s-gravenhage"] },
   geneve:     { nl: "Genève",     fr: "Genève",     en: "Geneva",     ook: ["geneva", "genf"] }
 };
@@ -358,21 +359,77 @@ function stadSleutel(naam) {
   return naam;
 }
 
-// De groep (stad) van een bar: Antwerpen, Gent en Brussel (met hun rand) als vaste groepen,
-// alle andere bars onder hun eigen gemeente
+// ---------- België: vaste steden, en daarbuiten per provincie ----------
+const VASTE_STEDEN = ["antwerpen", "gent", "brussel", "leuven", "knokke"];
+
+const PROVINCIES = {
+  "west-vlaanderen": { nl: "West-Vlaanderen",      fr: "Flandre-Occidentale", en: "West Flanders" },
+  "oost-vlaanderen": { nl: "Oost-Vlaanderen",      fr: "Flandre-Orientale",   en: "East Flanders" },
+  "antwerpen":       { nl: "Provincie Antwerpen",  fr: "Province d'Anvers",   en: "Antwerp Province" },
+  "vlaams-brabant":  { nl: "Vlaams-Brabant",       fr: "Brabant flamand",     en: "Flemish Brabant" },
+  "limburg":         { nl: "Limburg",              fr: "Limbourg",            en: "Limburg" },
+  "waals-brabant":   { nl: "Waals-Brabant",        fr: "Brabant wallon",      en: "Walloon Brabant" },
+  "henegouwen":      { nl: "Henegouwen",           fr: "Hainaut",             en: "Hainaut" },
+  "luik":            { nl: "Luik",                 fr: "Liège",               en: "Liège" },
+  "namen":           { nl: "Namen",                fr: "Namur",               en: "Namur" },
+  "luxemburg":       { nl: "Luxemburg",            fr: "Luxembourg",          en: "Luxembourg" },
+  "overig":          { nl: "Rest van België",      fr: "Reste de la Belgique", en: "Rest of Belgium" }
+};
+// Andere schrijfwijzen (bv. als OpenStreetMap de naam in het Frans of Engels geeft)
+const PROVINCIE_OOK = {
+  "flandre-occidentale": "west-vlaanderen", "west-flanders": "west-vlaanderen",
+  "flandre-orientale": "oost-vlaanderen", "east-flanders": "oost-vlaanderen",
+  "provincie-antwerpen": "antwerpen", "anvers": "antwerpen",
+  "brabant-flamand": "vlaams-brabant", "flemish-brabant": "vlaams-brabant",
+  "limbourg": "limburg", "brabant-wallon": "waals-brabant", "walloon-brabant": "waals-brabant",
+  "hainaut": "henegouwen", "liege": "luik", "namur": "namen", "luxembourg": "luxemburg"
+};
+
+function provincieSleutel(naam) {
+  const slug = stadSlug(naam);
+  if (PROVINCIES[slug]) return slug;
+  return PROVINCIE_OOK[slug] || null;
+}
+
+// De provincie uit een Belgische postcode halen (bv. "9700 Oudenaarde" → Oost-Vlaanderen)
+function provincieUitPostcode(adres) {
+  const gevonden = String(adres || "").match(/\b(\d{4})\b/);
+  if (!gevonden) return null;
+  const n = Number(gevonden[1]);
+  if (n < 1300) return null;                 // Brussel
+  if (n < 1500) return "waals-brabant";
+  if (n < 2000) return "vlaams-brabant";
+  if (n < 3000) return "antwerpen";
+  if (n < 3500) return "vlaams-brabant";
+  if (n < 4000) return "limburg";
+  if (n < 5000) return "luik";
+  if (n < 6000) return "namen";
+  if (n < 6600) return "henegouwen";
+  if (n < 7000) return "luxemburg";
+  if (n < 8000) return "henegouwen";
+  if (n < 9000) return "west-vlaanderen";
+  return "oost-vlaanderen";
+}
+
+// De groep van een bar: in België een vaste stad of anders de provincie, in het buitenland de stad
 function groepVan(stop) {
-  if (landVan(stop) === "BE" && ["antwerpen", "gent", "brussel"].includes(stop.stad)) return stop.stad;
+  if (landVan(stop) === "BE") {
+    if (VASTE_STEDEN.includes(stop.stad)) return stop.stad;
+    const provincie = (stop.provincie && provincieSleutel(stop.provincie)) || provincieUitPostcode(stop.adres);
+    return "prov:" + (provincie || "overig");
+  }
   if (stop.plaats) return stadSleutel(stop.plaats);
-  // Geen gemeente ingevuld? Dan nemen we het laatste stuk van het adres ("Markt, Oudenaarde" → Oudenaarde)
-  const uitAdres = (stop.adres || "").split(",").pop().replace(/\d{4,5}/g, "").trim();
-  if (uitAdres) return stadSleutel(uitAdres);
-  return landVan(stop) === "BE" ? "hellingen" : landNaam(landVan(stop));
+  return landNaam(landVan(stop));
 }
 
 // De naam op de knop, in de gekozen taal
-const VASTE_REGIOS = { antwerpen: "antwerpen", gent: "gent", brussel: "brussel", hellingen: "vlaanderen" };
+const VASTE_REGIOS = { antwerpen: "antwerpen", gent: "gent", brussel: "brussel" };
 function groepNaam(groep) {
   if (VASTE_REGIOS[groep]) return t(VASTE_REGIOS[groep]);
+  if (groep.startsWith("prov:")) {
+    const p = PROVINCIES[groep.slice(5)];
+    return p ? (p[taal] || p.nl) : groep.slice(5);
+  }
   if (STADNAMEN[groep]) return STADNAMEN[groep][taal] || STADNAMEN[groep].nl;
   return groep;
 }
@@ -443,7 +500,7 @@ function tekenFilters() {
   stedenRij.hidden = gekozenLand === "alles";
   if (gekozenLand === "alles") return;
 
-  const volgorde = Object.keys(VASTE_REGIOS);
+  const volgorde = VASTE_STEDEN;
   const groepen = [...new Set(alleStops.filter(s => landVan(s) === gekozenLand).map(groepVan))]
     .sort((x, y) => {
       const ix = volgorde.indexOf(x), iy = volgorde.indexOf(y);
@@ -475,16 +532,18 @@ kaart.on("click", (event) => {
   teken();
 });
 
-// Welke stad ligt het dichtst bij een plek? Verder dan 9 km = "hellingen"
+// Welke vaste stad ligt vlakbij? [breedte, lengte, straal in km]. Anders: "hellingen" (= de rest van België)
 function stadVan(lat, lng) {
   const centra = {
-    antwerpen: [51.2194, 4.4025],
-    gent: [51.0543, 3.7174],
-    brussel: [50.8467, 4.3525]
+    antwerpen: [51.2194, 4.4025, 9],
+    gent:      [51.0543, 3.7174, 9],
+    brussel:   [50.8467, 4.3525, 9],
+    leuven:    [50.8798, 4.7005, 7],
+    knokke:    [51.3450, 3.2870, 6]
   };
-  for (const [stad, [clat, clng]] of Object.entries(centra)) {
+  for (const [stad, [clat, clng, straal]] of Object.entries(centra)) {
     const km = Math.hypot((lat - clat) * 111, (lng - clng) * 70);
-    if (km < 9) return stad;
+    if (km < straal) return stad;
   }
   return "hellingen";
 }
@@ -507,6 +566,7 @@ document.getElementById("formulier").onsubmit = async (event) => {
     adres: document.getElementById("nieuwAdres").value.trim(),
     land: document.getElementById("nieuwLand").value.trim() || "België",
     landcode: gevondenLandcode || null,
+    provincie: gevondenProvincie || null,
     plaats: document.getElementById("nieuwPlaats").value.trim(),
     stad: stadVan(nieuwePlek[0], nieuwePlek[1]),
     type: document.getElementById("nieuwWieler").checked ? "both" : "coffee",
@@ -535,6 +595,7 @@ document.getElementById("formulier").onsubmit = async (event) => {
     event.target.reset();
     nieuwePlek = null;
     gevondenLandcode = "";
+    gevondenProvincie = "";
     document.getElementById("plekTekst").textContent = t("kiesPlek");
     kies(nieuweStop.id);
     voorstelAfgewerkt();   // kwam deze bar uit een voorstel? Dan is dat voorstel nu afgewerkt
@@ -546,6 +607,7 @@ document.getElementById("formulier").onsubmit = async (event) => {
 // ---------- Adres opzoeken (geocoding) ----------
 // We vragen aan OpenStreetMap: "waar ligt dit adres?" en krijgen coördinaten terug.
 let gevondenLandcode = "";   // de landcode van het laatst opgezochte adres
+let gevondenProvincie = "";  // en de provincie
 
 async function zoekAdres(adres) {
   const url = "https://nominatim.openstreetmap.org/search"
@@ -563,7 +625,8 @@ async function zoekAdres(adres) {
     land: a.country || "",
     landcode: (a.country_code || "").toUpperCase(),   // bv. "BE" of "ES"
     // Een adres heeft een "city", "town" of "village", afhankelijk van hoe groot de plaats is
-    plaats: a.city || a.town || a.village || a.municipality || ""
+    plaats: a.city || a.town || a.village || a.municipality || "",
+    provincie: a.province || ""                        // bv. "Oost-Vlaanderen"
   };
 }
 
@@ -585,6 +648,7 @@ document.getElementById("zoekAdresKnop").onclick = async () => {
     nieuwePlek = [gevonden.lat, gevonden.lng];
     document.getElementById("nieuwLand").value = gevonden.land;
     gevondenLandcode = gevonden.landcode;
+    gevondenProvincie = gevonden.provincie;
     document.getElementById("nieuwPlaats").value = gevonden.plaats;
     tekst.textContent = t("adresGevonden");
     kaart.setView(nieuwePlek, 17);   // inzoomen op de gevonden plek
