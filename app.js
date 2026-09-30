@@ -64,6 +64,7 @@ function zichtbareStops() {
     if (gekozenFilters.includes("nuOpen") && !isNuOpen(stop)) return false;
     if (gekozenFilters.includes("zondagVroeg") && !zondagVroegOpen(stop)) return false;
     if (gekozenFilters.includes("favoriet") && !favorieten.includes(stop.id)) return false;
+    if (gekozenFilters.includes("zonderFoto") && stop.foto) return false;
     if (!stop.naam.toLowerCase().includes(zoekterm)) return false;
     return true;
   });
@@ -379,6 +380,11 @@ function tekenCategorieen() {
     ["zondagVroeg", "☀️ " + t("zondagVroeg")],
     ["favoriet",    t("favorieten")]
   ];
+  // Alleen voor de beheerder: welke bars hebben nog geen foto?
+  if (isBeheerder()) {
+    const zonder = alleStops.filter(s => !s.foto).length;
+    filters.push(["zonderFoto", "📷 " + t("zonderFoto") + " (" + zonder + ")"]);
+  }
   for (const [sleutel, tekst] of filters) {
     maakKnop(rij, tekst, gekozenFilters.includes(sleutel), () => {
       // Aan- of uitzetten
