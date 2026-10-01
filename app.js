@@ -758,6 +758,7 @@ document.getElementById("tabLogin").onclick = () => toonTab("login");
 // Foutmeldingen van Supabase omzetten naar een duidelijke zin
 function leesbareFout(fout) {
   const tekst = (fout.message || "").toLowerCase();
+  if (tekst.includes("captcha")) return t("captchaFout");
   if (tekst.includes("invalid login")) return t("foutGegevens");
   if (tekst.includes("not confirmed")) return t("foutBevestigen");
   if (tekst.includes("already registered")) return t("foutBestaat");
@@ -780,13 +781,16 @@ document.getElementById("nieuwFormulier").onsubmit = async (event) => {
     const meteenIngelogd = await maakAccount(
       document.getElementById("nieuwEmail").value.trim(),
       document.getElementById("nieuwWachtwoord").value,
-      voornaam, nieuwsbrief, gebruik
+      voornaam, nieuwsbrief, gebruik,
+      await haalCaptchaToken()               // bewijs dat je geen robot bent
     );
     // Moet het e-mailadres eerst bevestigd worden? Dan vertellen we dat.
-    if (!meteenIngelogd) bericht.textContent = t("bevestigMail");
+    bericht.textContent = meteenIngelogd ? "" : t("bevestigMail");
   } catch (fout) {
     localStorage.removeItem("nieuwProfiel");   // mislukt: niets onthouden
     bericht.textContent = leesbareFout(fout);
+  } finally {
+    resetCaptcha();
   }
 };
 
@@ -796,10 +800,14 @@ document.getElementById("loginFormulier").onsubmit = async (event) => {
   try {
     await logIn(
       document.getElementById("loginEmail").value.trim(),
-      document.getElementById("loginWachtwoord").value
+      document.getElementById("loginWachtwoord").value,
+      await haalCaptchaToken()
     );
+    bericht.textContent = "";
   } catch (fout) {
     bericht.textContent = leesbareFout(fout);
+  } finally {
+    resetCaptcha();
   }
 };
 
@@ -811,10 +819,12 @@ document.getElementById("vergeten").onclick = async () => {
     return;
   }
   try {
-    await stuurWachtwoordReset(email);
+    await stuurWachtwoordReset(email, await haalCaptchaToken());
     bericht.textContent = t("resetVerstuurd");
   } catch (fout) {
     bericht.textContent = leesbareFout(fout);
+  } finally {
+    resetCaptcha();
   }
 };
 

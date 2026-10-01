@@ -82,12 +82,13 @@ async function bewaarFavoriet(stopId, aan) {
 // Waar de links in de mails (bevestigen, wachtwoord resetten) naartoe gaan
 const TERUG_NAAR = location.origin + location.pathname;
 
-async function maakAccount(email, wachtwoord, voornaam, nieuwsbrief, gebruik) {
+async function maakAccount(email, wachtwoord, voornaam, nieuwsbrief, gebruik, captchaToken) {
   const { data, error } = await db.auth.signUp({
     email: email,
     password: wachtwoord,
     options: {
       emailRedirectTo: TERUG_NAAR,
+      captchaToken: captchaToken,     // bewijs dat je geen robot bent (captcha.js)
       // Extra info bij het account, zodat we ze later in het profiel kunnen zetten
       data: { voornaam: voornaam, nieuwsbrief: nieuwsbrief, gebruik: gebruik }
     }
@@ -96,15 +97,18 @@ async function maakAccount(email, wachtwoord, voornaam, nieuwsbrief, gebruik) {
   return data.session !== null;   // true = meteen ingelogd, false = eerst mail bevestigen
 }
 
-async function logIn(email, wachtwoord) {
-  const { error } = await db.auth.signInWithPassword({ email: email, password: wachtwoord });
+async function logIn(email, wachtwoord, captchaToken) {
+  const { error } = await db.auth.signInWithPassword({
+    email: email, password: wachtwoord, options: { captchaToken: captchaToken }
+  });
   if (error) throw error;
 }
 
-async function stuurWachtwoordReset(email) {
+async function stuurWachtwoordReset(email, captchaToken) {
   // "?wachtwoord=nieuw" achter de link: zo weet de app dat je een nieuw wachtwoord komt kiezen
   const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: TERUG_NAAR + "?wachtwoord=nieuw"
+    redirectTo: TERUG_NAAR + "?wachtwoord=nieuw",
+    captchaToken: captchaToken
   });
   if (error) throw error;
 }
