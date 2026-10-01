@@ -393,7 +393,7 @@ async function wisselOmweg(stop) {
   melding.textContent = reserve ? t("routeReserve") : "";
 
   routeImport.omwegen.push({
-    stopId: stop.id, naam: stop.naam, lat: stop.lat, lng: stop.lng,
+    stopId: stop.id, naam: stop.naam, lat: stop.lat, lng: stop.lng, bijvul: Boolean(stop.bijvul),
     index: index, lijn: lijn.punten, km: Number(lijn.km.toFixed(2))
   });
   routeGewijzigd();
@@ -449,7 +449,6 @@ function tekenRouteOpKaart() {
       opacity: 0.9
     }).addTo(routeLaag);
   }
-  if (typeof tekenBijvulOpKaart === "function") tekenBijvulOpKaart(routeLaag);   // 💧 bijvulpunten
 
   if (routeImport) {
     // Start van de GPX, en de bars met een omweg
@@ -458,7 +457,7 @@ function tekenRouteOpKaart() {
       .bindTooltip(t("routeStart")).addTo(routeLaag);
     routeImport.omwegen.forEach((o, i) => {
       const speld = L.marker([o.lat, o.lng], {
-        icon: L.divIcon({ className: "routePunt bar", html: String(i + 1), iconSize: [24, 24] })
+        icon: L.divIcon({ className: "routePunt " + (o.bijvul ? "water" : "bar"), html: o.bijvul ? "💧" : String(i + 1), iconSize: [24, 24] })
       }).bindTooltip(esc(o.naam)).addTo(routeLaag);
       speld.on("click", () => {
         routeImport.omwegen = routeImport.omwegen.filter(x => x.stopId !== o.stopId);
@@ -473,8 +472,8 @@ function tekenRouteOpKaart() {
     const speld = L.marker([punt.lat, punt.lng], {
       draggable: !punt.stopId,
       icon: L.divIcon({
-        className: "routePunt" + (punt.stopId ? " bar" : ""),
-        html: String(i + 1),
+        className: "routePunt" + (punt.stopId ? " bar" : "") + (punt.bijvulId ? " water" : ""),
+        html: punt.bijvulId ? "💧" : String(i + 1),
         iconSize: [24, 24]
       })
     }).addTo(routeLaag);
@@ -523,7 +522,7 @@ function tekenRoutePaneel() {
     });
   } else {
     lijst.innerHTML = routePunten.map((punt, i) => `
-      <li class="${punt.stopId ? "bar" : ""}">
+      <li class="${punt.stopId || punt.bijvulId ? "bar" : ""}">
         <span class="nr">${String(i + 1).padStart(2, "0")}</span>
         <span class="naam">${esc(puntNaam(punt, i))}</span>
         <span class="knopjes">
@@ -661,7 +660,7 @@ document.getElementById("routeHier").onclick = () => {
 
 // De bars in de route (voor de GPX)
 function barsInRoute() {
-  if (routeImport) return routeImport.omwegen.map(o => ({ lat: o.lat, lng: o.lng, naam: o.naam }));
+  if (routeImport) return routeImport.omwegen.filter(o => !o.bijvul).map(o => ({ lat: o.lat, lng: o.lng, naam: o.naam }));
   return routePunten.filter(p => p.stopId);
 }
 
@@ -781,7 +780,8 @@ function zetRoute({ punten, rondrit, stijl }, bron = null) {
     // Bars: altijd de actuele naam en plek gebruiken
     const stop = p.stopId ? alleStops.find(s => s.id === p.stopId) : null;
     return stop ? { lat: stop.lat, lng: stop.lng, naam: stop.naam, stopId: stop.id }
-                : { lat: p.lat, lng: p.lng, naam: p.stopId ? p.naam : null, stopId: null };
+                : { lat: p.lat, lng: p.lng, naam: p.stopId || p.bijvulId ? p.naam : null, stopId: null,
+                    ...(p.bijvulId ? { bijvulId: p.bijvulId } : {}) };
   });
   routeRondrit = Boolean(rondrit);
   if (ROUTE_STIJLEN[stijl]) routeStijl = stijl;
@@ -843,7 +843,7 @@ document.getElementById("routeBewaar").onclick = async () => {
     soort: routeImport ? "import" : "gepland",
     punten: routeImport
       ? { naam: routeImport.naam, spoor: routeImport.spoor, omwegen: routeImport.omwegen }
-      : routePunten.map(p => ({ lat: p.lat, lng: p.lng, naam: p.naam, stopId: p.stopId })),
+      : routePunten.map(p => ({ lat: p.lat, lng: p.lng, naam: p.naam, stopId: p.stopId, ...(p.bijvulId ? { bijvulId: p.bijvulId } : {}) })),
     rondrit: routeRondrit,
     stijl: routeStijl,
     km: Number(routeLijn.km.toFixed(1)),

@@ -8,7 +8,8 @@
 //   💧 waterkranen · ⛽ tankstations · ✝️ kerkhoven (bijna altijd een kraan)
 //   🥖 bakkers · ☕ de koffiebars van Waypour
 // De plekken komen uit OpenStreetMap (via de Overpass-dienst).
-// De gekozen plekken komen als 💧 op de kaart en als waypoint in je GPX.
+// Jij kiest zelf: met ➕ komt een plek in je route (de route loopt er dan langs),
+// als 💧 op de kaart en als waypoint in je GPX.
 
 const OVERPASS = [
   "https://overpass-api.de/api/interpreter",
@@ -22,10 +23,10 @@ let bijvulUren = 2;
 try { bijvulUren = Number(localStorage.getItem("bijvulUren")) || 2; } catch {}
 if (!BIJVUL_KEUZES.includes(bijvulUren)) bijvulUren = 2;
 
-let bijvulSleutel = null;          // voor welke route hebben we plekken opgehaald?
+let bijvulSleutel = null;          // voor welke route hebben we gekeken?
 let bijvulPlekken = null;          // [{ id, soort, naam, lat, lng, uren }] of null (nog niet geladen)
+let bijvulGebied = [];             // de routepunten waarrond we al zochten (zo vragen we niet alles opnieuw)
 let bijvulStatus = "";             // "" | "zoeken" | "fout"
-let bijvulKeuze = {};              // stopnummer → id van de gekozen plek
 let bijvulWachter = null;
 let bijvulTeller = 0;
 
@@ -99,7 +100,8 @@ async function haalBijvulPlekken(lijn, sleutel) {
   tekenBijvullen();
 
   const cum = cumulatieveKm(lijn.punten);
-  const lijst = routeStaal(lijn.punten, cum).map(p => p[0].toFixed(5) + "," + p[1].toFixed(5)).join(",");
+  const staal = routeStaal(lijn.punten, cum);
+  const lijst = staal.map(p => p[0].toFixed(5) + "," + p[1].toFixed(5)).join(",");
   const rond = `(around:${BIJVUL_ZOEKSTRAAL},${lijst})`;
   const vraag = `[out:json][timeout:25];
 (
@@ -134,6 +136,7 @@ out center tags;`;
   } else {
     bijvulStatus = "";
     bijvulPlekken = leesOverpass(data.elements || []);
+    bijvulGebied = staal;
   }
   tekenBijvullen();
   tekenRouteOpKaart();
@@ -167,6 +170,43 @@ function leesOverpass(elementen) {
     });
   }
   return plekken;
+}
+
+// Hebben we rond deze route al gezocht? (bv. na het toevoegen van een kleine omweg)
+function bijvulGedekt(lijn) {
+  if (!bijvulPlekken || bijvulGebied.length === 0) return false;
+  const staal = routeStaal(lijn.punten, cumulatieveKm(lijn.punten));
+  return staal.every(p => bijvulGebied.some(q => afstandKm(p, q) < 0.4));
+}
+
+// Zit deze plek al in je route?
+function bijvulInRoute(plek) {
+  if (plek.soort === "koffiebar") {
+    const stop = alleStops.find(s => "bar/" + s.id === plek.id);
+    return stop ? barInRoute(stop) : false;
+  }
+  if (routeImport) return routeImport.omwegen.some(o => o.stopId === plek.id);
+  return routePunten.some(p => p.bijvulId === plek.id);
+}
+
+// ➕ / ✓ : een plek in je route zetten of er weer uit halen
+function wisselBijvulInRoute(plek) {
+  if (plek.soort === "koffiebar") {
+    const stop = alleStops.find(s => "bar/" + s.id === plek.id);
+    if (stop) wisselBarInRoute(stop);
+    return;
+  }
+  const naam = BIJVUL_SOORTEN[plek.soort].icoon + " " + bijvulNaam(plek);
+  if (routeImport) {
+    wisselOmweg({ id: plek.id, naam, lat: plek.lat, lng: plek.lng, bijvul: true });
+    return;
+  }
+  if (bijvulInRoute(plek)) {
+    routePunten = routePunten.filter(p => p.bijvulId !== plek.id);
+  } else {
+    voegInOpBesteplek({ lat: plek.lat, lng: plek.lng, naam, stopId: null, bijvulId: plek.id });
+  }
+  routeGewijzigd();
 }
 
 // =====================================================
@@ -204,18 +244,16 @@ function berekenBijvulStops() {
       .sort((a, b) => a.score - b.score)
       .slice(0, 3);
     stops.push({ nr, km: doel, opties });
-    const gekozen = opties.find(o => o.id === bijvulKeuze[nr]) || opties[0];
+    const gekozen = opties.find(bijvulInRoute);
     vorige = gekozen ? gekozen.km : doel;
   }
   return { intervalKm, stops };
 }
 
-// De plekken die nu gekozen zijn (voor de kaart en de GPX)
-function gekozenBijvulPlekken() {
-  if (!bijvulActief() || !bijvulPlekken) return [];
-  return berekenBijvulStops().stops
-    .map(s => s.opties.find(o => o.id === bijvulKeuze[s.nr]) || s.opties[0])
-    .filter(Boolean);
+// De bijvulpunten die in je route zitten (voor de GPX)
+function bijvulPuntenInRoute() {
+  if (routeImport) return routeImport.omwegen.filter(o => o.bijvul);
+  return routePunten.filter(p => p.bijvulId);
 }
 
 function bijvulActief() {
@@ -238,12 +276,14 @@ function tekenBijvullen() {
   const sleutel = routeSleutel(routeLijn);
   if (sleutel !== bijvulSleutel) {
     bijvulSleutel = sleutel;
-    bijvulPlekken = null;
-    bijvulKeuze = {};
-    bijvulStatus = "zoeken";
     clearTimeout(bijvulWachter);
-    const lijn = routeLijn;
-    bijvulWachter = setTimeout(() => haalBijvulPlekken(lijn, sleutel), 800);
+    if (!bijvulGedekt(routeLijn)) {
+      bijvulPlekken = null;
+      bijvulGebied = [];
+      bijvulStatus = "zoeken";
+      const lijn = routeLijn;
+      bijvulWachter = setTimeout(() => haalBijvulPlekken(lijn, sleutel), 800);
+    }
   }
 
   const kop = `<strong>💧 ${t("bijvullen")}</strong>
@@ -266,17 +306,17 @@ function tekenBijvullen() {
     if (stops.length === 0) {
       inhoud = `<p class="leeg">${t("bijvulKort").replace("{u}", urenTekst(bijvulUren))}</p>`;
     } else {
-      inhoud = stops.map(s => {
-        const gekozen = (s.opties.find(o => o.id === bijvulKeuze[s.nr]) || s.opties[0] || {}).id;
+      inhoud = `<p class="leeg">${t("bijvulUitleg")}</p>` + stops.map(s => {
         const titel = `<b class="bijvulStop">${t("bijvulStop").replace("{n}", s.nr).replace("{km}", kmTekst(s.km))}</b>`;
         if (s.opties.length === 0) {
           return titel + `<p class="leeg">${t("bijvulGeen")}</p>`;
         }
         return titel + `<ul>${s.opties.map(o => `
-          <li class="${o.id === gekozen ? "gekozen" : ""}">
+          <li class="${bijvulInRoute(o) ? "gekozen" : ""}">
             <span><b>${BIJVUL_SOORTEN[o.soort].icoon} ${esc(bijvulNaam(o))}</b>
             <small>km ${kmTekst(o.km)} · ${o.afstand < 0.05 ? t("opDeRoute") : Math.round(o.afstand * 1000) + " m " + t("bijvulVanRoute")}${o.naam ? " · " + t("bijvul_" + o.soort) : ""}${o.uren ? " · " + esc(o.uren) : ""}</small></span>
-            <button type="button" data-bijvul="${s.nr}" data-plek="${esc(o.id)}" ${o.id === gekozen ? "disabled" : ""}>${o.id === gekozen ? "✓" : t("bijvulKies")}</button>
+            <button type="button" data-plek="${esc(o.id)}" class="${bijvulInRoute(o) ? "actief" : ""}"
+              aria-label="${bijvulInRoute(o) ? t("inRoute") : t("naarRoute")}">${bijvulInRoute(o) ? "✓" : "➕"}</button>
           </li>`).join("")}</ul>`;
       }).join("") + `<p class="bron">${t("bijvulBron")}</p>`;
     }
@@ -286,36 +326,30 @@ function tekenBijvullen() {
   blok.querySelector("#bijvulUren").onchange = (event) => {
     bijvulUren = Number(event.target.value);
     try { localStorage.setItem("bijvulUren", String(bijvulUren)); } catch {}
-    bijvulKeuze = {};
     tekenBijvullen();
-    tekenRouteOpKaart();
   };
   const opnieuw = blok.querySelector("#bijvulOpnieuw");
   if (opnieuw) opnieuw.onclick = () => { bijvulSleutel = null; tekenBijvullen(); };
-  blok.querySelectorAll("[data-bijvul]").forEach(knop => {
+  blok.querySelectorAll("[data-plek]").forEach(knop => {
     knop.onclick = () => {
-      bijvulKeuze[Number(knop.dataset.bijvul)] = knop.dataset.plek;
-      tekenBijvullen();
-      tekenRouteOpKaart();
+      const plek = alleBijvulOpties().find(o => o.id === knop.dataset.plek);
+      if (plek) wisselBijvulInRoute(plek);
     };
   });
 }
 
-// =====================================================
-//  4. OP DE KAART EN IN DE GPX
-// =====================================================
-// Wordt opgeroepen door tekenRouteOpKaart() in route.js
-function tekenBijvulOpKaart(laag) {
-  for (const p of gekozenBijvulPlekken()) {
-    L.marker([p.lat, p.lng], {
-      icon: L.divIcon({ className: "routePunt water", html: "💧", iconSize: [26, 26] })
-    }).bindTooltip(esc(bijvulNaam(p)) + " · km " + kmTekst(p.km)).addTo(laag);
-  }
+// Alle opties die nu op het scherm staan
+function alleBijvulOpties() {
+  if (!bijvulActief() || !bijvulPlekken) return [];
+  return berekenBijvulStops().stops.flatMap(s => s.opties);
 }
 
+// =====================================================
+//  4. IN DE GPX
+// =====================================================
 // Waypoints voor de GPX (Garmin, Wahoo, … tonen ze onderweg)
 function bijvulWaypoints(xml) {
-  return gekozenBijvulPlekken().map(p =>
-    `  <wpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}"><name>💧 ${xml(bijvulNaam(p))} (km ${kmTekst(p.km)})</name><sym>Drinking Water</sym></wpt>`
+  return bijvulPuntenInRoute().map(p =>
+    `  <wpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}"><name>${xml(p.naam)}</name><sym>Drinking Water</sym></wpt>`
   ).join("\n");
 }
