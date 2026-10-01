@@ -9,7 +9,7 @@
 // Zolang hieronder geen Site Key staat, staat de controle uit.
 // De Site Key is openbaar en mag in de code; de SECRET key hoort alleen in Supabase!
 
-const TURNSTILE_SITE_KEY = "";   // ← plak hier je Site Key van Cloudflare, tussen de aanhalingstekens
+const TURNSTILE_SITE_KEY = "0x4AAAAAAFK3nYBdMHU2i6wj";   // ← plak hier je Site Key van Cloudflare, tussen de aanhalingstekens
 
 let captchaWidget = null;
 
