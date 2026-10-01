@@ -5,7 +5,7 @@
 // Voor routes vanaf 40 km. De app rekent uit wanneer je drinkbussen leeg zijn
 // (standaard na ± 2 uur rijden, aan de snelheid van je fiets) en zoekt rond dat
 // punt van je route plekken om bij te vullen:
-//   💧 waterkranen · ⛽ tankstations · ✝️ kerkhoven (bijna altijd een kraan)
+//   💧 waterkranen · ⛽ tankstations
 //   🥖 bakkers · ☕ de koffiebars van Waypour
 // De plekken komen uit OpenStreetMap (via de Overpass-dienst), aangevuld met
 // de eigen bijvulpunten van de beheerder (tabel "bijvulpunten" in Supabase).
@@ -41,12 +41,11 @@ const BIJVUL_SOORTEN = {
   kraan:       { icoon: "💧", rang: 0 },
   tankstation: { icoon: "⛽", rang: 0 },
   koffiebar:   { icoon: "☕", rang: 1 },
-  kerkhof:     { icoon: "✝️", rang: 1 },
   bakker:      { icoon: "🥖", rang: 2 },
   cafe:        { icoon: "🍺", rang: 1 },
   andere:      { icoon: "📍", rang: 1 }
 };
-const EIGEN_SOORTEN = ["kraan", "tankstation", "kerkhof", "bakker", "cafe", "andere"];
+const EIGEN_SOORTEN = ["kraan", "tankstation", "bakker", "cafe", "andere"];
 
 // ---------- Hulpjes ----------
 function routeSleutel(lijn) {
@@ -117,8 +116,6 @@ async function haalBijvulPlekken(lijn, sleutel) {
   node${rond}[amenity~"^(drinking_water|water_point|fuel)$"];
   way${rond}[amenity=fuel];
   nwr${rond}[shop=bakery];
-  nwr${rond}[landuse=cemetery];
-  nwr${rond}[amenity=grave_yard];
 );
 out center tags;`;
 
@@ -166,7 +163,6 @@ function leesOverpass(elementen) {
     if (tags.amenity === "drinking_water" || tags.amenity === "water_point") soort = "kraan";
     else if (tags.amenity === "fuel") soort = "tankstation";
     else if (tags.shop === "bakery") soort = "bakker";
-    else if (tags.landuse === "cemetery" || tags.amenity === "grave_yard") soort = "kerkhof";
     if (!soort) continue;
 
     const id = el.type + "/" + el.id;
