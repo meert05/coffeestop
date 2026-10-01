@@ -882,6 +882,9 @@ body::before {
 #bijvulBeheer .bijvulKlik { margin: 6px 0; font-size: 14px; }
 .bijvulFormulier { display: flex; flex-direction: column; gap: 8px; }
 .bijvulFormulier small { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); }
+.bijvulFormulier textarea { resize: vertical; }
+#routeBijvullen li .bijvulFoto { width: 44px; height: 44px; object-fit: cover; flex: none; border: 1px solid var(--lijn); }
+#routeBijvullen li > span { flex: 1; }
 .routePunt.eigenPunt { background: var(--achtergrond); border-style: dotted; font-size: 12px; opacity: 0.85; }
 .routePunt.eigenPunt.nieuw { border-style: solid; opacity: 1; }
 .routePunt.water { background: var(--achtergrond); border-style: dashed; font-size: 13px; }

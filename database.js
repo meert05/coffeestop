@@ -253,7 +253,7 @@ async function werkMijnReviewsBij(velden) {
 
 // ---------- Eigen bijvulpunten (alleen de beheerder voegt toe) ----------
 async function haalBijvulpuntenOp() {
-  const { data, error } = await db.from("bijvulpunten").select("id, naam, soort, info, lat, lng");
+  const { data, error } = await db.from("bijvulpunten").select("*");
   if (error) throw error;
   return data || [];
 }

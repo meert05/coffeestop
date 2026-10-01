@@ -238,7 +238,7 @@ function berekenBijvulStops() {
     const pos = positieOpRoute(p.lat, p.lng, lijn.punten, cum);
     if (pos.afstand <= 0.5) {
       kandidaten.push({ id: "eigen/" + p.id, soort: BIJVUL_SOORTEN[p.soort] ? p.soort : "andere", naam: p.naam,
-                        info: p.info || "", eigen: true, lat: p.lat, lng: p.lng, uren: "", ...pos });
+                        info: p.info || "", foto: /^https:\/\//.test(p.foto || "") ? p.foto : "", eigen: true, lat: p.lat, lng: p.lng, uren: "", ...pos });
     }
   }
   for (const stop of alleStops) {
@@ -331,6 +331,7 @@ function tekenBijvullen() {
         }
         return titel + `<ul>${s.opties.map(o => `
           <li class="${bijvulInRoute(o) ? "gekozen" : ""}">
+            ${o.foto ? `<img class="bijvulFoto" src="${esc(o.foto)}" alt="" loading="lazy">` : ""}
             <span><b>${BIJVUL_SOORTEN[o.soort].icoon} ${esc(bijvulNaam(o))}</b>
             <small>${o.eigen ? "★ " + t("bijvulTip") + " · " : ""}km ${kmTekst(o.km)} · ${o.afstand < 0.05 ? t("opDeRoute") : Math.round(o.afstand * 1000) + " m " + t("bijvulVanRoute")}${o.naam ? " · " + t("bijvul_" + o.soort) : ""}${o.uren ? " · " + esc(o.uren) : ""}${o.info ? " · " + esc(o.info) : ""}</small></span>
             <button type="button" data-plek="${esc(o.id)}" class="${bijvulInRoute(o) ? "actief" : ""}"
@@ -394,72 +395,139 @@ async function laadEigenBijvulpunten(opnieuw = false) {
 // =====================================================
 //  6. BEHEER: EIGEN BIJVULPUNTEN TOEVOEGEN EN WISSEN (alleen de beheerder)
 // =====================================================
+// Zoals bij de koffiebars: naam, soort, adres (de app zoekt het op de kaart),
+// een tekstje en een foto. Je kan de plek ook aanklikken of het speldje verslepen.
+
 function tekenBijvulBeheer() {
   const blok = document.getElementById("bijvulBeheer");
   if (!blok) return;
   if (!routeModus || !isBeheerder()) { blok.innerHTML = ""; bijvulNieuw = null; return; }
+  if (bijvulNieuw && blok.querySelector("#bijvulFormulier")) return;   // formulier staat al open: niet wissen
 
   const aantal = (eigenBijvulpunten || []).length;
   let inhoud = `<strong>💧 ${t("bijvulBeheer")}</strong>
     <p class="leeg">${t("bijvulBeheerUitleg").replace("{n}", aantal)}</p>`;
 
   if (!bijvulNieuw) {
-    inhoud += `<button type="button" id="bijvulNieuwKnop">${t("bijvulNieuw")}</button>`;
-  } else if (bijvulNieuw.stap === "klik") {
-    inhoud += `<p class="bijvulKlik">${t("bijvulKlikKaart")}</p>
-      <button type="button" id="bijvulAnnuleer" class="link">${t("bijvulAnnuleren")}</button>`;
-  } else {
-    inhoud += `<form id="bijvulFormulier" class="bijvulFormulier">
-        <input id="bijvulNaam" maxlength="80" required placeholder="${t("bijvulNaamVoorbeeld")}">
-        <select id="bijvulSoort">${EIGEN_SOORTEN.map(s =>
-          `<option value="${s}">${BIJVUL_SOORTEN[s].icoon} ${t("bijvul_" + s)}</option>`).join("")}</select>
-        <input id="bijvulInfo" maxlength="200" placeholder="${t("bijvulInfoVoorbeeld")}">
-        <small>${bijvulNieuw.lat.toFixed(5)}, ${bijvulNieuw.lng.toFixed(5)}</small>
-        <div class="routeKnoppen">
-          <button type="submit">${t("bijvulBewaren")}</button>
-          <button type="button" id="bijvulAnnuleer" class="link">${t("bijvulAnnuleren")}</button>
-        </div>
-      </form>`;
-  }
-  blok.innerHTML = inhoud;
-
-  const nieuw = blok.querySelector("#bijvulNieuwKnop");
-  if (nieuw) nieuw.onclick = () => { bijvulNieuw = { stap: "klik" }; tekenBijvulBeheer(); };
-  const annuleer = blok.querySelector("#bijvulAnnuleer");
-  if (annuleer) annuleer.onclick = () => { bijvulNieuw = null; tekenBijvulBeheer(); tekenRouteOpKaart(); };
-  const formulier = blok.querySelector("#bijvulFormulier");
-  if (formulier) {
-    formulier.querySelector("#bijvulNaam").focus();
-    formulier.onsubmit = async (event) => {
-      event.preventDefault();
-      const punt = {
-        naam: formulier.querySelector("#bijvulNaam").value.trim().slice(0, 80),
-        soort: formulier.querySelector("#bijvulSoort").value,
-        info: formulier.querySelector("#bijvulInfo").value.trim().slice(0, 200) || null,
-        lat: Number(bijvulNieuw.lat.toFixed(6)),
-        lng: Number(bijvulNieuw.lng.toFixed(6))
-      };
-      if (!punt.naam || !EIGEN_SOORTEN.includes(punt.soort)) return;
-      try {
-        const bewaard = await bewaarBijvulpunt(punt);
-        eigenBijvulpunten = [...(eigenBijvulpunten || []), bewaard || punt];
-        bijvulNieuw = null;
-        document.getElementById("routeMelding").textContent = t("bijvulBewaard");
-        tekenBijvullen();
-        tekenRouteOpKaart();
-      } catch (fout) {
-        alert(t("opslaanMislukt") + " " + fout.message);
-      }
+    blok.innerHTML = inhoud + `<button type="button" id="bijvulNieuwKnop">${t("bijvulNieuw")}</button>`;
+    blok.querySelector("#bijvulNieuwKnop").onclick = () => {
+      bijvulNieuw = { lat: null, lng: null };
+      tekenBijvulBeheer();
     };
+    return;
   }
+
+  blok.innerHTML = inhoud + `<form id="bijvulFormulier" class="bijvulFormulier">
+      <input id="bijvulNaam" maxlength="80" required placeholder="${t("bijvulNaamVoorbeeld")}">
+      <select id="bijvulSoort">${EIGEN_SOORTEN.map(s =>
+        `<option value="${s}">${BIJVUL_SOORTEN[s].icoon} ${t("bijvul_" + s)}</option>`).join("")}</select>
+      <div class="adresRij">
+        <input id="bijvulAdres" maxlength="200" placeholder="${t("adres")}">
+        <button type="button" id="bijvulZoekAdres">${t("zoekOpKaart")}</button>
+      </div>
+      <small id="bijvulPlek">${t("bijvulPlekUitleg")}</small>
+      <textarea id="bijvulInfo" maxlength="200" rows="2" placeholder="${t("bijvulInfoVoorbeeld")}"></textarea>
+      <label class="knopLabel">
+        <span id="bijvulFotoTekst">📷 ${t("bijvulFotoKiezen")}</span>
+        <input id="bijvulFoto" type="file" accept="image/*">
+      </label>
+      <div class="routeKnoppen">
+        <button type="submit">${t("bijvulBewaren")}</button>
+        <button type="button" id="bijvulAnnuleer" class="link">${t("bijvulAnnuleren")}</button>
+      </div>
+    </form>`;
+
+  const formulier = blok.querySelector("#bijvulFormulier");
+  const plekTekst = formulier.querySelector("#bijvulPlek");
+  formulier.querySelector("#bijvulNaam").focus();
+  toonBijvulPlek();
+
+  // Adres opzoeken op de kaart (OpenStreetMap), net zoals bij een nieuwe bar
+  formulier.querySelector("#bijvulZoekAdres").onclick = async () => {
+    const adres = formulier.querySelector("#bijvulAdres").value.trim();
+    if (!adres) { plekTekst.textContent = t("eerstAdres"); return; }
+    plekTekst.textContent = t("adresZoeken");
+    try {
+      const gevonden = await zoekAdres(adres);
+      if (!gevonden) { plekTekst.textContent = t("adresNietGevonden"); return; }
+      zetBijvulPlek(gevonden.lat, gevonden.lng, gevonden.plaats);
+      kaart.setView([gevonden.lat, gevonden.lng], 17);
+    } catch (fout) {
+      console.error(fout);
+      plekTekst.textContent = t("adresNietGevonden");
+    }
+  };
+
+  // Foto gekozen: de naam tonen
+  formulier.querySelector("#bijvulFoto").onchange = (event) => {
+    const bestand = event.target.files[0];
+    formulier.querySelector("#bijvulFotoTekst").textContent = bestand ? "📷 " + bestand.name : "📷 " + t("bijvulFotoKiezen");
+  };
+
+  formulier.querySelector("#bijvulAnnuleer").onclick = () => {
+    bijvulNieuw = null;
+    blok.innerHTML = "";
+    tekenBijvulBeheer();
+    tekenRouteOpKaart();
+  };
+
+  formulier.onsubmit = async (event) => {
+    event.preventDefault();
+    if (bijvulNieuw.lat === null) { plekTekst.textContent = t("bijvulEerstPlek"); return; }
+    const knop = formulier.querySelector("button[type=submit]");
+    knop.disabled = true;
+    const punt = {
+      naam: formulier.querySelector("#bijvulNaam").value.trim().slice(0, 80),
+      soort: formulier.querySelector("#bijvulSoort").value,
+      adres: formulier.querySelector("#bijvulAdres").value.trim().slice(0, 200) || null,
+      info: formulier.querySelector("#bijvulInfo").value.trim().slice(0, 200) || null,
+      lat: Number(bijvulNieuw.lat.toFixed(6)),
+      lng: Number(bijvulNieuw.lng.toFixed(6))
+    };
+    if (!punt.naam || !EIGEN_SOORTEN.includes(punt.soort)) { knop.disabled = false; return; }
+    try {
+      const foto = formulier.querySelector("#bijvulFoto").files[0];
+      if (foto) {
+        plekTekst.textContent = t("fotoBezig");
+        punt.foto = await uploadFoto(await verkleinFoto(foto), "bijvulpunt-" + maakId(punt.naam));
+      }
+      const bewaard = await bewaarBijvulpunt(punt);
+      eigenBijvulpunten = [...(eigenBijvulpunten || []), bewaard || punt];
+      bijvulNieuw = null;
+      blok.innerHTML = "";
+      document.getElementById("routeMelding").textContent = t("bijvulBewaard");
+      tekenBijvullen();
+      tekenRouteOpKaart();
+    } catch (fout) {
+      knop.disabled = false;
+      alert(t("opslaanMislukt") + " " + fout.message);
+    }
+  };
+}
+
+// De gekozen plek onthouden en tonen (zonder het formulier te wissen)
+function zetBijvulPlek(lat, lng, plaats = "") {
+  if (!bijvulNieuw) return;
+  bijvulNieuw.lat = lat;
+  bijvulNieuw.lng = lng;
+  bijvulNieuw.plaats = plaats;
+  toonBijvulPlek();
+  tekenRouteOpKaart();
+}
+
+function toonBijvulPlek() {
+  const plekTekst = document.getElementById("bijvulPlek");
+  if (!plekTekst || !bijvulNieuw) return;
+  plekTekst.textContent = bijvulNieuw.lat === null
+    ? t("bijvulPlekUitleg")
+    : "📍 " + (bijvulNieuw.plaats ? bijvulNieuw.plaats + " · " : "") +
+      bijvulNieuw.lat.toFixed(5) + ", " + bijvulNieuw.lng.toFixed(5) + " · " + t("bijvulVersleep");
 }
 
 // Wordt opgeroepen door route.js bij een klik op de kaart. true = wij handelen de klik af.
 function bijvulKaartKlik(event) {
-  if (!bijvulNieuw || bijvulNieuw.stap !== "klik" || !isBeheerder()) return false;
-  bijvulNieuw = { stap: "formulier", lat: event.latlng.lat, lng: event.latlng.lng };
-  tekenBijvulBeheer();
-  tekenRouteOpKaart();
+  if (!bijvulNieuw || !isBeheerder()) return false;
+  zetBijvulPlek(event.latlng.lat, event.latlng.lng);
   return true;
 }
 
@@ -483,9 +551,15 @@ function tekenBijvulBeheerOpKaart(laag) {
       }
     });
   }
-  if (bijvulNieuw && bijvulNieuw.stap === "formulier") {
-    L.marker([bijvulNieuw.lat, bijvulNieuw.lng], {
+  // Het nieuwe punt: verslepen om de plek precies goed te zetten
+  if (bijvulNieuw && bijvulNieuw.lat !== null) {
+    const nieuw = L.marker([bijvulNieuw.lat, bijvulNieuw.lng], {
+      draggable: true,
       icon: L.divIcon({ className: "routePunt eigenPunt nieuw", html: "＋", iconSize: [24, 24] })
     }).addTo(laag);
+    nieuw.on("dragend", () => {
+      const plek = nieuw.getLatLng();
+      zetBijvulPlek(plek.lat, plek.lng, bijvulNieuw.plaats);
+    });
   }
 }
