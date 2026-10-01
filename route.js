@@ -449,6 +449,7 @@ function tekenRouteOpKaart() {
       opacity: 0.9
     }).addTo(routeLaag);
   }
+  if (typeof tekenBijvulOpKaart === "function") tekenBijvulOpKaart(routeLaag);   // 💧 bijvulpunten
 
   if (routeImport) {
     // Start van de GPX, en de bars met een omweg
@@ -568,6 +569,7 @@ function tekenRoutePaneel() {
   paneel.querySelector("#routeBewaar").disabled = !routeLijn;
 
   tekenBarsLangsRoute();
+  if (typeof tekenBijvullen === "function") tekenBijvullen();                   // 💧 bijvullen
 }
 
 function verschuif(i, richting) {
@@ -677,6 +679,7 @@ document.getElementById("routeGpx").onclick = () => {
 <gpx version="1.1" creator="Waypour" xmlns="http://www.topografix.com/GPX/1/1">
   <metadata><name>${xml(titel)}</name></metadata>
 ${bars}
+${typeof bijvulWaypoints === "function" ? bijvulWaypoints(xml) : ""}
   <trk>
     <name>${xml(titel)}</name>
     <trkseg>

@@ -857,6 +857,26 @@ body::before {
 #routeTips li button { padding: 4px 10px; flex: none; }
 #routeTips .leeg { margin: 6px 0 0; font-size: 13px; color: var(--grijs); }
 
+/* ---------- 💧 Drinkbussen bijvullen ---------- */
+#routeBijvullen:empty { display: none; }
+#routeBijvullen { padding-top: 12px; border-top: 1px solid var(--lijn); }
+#routeBijvullen > strong { font-family: var(--kop); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grijs); }
+.bijvulInstelling { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin: 8px 0 4px; }
+.bijvulInstelling label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.bijvulInstelling select { width: auto; padding: 4px 8px; }
+.bijvulInstelling small { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); }
+#routeBijvullen .bijvulStop { display: block; margin-top: 12px; font-family: var(--cijfers); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+#routeBijvullen ul { list-style: none; padding: 0; margin: 4px 0 0; }
+#routeBijvullen li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0 8px 10px; border-bottom: 1px solid var(--lijn); border-left: 2px solid transparent; }
+#routeBijvullen li.gekozen { border-left-color: var(--accent); }
+#routeBijvullen li span { display: flex; flex-direction: column; min-width: 0; }
+#routeBijvullen li b { font-family: var(--kop); font-size: 14px; text-transform: uppercase; overflow-wrap: anywhere; }
+#routeBijvullen li small { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); overflow-wrap: anywhere; }
+#routeBijvullen li button { padding: 4px 10px; flex: none; }
+#routeBijvullen .leeg, #routeBijvullen .bron { margin: 6px 0 0; font-size: 13px; color: var(--grijs); }
+#routeBijvullen .bron { font-size: 11px; margin-top: 10px; }
+.routePunt.water { background: var(--achtergrond); border-style: dashed; font-size: 13px; }
+
 /* Genummerde punten op de kaart */
 .routePunt {
   display: flex !important;
