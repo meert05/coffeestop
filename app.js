@@ -414,6 +414,12 @@ function provincieUitPostcode(adres) {
 // De groep van een bar: in België een vaste stad of anders de provincie, in het buitenland de stad
 function groepVan(stop) {
   if (landVan(stop) === "BE") {
+    // Hoort de bar bij een vaste stad? We kijken naar de ligging (niet naar wat er vroeger bewaard werd),
+    // en naar de gemeente: een bar in "Leuven" of "Knokke-Heist" hoort altijd bij die stad.
+    const viaLigging = stadVan(stop.lat, stop.lng);
+    if (VASTE_STEDEN.includes(viaLigging)) return viaLigging;
+    const viaGemeente = stop.plaats ? stadSleutel(stop.plaats) : null;
+    if (VASTE_STEDEN.includes(viaGemeente)) return viaGemeente;
     if (VASTE_STEDEN.includes(stop.stad)) return stop.stad;
     const provincie = (stop.provincie && provincieSleutel(stop.provincie)) || provincieUitPostcode(stop.adres);
     return "prov:" + (provincie || "overig");
