@@ -458,7 +458,7 @@ function tekenRouteOpKaart() {
     routeImport.omwegen.forEach((o, i) => {
       const speld = L.marker([o.lat, o.lng], {
         icon: L.divIcon({ className: "routePunt bar", html: String(i + 1), iconSize: [24, 24] })
-      }).bindTooltip(o.naam).addTo(routeLaag);
+      }).bindTooltip(esc(o.naam)).addTo(routeLaag);
       speld.on("click", () => {
         routeImport.omwegen = routeImport.omwegen.filter(x => x.stopId !== o.stopId);
         routeGewijzigd();
@@ -477,7 +477,7 @@ function tekenRouteOpKaart() {
         iconSize: [24, 24]
       })
     }).addTo(routeLaag);
-    speld.bindTooltip(puntNaam(punt, i));
+    speld.bindTooltip(esc(puntNaam(punt, i)));
     speld.on("dragend", () => {
       const plek = speld.getLatLng();
       punt.lat = plek.lat;
@@ -513,8 +513,8 @@ function tekenRoutePaneel() {
       <li class="bar">
         <span class="nr">${String(i + 1).padStart(2, "0")}</span>
         <span class="naam">${esc(o.naam)}</span>
-        <small class="omwegKm">+${String(o.km.toFixed(1)).replace(".", ",")} km</small>
-        <span class="knopjes"><button data-omwegweg="${o.stopId}" aria-label="Verwijderen">✕</button></span>
+        <small class="omwegKm">+${(Number(o.km) || 0).toFixed(1).replace(".", ",")} km</small>
+        <span class="knopjes"><button data-omwegweg="${esc(o.stopId)}" aria-label="Verwijderen">✕</button></span>
       </li>`).join("");
     lijst.querySelectorAll("[data-omwegweg]").forEach(k => k.onclick = () => {
       routeImport.omwegen = routeImport.omwegen.filter(o => o.stopId !== k.dataset.omwegweg);
@@ -619,7 +619,7 @@ function tekenBarsLangsRoute() {
         <li>
           <span><b>${esc(stop.naam)}</b>
           <small>${km < 0.1 ? t("opDeRoute") : "± +" + (2 * km).toFixed(1).replace(".", ",") + " km " + t("omweg")}</small></span>
-          <button data-tip="${stop.id}">➕</button>
+          <button data-tip="${esc(stop.id)}">➕</button>
         </li>`).join("")}</ul>`);
 
   blok.querySelectorAll("[data-tip]").forEach(knop => {
@@ -880,17 +880,17 @@ async function laadMijnRoutes() {
 }
 
 function routeRegel(r, eigen) {
-  const info = `${String(r.km ?? "?").replace(".", ",")} km` +
-               (r.hoogtemeters ? " · ↗ " + r.hoogtemeters + " hm" : "") +
+  const info = `${Number.isFinite(Number(r.km)) ? String(Number(r.km)).replace(".", ",") : "?"} km` +
+               (Number(r.hoogtemeters) ? " · ↗ " + Math.round(Number(r.hoogtemeters)) + " hm" : "") +
                (r.soort === "import" ? " · GPX" : "");
   return `
     <li>
       <span><b>${r.publiek && eigen ? "🌍 " : ""}${esc(r.naam)}</b><small>${info}</small></span>
       <span class="knopjes">
-        <button data-open="${r.id}">${t("routeOpenen")}</button>
+        <button data-open="${esc(r.id)}">${t("routeOpenen")}</button>
         ${eigen && isBeheerder()
-          ? `<button data-publiek="${r.id}" class="${r.publiek ? "actief" : ""}" title="${t("publicerenUitleg")}">🌍</button>` : ""}
-        ${eigen ? `<button data-wisroute="${r.id}" aria-label="Verwijderen">✕</button>` : ""}
+          ? `<button data-publiek="${esc(r.id)}" class="${r.publiek ? "actief" : ""}" title="${t("publicerenUitleg")}">🌍</button>` : ""}
+        ${eigen ? `<button data-wisroute="${esc(r.id)}" aria-label="Verwijderen">✕</button>` : ""}
       </span>
     </li>`;
 }

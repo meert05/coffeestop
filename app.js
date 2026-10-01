@@ -91,7 +91,7 @@ function tekenKaart(stops) {
       fillOpacity: 1,
       bubblingMouseEvents: false   // een klik op een bar is geen klik op de kaart
     });
-    stip.bindTooltip(stop.naam);
+    stip.bindTooltip(esc(stop.naam));
     stip.on("click", () => {
       // Route plannen staat aan? Dan gaat de bar in (of uit) je route
       if (typeof routeKlikOpBar === "function" && routeKlikOpBar(stop)) return;
@@ -137,7 +137,7 @@ function tekenLijst(stops) {
                   encodeURIComponent(stop.naam + " " + (stop.adres || ""));
 
     li.innerHTML = `
-      ${stop.foto ? `<img class="foto" src="${stop.foto}" alt="">` : ""}
+      ${stop.foto ? `<img class="foto" src="${esc(stop.foto)}" alt="">` : ""}
       <button class="ster">${isFavoriet ? "★" : "☆"}</button>
       <h3></h3>
       <small></small>
@@ -922,6 +922,8 @@ async function naInloggen() {
   if (gebruiker) {
     try {
       await regelProfiel();
+      // Reviews zijn alleen leesbaar voor ingelogde gebruikers: nu ophalen
+      try { alleReviews = await haalReviewsOp(); } catch (fout) { console.error(fout); }
 
       // Favorieten uit de database, en favorieten van vóór het inloggen meenemen
       const uitDatabase = await haalFavorietenOp();
