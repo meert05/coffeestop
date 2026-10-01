@@ -250,3 +250,21 @@ async function werkMijnReviewsBij(velden) {
   const { error } = await db.from("reviews").update(velden).eq("user_id", gebruiker.id);
   if (error) throw error;
 }
+
+// ---------- Eigen bijvulpunten (alleen de beheerder voegt toe) ----------
+async function haalBijvulpuntenOp() {
+  const { data, error } = await db.from("bijvulpunten").select("id, naam, soort, info, lat, lng");
+  if (error) throw error;
+  return data || [];
+}
+
+async function bewaarBijvulpunt(punt) {
+  const { data, error } = await db.from("bijvulpunten").insert(punt).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function verwijderBijvulpunt(id) {
+  const { error } = await db.from("bijvulpunten").delete().eq("id", id);
+  if (error) throw error;
+}

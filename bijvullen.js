@@ -7,7 +7,9 @@
 // punt van je route plekken om bij te vullen:
 //   💧 waterkranen · ⛽ tankstations · ✝️ kerkhoven (bijna altijd een kraan)
 //   🥖 bakkers · ☕ de koffiebars van Waypour
-// De plekken komen uit OpenStreetMap (via de Overpass-dienst).
+// De plekken komen uit OpenStreetMap (via de Overpass-dienst), aangevuld met
+// de eigen bijvulpunten van de beheerder (tabel "bijvulpunten" in Supabase).
+// Die eigen punten zie je nergens anders: alleen hier, als je een route plant.
 // Jij kiest zelf: met ➕ komt een plek in je route (de route loopt er dan langs),
 // als 💧 op de kaart en als waypoint in je GPX.
 
@@ -30,14 +32,21 @@ let bijvulStatus = "";             // "" | "zoeken" | "fout"
 let bijvulWachter = null;
 let bijvulTeller = 0;
 
+let eigenBijvulpunten = null;      // de punten van de beheerder (uit de database), null = nog niet geladen
+let eigenBijvulVoor = undefined;   // voor welke gebruiker geladen
+let bijvulNieuw = null;            // beheerder: null | { stap: "klik" } | { stap: "formulier", lat, lng }
+
 // Volgorde = voorkeur: kranen en tankstations zijn bijna altijd beschikbaar
 const BIJVUL_SOORTEN = {
   kraan:       { icoon: "💧", rang: 0 },
   tankstation: { icoon: "⛽", rang: 0 },
   koffiebar:   { icoon: "☕", rang: 1 },
   kerkhof:     { icoon: "✝️", rang: 1 },
-  bakker:      { icoon: "🥖", rang: 2 }
+  bakker:      { icoon: "🥖", rang: 2 },
+  cafe:        { icoon: "🍺", rang: 1 },
+  andere:      { icoon: "📍", rang: 1 }
 };
+const EIGEN_SOORTEN = ["kraan", "tankstation", "kerkhof", "bakker", "cafe", "andere"];
 
 // ---------- Hulpjes ----------
 function routeSleutel(lijn) {
@@ -225,6 +234,13 @@ function berekenBijvulStops() {
     const pos = positieOpRoute(p.lat, p.lng, lijn.punten, cum);
     if (pos.afstand <= 0.5) kandidaten.push({ ...p, ...pos });
   }
+  for (const p of eigenBijvulpunten || []) {
+    const pos = positieOpRoute(p.lat, p.lng, lijn.punten, cum);
+    if (pos.afstand <= 0.5) {
+      kandidaten.push({ id: "eigen/" + p.id, soort: BIJVUL_SOORTEN[p.soort] ? p.soort : "andere", naam: p.naam,
+                        info: p.info || "", eigen: true, lat: p.lat, lng: p.lng, uren: "", ...pos });
+    }
+  }
   for (const stop of alleStops) {
     const pos = positieOpRoute(stop.lat, stop.lng, lijn.punten, cum);
     if (pos.afstand <= 0.5) {
@@ -240,7 +256,7 @@ function berekenBijvulStops() {
     let opties = zoek(12, 4);
     if (opties.length === 0) opties = zoek(20, 8);
     opties = opties
-      .map(k => ({ ...k, score: Math.abs(k.km - doel) + 3 * BIJVUL_SOORTEN[k.soort].rang + 5 * k.afstand + (k.km > doel ? 2 : 0) }))
+      .map(k => ({ ...k, score: Math.abs(k.km - doel) + 3 * (k.eigen ? -1 : BIJVUL_SOORTEN[k.soort].rang) + 5 * k.afstand + (k.km > doel ? 2 : 0) }))
       .sort((a, b) => a.score - b.score)
       .slice(0, 3);
     stops.push({ nr, km: doel, opties });
@@ -268,6 +284,8 @@ function bijvulNaam(plek) {
 //  3. HET BLOK "BIJVULLEN" IN HET ROUTEPANEEL
 // =====================================================
 function tekenBijvullen() {
+  laadEigenBijvulpunten();
+  tekenBijvulBeheer();
   const blok = document.getElementById("routeBijvullen");
   if (!blok) return;
   if (!bijvulActief()) { blok.innerHTML = ""; return; }
@@ -314,7 +332,7 @@ function tekenBijvullen() {
         return titel + `<ul>${s.opties.map(o => `
           <li class="${bijvulInRoute(o) ? "gekozen" : ""}">
             <span><b>${BIJVUL_SOORTEN[o.soort].icoon} ${esc(bijvulNaam(o))}</b>
-            <small>km ${kmTekst(o.km)} · ${o.afstand < 0.05 ? t("opDeRoute") : Math.round(o.afstand * 1000) + " m " + t("bijvulVanRoute")}${o.naam ? " · " + t("bijvul_" + o.soort) : ""}${o.uren ? " · " + esc(o.uren) : ""}</small></span>
+            <small>${o.eigen ? "★ " + t("bijvulTip") + " · " : ""}km ${kmTekst(o.km)} · ${o.afstand < 0.05 ? t("opDeRoute") : Math.round(o.afstand * 1000) + " m " + t("bijvulVanRoute")}${o.naam ? " · " + t("bijvul_" + o.soort) : ""}${o.uren ? " · " + esc(o.uren) : ""}${o.info ? " · " + esc(o.info) : ""}</small></span>
             <button type="button" data-plek="${esc(o.id)}" class="${bijvulInRoute(o) ? "actief" : ""}"
               aria-label="${bijvulInRoute(o) ? t("inRoute") : t("naarRoute")}">${bijvulInRoute(o) ? "✓" : "➕"}</button>
           </li>`).join("")}</ul>`;
@@ -352,4 +370,122 @@ function bijvulWaypoints(xml) {
   return bijvulPuntenInRoute().map(p =>
     `  <wpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}"><name>${xml(p.naam)}</name><sym>Drinking Water</sym></wpt>`
   ).join("\n");
+}
+
+// =====================================================
+//  5. EIGEN BIJVULPUNTEN (uit de database)
+// =====================================================
+// Alleen ingelogde gebruikers kunnen ze lezen; alleen de beheerder kan ze toevoegen of wissen.
+async function laadEigenBijvulpunten(opnieuw = false) {
+  const wie = gebruiker ? gebruiker.id : null;
+  if (!opnieuw && eigenBijvulVoor === wie) return;
+  eigenBijvulVoor = wie;
+  eigenBijvulpunten = [];
+  if (!wie) return;
+  try {
+    eigenBijvulpunten = await haalBijvulpuntenOp();
+  } catch (fout) {
+    console.error("Eigen bijvulpunten laden lukte niet", fout);   // bv. tabel nog niet aangemaakt
+    eigenBijvulpunten = [];
+  }
+  if (routeModus) { tekenBijvullen(); tekenRouteOpKaart(); }
+}
+
+// =====================================================
+//  6. BEHEER: EIGEN BIJVULPUNTEN TOEVOEGEN EN WISSEN (alleen de beheerder)
+// =====================================================
+function tekenBijvulBeheer() {
+  const blok = document.getElementById("bijvulBeheer");
+  if (!blok) return;
+  if (!routeModus || !isBeheerder()) { blok.innerHTML = ""; bijvulNieuw = null; return; }
+
+  const aantal = (eigenBijvulpunten || []).length;
+  let inhoud = `<strong>💧 ${t("bijvulBeheer")}</strong>
+    <p class="leeg">${t("bijvulBeheerUitleg").replace("{n}", aantal)}</p>`;
+
+  if (!bijvulNieuw) {
+    inhoud += `<button type="button" id="bijvulNieuwKnop">${t("bijvulNieuw")}</button>`;
+  } else if (bijvulNieuw.stap === "klik") {
+    inhoud += `<p class="bijvulKlik">${t("bijvulKlikKaart")}</p>
+      <button type="button" id="bijvulAnnuleer" class="link">${t("bijvulAnnuleren")}</button>`;
+  } else {
+    inhoud += `<form id="bijvulFormulier" class="bijvulFormulier">
+        <input id="bijvulNaam" maxlength="80" required placeholder="${t("bijvulNaamVoorbeeld")}">
+        <select id="bijvulSoort">${EIGEN_SOORTEN.map(s =>
+          `<option value="${s}">${BIJVUL_SOORTEN[s].icoon} ${t("bijvul_" + s)}</option>`).join("")}</select>
+        <input id="bijvulInfo" maxlength="200" placeholder="${t("bijvulInfoVoorbeeld")}">
+        <small>${bijvulNieuw.lat.toFixed(5)}, ${bijvulNieuw.lng.toFixed(5)}</small>
+        <div class="routeKnoppen">
+          <button type="submit">${t("bijvulBewaren")}</button>
+          <button type="button" id="bijvulAnnuleer" class="link">${t("bijvulAnnuleren")}</button>
+        </div>
+      </form>`;
+  }
+  blok.innerHTML = inhoud;
+
+  const nieuw = blok.querySelector("#bijvulNieuwKnop");
+  if (nieuw) nieuw.onclick = () => { bijvulNieuw = { stap: "klik" }; tekenBijvulBeheer(); };
+  const annuleer = blok.querySelector("#bijvulAnnuleer");
+  if (annuleer) annuleer.onclick = () => { bijvulNieuw = null; tekenBijvulBeheer(); tekenRouteOpKaart(); };
+  const formulier = blok.querySelector("#bijvulFormulier");
+  if (formulier) {
+    formulier.querySelector("#bijvulNaam").focus();
+    formulier.onsubmit = async (event) => {
+      event.preventDefault();
+      const punt = {
+        naam: formulier.querySelector("#bijvulNaam").value.trim().slice(0, 80),
+        soort: formulier.querySelector("#bijvulSoort").value,
+        info: formulier.querySelector("#bijvulInfo").value.trim().slice(0, 200) || null,
+        lat: Number(bijvulNieuw.lat.toFixed(6)),
+        lng: Number(bijvulNieuw.lng.toFixed(6))
+      };
+      if (!punt.naam || !EIGEN_SOORTEN.includes(punt.soort)) return;
+      try {
+        const bewaard = await bewaarBijvulpunt(punt);
+        eigenBijvulpunten = [...(eigenBijvulpunten || []), bewaard || punt];
+        bijvulNieuw = null;
+        document.getElementById("routeMelding").textContent = t("bijvulBewaard");
+        tekenBijvullen();
+        tekenRouteOpKaart();
+      } catch (fout) {
+        alert(t("opslaanMislukt") + " " + fout.message);
+      }
+    };
+  }
+}
+
+// Wordt opgeroepen door route.js bij een klik op de kaart. true = wij handelen de klik af.
+function bijvulKaartKlik(event) {
+  if (!bijvulNieuw || bijvulNieuw.stap !== "klik" || !isBeheerder()) return false;
+  bijvulNieuw = { stap: "formulier", lat: event.latlng.lat, lng: event.latlng.lng };
+  tekenBijvulBeheer();
+  tekenRouteOpKaart();
+  return true;
+}
+
+// Beheerder: alle eigen punten op de kaart (klik = verwijderen), plus het nieuwe punt
+function tekenBijvulBeheerOpKaart(laag) {
+  if (!routeModus || !isBeheerder()) return;
+  for (const p of eigenBijvulpunten || []) {
+    const soort = BIJVUL_SOORTEN[p.soort] ? p.soort : "andere";
+    const speld = L.marker([p.lat, p.lng], {
+      icon: L.divIcon({ className: "routePunt eigenPunt", html: BIJVUL_SOORTEN[soort].icoon, iconSize: [24, 24] })
+    }).bindTooltip(esc(p.naam) + (p.info ? " · " + esc(p.info) : "") + " · " + t("bijvulKlikWissen")).addTo(laag);
+    speld.on("click", async () => {
+      if (!confirm(t("bijvulWisVraag").replace("{naam}", p.naam))) return;
+      try {
+        await verwijderBijvulpunt(p.id);
+        eigenBijvulpunten = eigenBijvulpunten.filter(x => x.id !== p.id);
+        tekenBijvullen();
+        tekenRouteOpKaart();
+      } catch (fout) {
+        alert(t("opslaanMislukt") + " " + fout.message);
+      }
+    });
+  }
+  if (bijvulNieuw && bijvulNieuw.stap === "formulier") {
+    L.marker([bijvulNieuw.lat, bijvulNieuw.lng], {
+      icon: L.divIcon({ className: "routePunt eigenPunt nieuw", html: "＋", iconSize: [24, 24] })
+    }).addTo(laag);
+  }
 }

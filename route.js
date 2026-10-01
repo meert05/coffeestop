@@ -56,6 +56,7 @@ document.getElementById("routeKnop").onclick = () => {
 // Klikken op de kaart: een punt toevoegen (niet bij een ingeladen GPX)
 kaart.on("click", (event) => {
   if (!routeModus) return;
+  if (typeof bijvulKaartKlik === "function" && bijvulKaartKlik(event)) return;   // beheerder plaatst een bijvulpunt
   if (routeImport) {
     document.getElementById("routeMelding").textContent = t("importKlik");
     return;
@@ -449,6 +450,8 @@ function tekenRouteOpKaart() {
       opacity: 0.9
     }).addTo(routeLaag);
   }
+
+  if (typeof tekenBijvulBeheerOpKaart === "function") tekenBijvulBeheerOpKaart(routeLaag);   // beheerder: eigen bijvulpunten
 
   if (routeImport) {
     // Start van de GPX, en de bars met een omweg
