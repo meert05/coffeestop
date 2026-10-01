@@ -153,7 +153,7 @@ document.getElementById("voorkeurenFormulier").onsubmit = async (event) => {
   const velden = {
     gebruik: gebruik,
     favoriete_regio: document.getElementById("profielRegio").value || null,
-    // Je fiets telt alleen als je Roast Route gebruikt om te koersen
+    // Je fiets telt alleen als je Waypour gebruikt om te koersen
     fiets: gebruik.includes("koersen") ? (document.getElementById("profielFiets").value || null) : null
   };
   try {

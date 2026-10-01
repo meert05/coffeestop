@@ -667,14 +667,14 @@ function barsInRoute() {
 document.getElementById("routeGpx").onclick = () => {
   if (!routeLijn) return;
   const xml = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const titel = routeImport ? routeImport.naam + " + ☕" : "Roast Route – " + routeLijn.km.toFixed(0) + " km";
+  const titel = routeImport ? routeImport.naam + " + ☕" : "Waypour – " + routeLijn.km.toFixed(0) + " km";
   const bars = barsInRoute()
     .map(p => `  <wpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}"><name>☕ ${xml(p.naam)}</name></wpt>`).join("\n");
   const spoor = routeLijn.punten
     .map(([lat, lng, hoogte]) => `      <trkpt lat="${lat.toFixed(6)}" lon="${lng.toFixed(6)}">` +
          (hoogte !== undefined && hoogte !== null ? `<ele>${Number(hoogte).toFixed(1)}</ele>` : "") + `</trkpt>`).join("\n");
   const gpx = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="Roast Route" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="Waypour" xmlns="http://www.topografix.com/GPX/1/1">
   <metadata><name>${xml(titel)}</name></metadata>
 ${bars}
   <trk>
@@ -684,8 +684,8 @@ ${spoor}
     </trkseg>
   </trk>
 </gpx>`;
-  const bestandsnaam = (routeImport ? routeImport.naam : "roast-route-" + routeLijn.km.toFixed(0) + "km")
-    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "roast-route";
+  const bestandsnaam = (routeImport ? routeImport.naam : "waypour-" + routeLijn.km.toFixed(0) + "km")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "waypour";
   const link = document.createElement("a");
   link.href = URL.createObjectURL(new Blob([gpx], { type: "application/gpx+xml" }));
   link.download = bestandsnaam + (routeImport ? "-koffie" : "") + ".gpx";
@@ -756,7 +756,7 @@ document.getElementById("routeDelen").onclick = async () => {
   // Op een gsm: het deelmenu (WhatsApp, Messenger, …)
   if (navigator.share) {
     try {
-      await navigator.share({ title: "Roast Route", text: t("deelTekst"), url: link });
+      await navigator.share({ title: "Waypour", text: t("deelTekst"), url: link });
       return;
     } catch (fout) {
       if (fout.name === "AbortError") return;   // zelf geannuleerd
@@ -823,7 +823,7 @@ async function openGedeeldeRoute() {
 }
 
 // =====================================================
-//  12. BEWAREN, MIJN ROUTES EN ROUTES VAN ROAST ROUTE
+//  12. BEWAREN, MIJN ROUTES EN ROUTES VAN WAYPOUR
 // =====================================================
 let mijnRoutes = [];
 let publiekeRoutes = [];
@@ -898,7 +898,7 @@ function routeRegel(r, eigen) {
 function tekenRouteLijsten() {
   document.getElementById("routeBewaar").hidden = !gebruiker;
 
-  // Routes van Roast Route (door de beheerder gepubliceerd), voor iedereen
+  // Routes van Waypour (door de beheerder gepubliceerd), voor iedereen
   const publiekBlok = document.getElementById("publiekeRoutes");
   publiekBlok.innerHTML = publiekeRoutes.length
     ? `<strong>⭐ ${t("publiekeRoutes")}</strong><ul>${publiekeRoutes.map(r => routeRegel(r, false)).join("")}</ul>`

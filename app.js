@@ -1,5 +1,5 @@
 // =====================================================
-//  ROAST ROUTE – alle logica van de app
+//  WAYPOUR – alle logica van de app
 // =====================================================
 
 // ---------- Hulpje: tekst veilig in HTML zetten ----------
@@ -771,7 +771,7 @@ document.getElementById("nieuwFormulier").onsubmit = async (event) => {
   event.preventDefault();
   const voornaam = document.getElementById("nieuwVoornaam").value.trim();
   const nieuwsbrief = document.getElementById("nieuwsbriefBijStart").checked;
-  // Waarvoor gebruik je Roast Route? (optioneel, meerdere vakjes mogelijk)
+  // Waarvoor gebruik je Waypour? (optioneel, meerdere vakjes mogelijk)
   const gebruik = [...document.querySelectorAll('input[name="gebruik"]:checked')].map(v => v.value);
 
   // Voornaam, nieuwsbriefkeuze en gebruik onthouden tot het profiel gemaakt wordt
@@ -897,7 +897,7 @@ async function regelProfiel() {
       velden.nieuwsbrief = true;
       velden.nieuwsbrief_toestemming_op = new Date().toISOString();
     }
-    // Waarvoor je Roast Route gebruikt (alleen als je iets aanvinkte)
+    // Waarvoor je Waypour gebruikt (alleen als je iets aanvinkte)
     if (wachtend && Array.isArray(wachtend.gebruik) && wachtend.gebruik.length) {
       velden.gebruik = wachtend.gebruik;
     }

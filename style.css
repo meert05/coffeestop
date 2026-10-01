@@ -1,5 +1,5 @@
 /* =====================================================
-   ROAST ROUTE – stijl in de sfeer van LAB Antwerp
+   WAYPOUR – stijl in de sfeer van LAB Antwerp
    Wit, zwart en één felle accentkleur. Grote hoofdletters,
    dunne lijnen, veel witruimte, grijze kaart en foto's.
    ===================================================== */
@@ -74,7 +74,7 @@ header h1 {
 }
 header h1 span {
   color: transparent;
-  -webkit-text-stroke: 1.5px var(--accent);   /* "ROUTE" als omlijnde letters */
+  -webkit-text-stroke: 1.5px var(--accent);   /* "POUR" als omlijnde letters */
   margin-left: 0.05em;
   letter-spacing: 0;          /* omlijnde letters mogen elkaar niet raken */
 }
@@ -662,7 +662,7 @@ footer {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-footer::before { content: "Roast Route © 2026"; color: var(--grijs); }
+footer::before { content: "Waypour © 2026"; color: var(--grijs); }
 footer a { color: var(--grijs); text-decoration: none; }
 footer a:hover { color: var(--tekst); }
 
@@ -766,7 +766,7 @@ button:hover::after { transform: translateX(4px); }
 
 /* Kopje van de lijst: "44 STOPS" links, lijn over de volle breedte */
 #teller { display: flex; justify-content: space-between; }
-#teller::after { content: "Roast Route"; }
+#teller::after { content: "Waypour"; }
 
 /* Accentlijn bovenaan de pagina */
 body::before {
@@ -887,7 +887,7 @@ body::before {
 #routeStijlen button.actief { background: var(--accent); border-color: var(--accent); color: var(--achtergrond); }
 #routeSamenvatting b.hm { font-size: 20px; color: var(--grijs); }
 
-/* ---------- Waarvoor gebruik je Roast Route? (welkomstscherm) ---------- */
+/* ---------- Waarvoor gebruik je Waypour? (welkomstscherm) ---------- */
 .gebruikVraag {
   display: flex;
   flex-wrap: wrap;
@@ -938,7 +938,7 @@ body::before {
 #routeStops li.import .nr { color: var(--tekst); }
 #routeStops .omwegKm { font-family: var(--cijfers); font-size: 11px; color: var(--grijs); flex: none; }
 
-/* ---------- Routes van Roast Route (zelfde stijl als Mijn routes) ---------- */
+/* ---------- Routes van Waypour (zelfde stijl als Mijn routes) ---------- */
 #publiekeRoutes:empty { display: none; }
 #publiekeRoutes { padding-top: 12px; border-top: 1px solid var(--lijn); }
 #publiekeRoutes > strong { font-family: var(--kop); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grijs); }
