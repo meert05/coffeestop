@@ -47,9 +47,9 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const stippen = L.layerGroup().addTo(kaart);
 
 // Wielercafés in de accentkleur, gewone koffiebars in grijs
-// Op de lichte kaart: koffiebars = zwarte stip, wielercafés = witte stip met zwarte rand
-function kleur(type) {
-  return type === "coffee" ? "#0B0B0B" : "#FFFFFF";
+// Op de lichte kaart: elke bar is een zwarte stip met een witte rand
+function kleur() {
+  return "#0B0B0B";
 }
 
 // ---------- 3. Welke stops tonen we? ----------
@@ -85,8 +85,8 @@ function tekenKaart(stops) {
   for (const stop of stops) {
     const stip = L.circleMarker([stop.lat, stop.lng], {
       radius: stop.id === gekozenStop ? 11 : 7,
-      color: "#0B0B0B",
-      weight: stop.type === "coffee" ? 2 : 3,
+      color: "#FFFFFF",
+      weight: 2,
       fillColor: kleur(stop.type),
       fillOpacity: 1,
       bubblingMouseEvents: false   // een klik op een bar is geen klik op de kaart
