@@ -97,6 +97,16 @@ async function maakAccount(email, wachtwoord, voornaam, nieuwsbrief, gebruik, ca
   return data.session !== null;   // true = meteen ingelogd, false = eerst mail bevestigen
 }
 
+// De bevestigingsmail nog eens sturen
+async function stuurBevestigingOpnieuw(email, captchaToken) {
+  const { error } = await db.auth.resend({
+    type: "signup",
+    email: email,
+    options: { emailRedirectTo: TERUG_NAAR, captchaToken: captchaToken }
+  });
+  if (error) throw error;
+}
+
 async function logIn(email, wachtwoord, captchaToken) {
   const { error } = await db.auth.signInWithPassword({
     email: email, password: wachtwoord, options: { captchaToken: captchaToken }

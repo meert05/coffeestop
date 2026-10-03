@@ -204,7 +204,7 @@ document.getElementById("importToevoegen").onclick = async () => {
       lng: Number(g.lng.toFixed(5)),
       info: (r.info || "").trim(),
       provincie: r.provincie || g.provincie || null,
-      kenmerken: []
+      kenmerken: leesKenmerken(r)
     };
     try {
       await voegStopToeInDatabase(stop);
@@ -228,6 +228,13 @@ document.getElementById("importToevoegen").onclick = async () => {
   teken();
   zoomNaarStops();
 };
+
+// Kenmerken uit de lijst: een JSON-lijst ["laptop"], of in een CSV een kolom laptop/pc met ja/yes
+function leesKenmerken(r) {
+  if (Array.isArray(r.kenmerken)) return r.kenmerken.filter(k => KENMERKEN[k]);
+  const laptop = String(r.laptop || r.pc || r["pc friendly"] || "").trim();
+  return /^(ja|yes|y|1|true|x)$/i.test(laptop) ? ["laptop"] : [];
+}
 
 // De statussen "toegevoegd" en "fout" horen er ook bij
 IMPORT_STATUS.toegevoegd = "✓";

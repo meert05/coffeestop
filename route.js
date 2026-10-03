@@ -46,7 +46,9 @@ document.getElementById("routeKnop").onclick = () => {
   routeModus = !routeModus;
   document.getElementById("routeKnop").classList.toggle("actief", routeModus);
   document.getElementById("routePaneel").hidden = !routeModus;
-  if (routeModus) document.getElementById("routePaneel").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  document.body.classList.toggle("routeAan", routeModus);       // op een gsm blijft de kaart dan bovenaan staan
+  setTimeout(() => kaart.invalidateSize(), 50);
+  if (routeModus) document.getElementById("routePaneel").scrollIntoView({ behavior: "smooth", block: "start" });
   tekenStijlKnoppen();
   tekenRoutePaneel();
   tekenRouteOpKaart();
@@ -443,12 +445,9 @@ function tekenRouteOpKaart() {
   if (!routeModus) return;
 
   if (routeLijn) {
-    L.polyline(routeLijn.punten, {
-      pane: "routeLaag",
-      color: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#F2F1EE",
-      weight: 4,
-      opacity: 0.9
-    }).addTo(routeLaag);
+    // Een witte rand onder een donkere lijn: goed zichtbaar op de lichte kaart
+    L.polyline(routeLijn.punten, { pane: "routeLaag", color: "#FFFFFF", weight: 8, opacity: 0.9 }).addTo(routeLaag);
+    L.polyline(routeLijn.punten, { pane: "routeLaag", color: "#0B0B0B", weight: 4, opacity: 0.95 }).addTo(routeLaag);
   }
 
   if (typeof tekenBijvulBeheerOpKaart === "function") tekenBijvulBeheerOpKaart(routeLaag);   // beheerder: eigen bijvulpunten

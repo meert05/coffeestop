@@ -47,9 +47,9 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const stippen = L.layerGroup().addTo(kaart);
 
 // Wielercafés in de accentkleur, gewone koffiebars in grijs
+// Op de lichte kaart: koffiebars = zwarte stip, wielercafés = witte stip met zwarte rand
 function kleur(type) {
-  if (type === "coffee") return "#8E8D88";
-  return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#F2F1EE";
+  return type === "coffee" ? "#0B0B0B" : "#FFFFFF";
 }
 
 // ---------- 3. Welke stops tonen we? ----------
@@ -86,7 +86,7 @@ function tekenKaart(stops) {
     const stip = L.circleMarker([stop.lat, stop.lng], {
       radius: stop.id === gekozenStop ? 11 : 7,
       color: "#0B0B0B",
-      weight: 2,
+      weight: stop.type === "coffee" ? 2 : 3,
       fillColor: kleur(stop.type),
       fillOpacity: 1,
       bubblingMouseEvents: false   // een klik op een bar is geen klik op de kaart
@@ -96,6 +96,7 @@ function tekenKaart(stops) {
       // Route plannen staat aan? Dan gaat de bar in (of uit) je route
       if (typeof routeKlikOpBar === "function" && routeKlikOpBar(stop)) return;
       kies(stop.id);
+      toonKaartje(stop);              // op een gsm: een kaartje onderaan de kaart
     });
     stip.addTo(stippen);
   }
@@ -315,6 +316,7 @@ const STADNAMEN = {
   milaan:     { nl: "Milaan",     fr: "Milan",      en: "Milan",      ook: ["milano", "milan"] },
   rome:       { nl: "Rome",       fr: "Rome",       en: "Rome",       ook: ["roma"] },
   madrid:     { nl: "Madrid",     fr: "Madrid",     en: "Madrid" },
+  "costa-blanca": { nl: "Costa Blanca", fr: "Costa Blanca", en: "Costa Blanca", ook: ["calp", "calpe", "xalo", "jalon", "l-albir", "albir", "l-alfas-del-pi", "alcalali", "parcent", "moraira", "teulada", "benissa", "altea", "denia", "javea", "xabia", "benidorm", "orba"] },
   lissabon:   { nl: "Lissabon",   fr: "Lisbonne",   en: "Lisbon",     ook: ["lisboa", "lisbon", "lisbonne"] },
   wenen:      { nl: "Wenen",      fr: "Vienne",     en: "Vienna",     ook: ["wien", "vienna", "vienne"] },
   munchen:    { nl: "München",    fr: "Munich",     en: "Munich",     ook: ["munich", "muenchen"] },
@@ -747,12 +749,44 @@ function toonTab(welke) {
   document.getElementById("nieuwFormulier").hidden = welke !== "nieuw";
   document.getElementById("loginFormulier").hidden = welke !== "login";
   document.getElementById("resetFormulier").hidden = welke !== "reset";
-  document.getElementById("tabs").hidden = welke === "reset";
+  document.getElementById("mailCheck").hidden = welke !== "mail";
+  document.getElementById("tabs").hidden = welke === "reset" || welke === "mail";
   document.getElementById("tabNieuw").classList.toggle("actief", welke === "nieuw");
   document.getElementById("tabLogin").classList.toggle("actief", welke === "login");
   bericht.textContent = "";
 }
 document.getElementById("tabNieuw").onclick = () => toonTab("nieuw");
+
+// ---------- "Bevestig je e-mailadres" ----------
+let mailCheckAdres = "";
+function toonMailCheck(email) {
+  mailCheckAdres = email;
+  toonTab("mail");
+  document.getElementById("mailCheckAdres").textContent = email;
+  document.getElementById("mailCheck").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+document.getElementById("mailNaarLogin").onclick = () => {
+  toonTab("login");
+  document.getElementById("loginEmail").value = mailCheckAdres;
+  document.getElementById("loginWachtwoord").focus();
+};
+document.getElementById("mailAnderAdres").onclick = () => {
+  toonTab("nieuw");
+  document.getElementById("nieuwEmail").focus();
+};
+document.getElementById("mailOpnieuw").onclick = async () => {
+  const knop = document.getElementById("mailOpnieuw");
+  knop.disabled = true;
+  try {
+    await stuurBevestigingOpnieuw(mailCheckAdres, await haalCaptchaToken());
+    bericht.textContent = t("mailOpnieuwGestuurd");
+  } catch (fout) {
+    bericht.textContent = leesbareFout(fout);
+  } finally {
+    resetCaptcha();
+    setTimeout(() => { knop.disabled = false; }, 30000);   // niet blijven klikken: 30 seconden wachten
+  }
+};
 document.getElementById("tabLogin").onclick = () => toonTab("login");
 
 // Foutmeldingen van Supabase omzetten naar een duidelijke zin
@@ -784,8 +818,8 @@ document.getElementById("nieuwFormulier").onsubmit = async (event) => {
       voornaam, nieuwsbrief, gebruik,
       await haalCaptchaToken()               // bewijs dat je geen robot bent
     );
-    // Moet het e-mailadres eerst bevestigd worden? Dan vertellen we dat.
-    bericht.textContent = meteenIngelogd ? "" : t("bevestigMail");
+    // Moet het e-mailadres eerst bevestigd worden? Dan tonen we een duidelijk scherm.
+    if (!meteenIngelogd) toonMailCheck(document.getElementById("nieuwEmail").value.trim());
   } catch (fout) {
     localStorage.removeItem("nieuwProfiel");   // mislukt: niets onthouden
     bericht.textContent = leesbareFout(fout);
@@ -805,7 +839,13 @@ document.getElementById("loginFormulier").onsubmit = async (event) => {
     );
     bericht.textContent = "";
   } catch (fout) {
-    bericht.textContent = leesbareFout(fout);
+    // Nog niet bevestigd? Dan het scherm met uitleg en "opnieuw sturen" tonen
+    if ((fout.message || "").toLowerCase().includes("not confirmed")) {
+      toonMailCheck(document.getElementById("loginEmail").value.trim());
+      bericht.textContent = t("foutBevestigen");
+    } else {
+      bericht.textContent = leesbareFout(fout);
+    }
   } finally {
     resetCaptcha();
   }
@@ -994,3 +1034,62 @@ async function start() {
 }
 
 start();
+
+
+// =====================================================
+//  GSM: kaartje op de kaart en een knop "Lijst / Kaart"
+// =====================================================
+const opGsm = window.matchMedia("(max-width: 560px)");
+
+// Klik je op een stip, dan zie je op een gsm meteen een kaartje onderaan de kaart
+const kaartje = document.createElement("div");
+kaartje.id = "kaartje";
+kaartje.hidden = true;
+document.getElementById("kaart").appendChild(kaartje);
+L.DomEvent.disableClickPropagation(kaartje);
+L.DomEvent.disableScrollPropagation(kaartje);
+
+function toonKaartje(stop) {
+  if (!opGsm.matches) return;
+  kaartje.innerHTML = `
+    ${stop.foto ? `<img src="${esc(stop.foto)}" alt="">` : ""}
+    <div class="tekst"><b></b><small></small><p></p></div>
+    <button type="button" class="sluiten" aria-label="Sluiten">✕</button>
+    <button type="button" class="meer">${t("meerInfo")}</button>`;
+  kaartje.querySelector("b").textContent = stop.naam;
+  kaartje.querySelector("small").textContent = stop.adres || "";
+  kaartje.querySelector("p").textContent = stop["info_" + taal] || stop.info || "";
+  kaartje.hidden = false;
+  kaartje.querySelector(".sluiten").onclick = () => { kaartje.hidden = true; };
+  kaartje.querySelector(".meer").onclick = () => {
+    kaartje.hidden = true;
+    const li = document.querySelector("#lijst > li.gekozen");
+    if (li) li.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+}
+kaart.on("click", () => { kaartje.hidden = true; });
+
+// Een zwevende knop onderaan: van de kaart naar de lijst, en terug
+const wisselKnop = document.createElement("button");
+wisselKnop.id = "kaartLijstKnop";
+wisselKnop.type = "button";
+document.getElementById("app").appendChild(wisselKnop);
+let kaartInBeeld = true;
+
+function tekenWisselKnop() {
+  const aantal = document.querySelectorAll("#lijst > li").length;
+  wisselKnop.textContent = kaartInBeeld ? t("naarLijst") + " · " + aantal : t("naarKaart");
+}
+if ("IntersectionObserver" in window) {
+  new IntersectionObserver((items) => {
+    kaartInBeeld = items[0].isIntersecting;
+    tekenWisselKnop();
+  }, { threshold: 0.35 }).observe(document.getElementById("kaart"));
+}
+wisselKnop.onclick = () => {
+  if (kaartInBeeld) document.getElementById("teller").scrollIntoView({ behavior: "smooth", block: "start" });
+  else document.getElementById("steden").scrollIntoView({ behavior: "smooth", block: "start" });
+};
+// De lijst verandert (filter, zoeken, taal): het aantal op de knop mee aanpassen
+new MutationObserver(tekenWisselKnop).observe(document.getElementById("lijst"), { childList: true });
+tekenWisselKnop();

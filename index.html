@@ -74,6 +74,22 @@
       <button type="submit" data-t="bewaarWachtwoord">Bewaar wachtwoord</button>
     </form>
 
+    <!-- Na het aanmaken: duidelijk zeggen dat je je mail moet bevestigen -->
+    <div id="mailCheck" class="welkomFormulier" hidden>
+      <div class="mailIcoon" aria-hidden="true">📬</div>
+      <strong class="mailTitel" data-t="mailCheckTitel">Bevestig je e-mailadres</strong>
+      <p><span data-t="mailCheckTekst">We stuurden net een mail naar</span> <b id="mailCheckAdres"></b></p>
+      <ol class="mailStappen">
+        <li data-t="mailStap1">Open de mail van Waypour (kijk ook in je spam of bij Promoties).</li>
+        <li data-t="mailStap2">Klik op de knop in die mail om je account te activeren.</li>
+        <li data-t="mailStap3">Kom terug en log in met je e-mailadres en wachtwoord.</li>
+      </ol>
+      <p class="mailLet" data-t="mailLet">Zonder die klik kun je niet inloggen.</p>
+      <button type="button" id="mailNaarLogin" data-t="mailNaarLogin">Ik heb bevestigd, inloggen</button>
+      <button type="button" id="mailOpnieuw" class="link" data-t="mailOpnieuw">Geen mail gekregen? Stuur opnieuw</button>
+      <button type="button" id="mailAnderAdres" class="link" data-t="mailAnderAdres">Verkeerd e-mailadres? Opnieuw beginnen</button>
+    </div>
+
     <!-- Bescherming tegen bots (Cloudflare Turnstile): meestal onzichtbaar -->
     <div id="captcha"></div>
     <p id="loginBericht"></p>
@@ -351,6 +367,7 @@
   <script src="app.js"></script>
   <script src="route.js"></script>
   <script src="bijvullen.js"></script>
+  <script src="kaartlagen.js"></script>
   <script src="profiel.js"></script>
   <script src="import.js"></script>
 </body>
