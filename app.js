@@ -146,7 +146,7 @@ function tekenLijst(stops) {
       <p></p>
       ${openingsurenHTML(stop)}
       <div class="labels">
-        ${stop.type !== "coffee" ? `<span class="label">🚴 ${t("wieler")}</span>` : ""}
+        ${stop.type !== "coffee" ? `<span class="label" title="${esc(t("wielerUitleg"))}">🚴 ${t("wieler")}</span>` : ""}
         ${kenmerkenVan(stop).filter(k => KENMERKEN[k])
             .map(k => `<span class="label">${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</span>`).join("")}
       </div>
@@ -480,6 +480,12 @@ function tekenCategorieen() {
       teken();
     });
   }
+  // Wat bedoelen we met "cycling-friendly"? Uitleg zodra die filter aanstaat
+  const uitleg = document.getElementById("filterUitleg");
+  uitleg.hidden = !gekozenFilters.includes("wieler");
+  uitleg.textContent = t("wielerUitleg");
+  const wielerKnop = rij.children[1];
+  if (wielerKnop) wielerKnop.title = t("wielerUitleg");
 }
 
 function tekenFilters() {

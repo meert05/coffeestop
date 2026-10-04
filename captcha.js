@@ -36,12 +36,17 @@ function captchaMelding(tekst, metKnop = false) {
 // De controle van Cloudflare inladen en (meestal onzichtbaar) klaarzetten
 if (captchaAan()) {
   window.captchaKlaar = () => {
+    // Wacht tot de pagina (en de vertalingen) volledig geladen is
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", window.captchaKlaar);
+      return;
+    }
     captchaWidget = turnstile.render("#captcha", {
       sitekey: TURNSTILE_SITE_KEY,
       theme: "dark",
       size: "flexible",
       appearance: "interaction-only",   // alleen zichtbaar als Cloudflare twijfelt
-      language: taal,
+      language: typeof taal !== "undefined" ? taal : "auto",
       "refresh-expired": "auto",
       // Cloudflare twijfelt: het vakje verschijnt. Dat moet je dan ook zien!
       "before-interactive-callback": () => {
@@ -66,7 +71,11 @@ if (captchaAan()) {
   const script = document.createElement("script");
   script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=captchaKlaar";
   script.async = true;
-  script.onerror = () => captchaMelding(t("captchaGeladen"), false);
+  // Kon het script niet laden (bv. door een adblocker)? Melden zodra de pagina klaar is
+  const meldNietGeladen = () => captchaMelding(t("captchaGeladen"));
+  script.onerror = () => (document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", meldNietGeladen)
+    : meldNietGeladen());
   document.head.appendChild(script);
 }
 
