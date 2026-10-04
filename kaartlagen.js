@@ -12,7 +12,13 @@ const LAGEN = {
   fsw:   { kleur: "#D9480F", dikte: 4, vanafZoom: 9,  sleutel: "laagFietssnelwegen" },
   water: { kleur: "#1C7ED6", dikte: 3, vanafZoom: 11, sleutel: "laagWater" }
 };
-const LAAG_VAK = 0.2;               // graden: de kaart is verdeeld in vakjes die we één keer ophalen
+const LAAG_VAK = 0.1;               // graden: de kaart is verdeeld in vakjes die we één keer ophalen
+const LAAG_SERVERS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",   // reserve
+  "https://overpass.kumi.systems/api/interpreter"       // reserve
+];
+const LAAG_WACHTTIJD = 20000;       // ms: langer wachten we niet op één server
 
 kaart.createPane("infraLaag");
 kaart.getPane("infraLaag").style.zIndex = 330;    // onder de route (350) en de stippen
@@ -26,7 +32,8 @@ for (const [naam, laag] of Object.entries(LAGEN)) {
     groep: L.layerGroup(),
     geladen: new Set(),              // vakjes die al opgehaald zijn
     getekend: new Set(),             // wegen (id) die al op de kaart staan
-    bezig: false
+    bezig: false,
+    fout: false
   };
   if (aan) laagStaat[naam].groep.addTo(kaart);
 }
@@ -55,7 +62,14 @@ function tekenLagenKnop() {
         <span>${t("laag_" + naam)}</span>
       </label>`).join("")}
     ${teVer ? `<small>${t("laagInzoomen")}</small>` : ""}
-    ${Object.values(laagStaat).some(s => s.bezig) ? `<small>${t("laagLaden")}</small>` : ""}`;
+    ${Object.values(laagStaat).some(s => s.bezig) ? `<small>${t("laagLaden")}</small>` : ""}
+    ${Object.values(laagStaat).some(s => s.fout && !s.bezig)
+      ? `<small>${t("laagFout")} <button type="button" class="link" data-opnieuw>${t("bijvulOpnieuw")}</button></small>` : ""}`;
+  const opnieuw = blok.querySelector("[data-opnieuw]");
+  if (opnieuw) opnieuw.onclick = () => {
+    Object.values(laagStaat).forEach(s => { s.fout = false; });
+    laadLagen();
+  };
   blok.querySelectorAll("[data-laag]").forEach(vakje => {
     vakje.onchange = () => {
       const naam = vakje.dataset.laag;
@@ -82,16 +96,16 @@ function vakjesInBeeld() {
 
 function overpassVraag(naam, bbox) {
   if (naam === "fsw") {
-    return `[out:json][timeout:25];
+    return `[out:json][timeout:15];
 rel["cycle_highway"="yes"](${bbox})->.r;
 way(r.r)(${bbox});
 out geom;`;
   }
   // Langs het water: fietsbare paden tot ± 45 m van een kanaal of rivier, plus alles wat zo heet of zo getagd is
-  return `[out:json][timeout:25];
+  return `[out:json][timeout:15];
 way["waterway"~"^(canal|river)$"](${bbox})->.w;
 (
-  way(around.w:45)["highway"~"^(cycleway|service|track|path)$"]["bicycle"!="no"]["access"!~"^(private|no)$"](${bbox});
+  way(around.w:40)["highway"~"^(cycleway|service|track|path)$"]["bicycle"!="no"]["access"!~"^(private|no)$"];
   way["towpath"="yes"]["highway"](${bbox});
   way["highway"]["name"~"jaagpad|halage",i](${bbox});
 );
@@ -101,9 +115,9 @@ out geom;`;
 async function haalLaag(naam) {
   const staat = laagStaat[naam];
   const laag = LAGEN[naam];
-  if (!staat.aan || staat.bezig || kaart.getZoom() < laag.vanafZoom) return;
+  if (!staat.aan || staat.bezig || kaart.getZoom() < laag.vanafZoom) return true;
   const nieuw = vakjesInBeeld().filter(([la, lo]) => !staat.geladen.has(la + "," + lo));
-  if (nieuw.length === 0) return;
+  if (nieuw.length === 0) return true;
 
   // Eén rechthoek rond alle nog ontbrekende vakjes
   const zuid = Math.min(...nieuw.map(v => v[0])) * LAAG_VAK, noord = (Math.max(...nieuw.map(v => v[0])) + 1) * LAAG_VAK;
@@ -113,21 +127,30 @@ async function haalLaag(naam) {
   staat.bezig = true;
   tekenLagenKnop();
   let data = null;
-  for (const server of OVERPASS) {                  // dezelfde servers als de bijvulplanner
+  for (const server of LAAG_SERVERS) {
+    const stop = new AbortController();
+    const wekker = setTimeout(() => stop.abort(), LAAG_WACHTTIJD);
     try {
       const antwoord = await fetch(server, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: "data=" + encodeURIComponent(overpassVraag(naam, bbox))
+        body: "data=" + encodeURIComponent(overpassVraag(naam, bbox)),
+        signal: stop.signal
       });
       if (!antwoord.ok) throw new Error("Overpass " + antwoord.status);
-      data = await antwoord.json();
+      const json = await antwoord.json();
+      // Overpass meldt een time-out soms met een gewoon antwoord en een "remark"
+      if (json.remark && /error|timed out/i.test(json.remark)) throw new Error(json.remark);
+      data = json;
       break;
     } catch (fout) {
       console.warn("Kaartlaag: server lukte niet", server, fout);
+    } finally {
+      clearTimeout(wekker);
     }
   }
   staat.bezig = false;
+  staat.fout = !data;
 
   if (data) {
     nieuw.forEach(([la, lo]) => staat.geladen.add(la + "," + lo));
@@ -145,14 +168,27 @@ async function haalLaag(naam) {
     }
   }
   tekenLagenKnop();
-  if (data) haalLaag(naam);                         // intussen verschoven? dan ook de rest
+  return Boolean(data);
 }
 
+// Eén vraag tegelijk (de gratis servers houden niet van drukte), en pas als de kaart stilstaat
 let lagenWachter = null;
+let lagenBezig = false;
+let lagenNogEens = false;
 function laadLagen() {
   tekenLagenKnop();
   clearTimeout(lagenWachter);
-  lagenWachter = setTimeout(() => { haalLaag("fsw"); haalLaag("water"); }, 600);
+  lagenWachter = setTimeout(async () => {
+    if (lagenBezig) { lagenNogEens = true; return; }
+    lagenBezig = true;
+    do {
+      lagenNogEens = false;
+      for (const naam of ["fsw", "water"]) {
+        if (!laagStaat[naam].fout) await haalLaag(naam);
+      }
+    } while (lagenNogEens);
+    lagenBezig = false;
+  }, 700);
 }
 
 kaart.on("moveend", laadLagen);
