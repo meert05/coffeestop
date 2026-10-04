@@ -781,7 +781,7 @@ document.getElementById("mailOpnieuw").onclick = async () => {
     await stuurBevestigingOpnieuw(mailCheckAdres, await haalCaptchaToken());
     bericht.textContent = t("mailOpnieuwGestuurd");
   } catch (fout) {
-    bericht.textContent = leesbareFout(fout);
+    if (!fout.captcha) bericht.textContent = leesbareFout(fout);   // een captchafout staat er al, met knop
   } finally {
     resetCaptcha();
     setTimeout(() => { knop.disabled = false; }, 30000);   // niet blijven klikken: 30 seconden wachten
@@ -792,7 +792,7 @@ document.getElementById("tabLogin").onclick = () => toonTab("login");
 // Foutmeldingen van Supabase omzetten naar een duidelijke zin
 function leesbareFout(fout) {
   const tekst = (fout.message || "").toLowerCase();
-  if (tekst.includes("captcha")) return t("captchaFout");
+  if (tekst.includes("captcha")) return t("captchaServer");
   if (tekst.includes("invalid login")) return t("foutGegevens");
   if (tekst.includes("not confirmed")) return t("foutBevestigen");
   if (tekst.includes("already registered")) return t("foutBestaat");
@@ -822,7 +822,7 @@ document.getElementById("nieuwFormulier").onsubmit = async (event) => {
     if (!meteenIngelogd) toonMailCheck(document.getElementById("nieuwEmail").value.trim());
   } catch (fout) {
     localStorage.removeItem("nieuwProfiel");   // mislukt: niets onthouden
-    bericht.textContent = leesbareFout(fout);
+    if (!fout.captcha) bericht.textContent = leesbareFout(fout);   // een captchafout staat er al, met knop
   } finally {
     resetCaptcha();
   }
@@ -844,7 +844,7 @@ document.getElementById("loginFormulier").onsubmit = async (event) => {
       toonMailCheck(document.getElementById("loginEmail").value.trim());
       bericht.textContent = t("foutBevestigen");
     } else {
-      bericht.textContent = leesbareFout(fout);
+      if (!fout.captcha) bericht.textContent = leesbareFout(fout);   // een captchafout staat er al, met knop
     }
   } finally {
     resetCaptcha();
@@ -862,7 +862,7 @@ document.getElementById("vergeten").onclick = async () => {
     await stuurWachtwoordReset(email, await haalCaptchaToken());
     bericht.textContent = t("resetVerstuurd");
   } catch (fout) {
-    bericht.textContent = leesbareFout(fout);
+    if (!fout.captcha) bericht.textContent = leesbareFout(fout);   // een captchafout staat er al, met knop
   } finally {
     resetCaptcha();
   }
@@ -877,7 +877,7 @@ document.getElementById("resetFormulier").onsubmit = async (event) => {
     history.replaceState(null, "", location.pathname);   // "?wachtwoord=nieuw" uit het adres halen
     naInloggen();
   } catch (fout) {
-    bericht.textContent = leesbareFout(fout);
+    if (!fout.captcha) bericht.textContent = leesbareFout(fout);   // een captchafout staat er al, met knop
   }
 };
 

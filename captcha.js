@@ -12,12 +12,28 @@
 const TURNSTILE_SITE_KEY = "0x4AAAAAAFK3nYBdMHU2i6wj";   // ← plak hier je Site Key van Cloudflare, tussen de aanhalingstekens
 
 let captchaWidget = null;
+let captchaVraagtKlik = false;     // toont Cloudflare het vakje "ik ben geen robot"?
+let captchaFoutCode = null;        // foutcode van Cloudflare (om te helpen zoeken)
 
 function captchaAan() {
   return TURNSTILE_SITE_KEY !== "";
 }
 
-// De controle van Cloudflare inladen en (onzichtbaar) klaarzetten
+function captchaMelding(tekst, metKnop = false) {
+  const bericht = document.getElementById("loginBericht");
+  bericht.innerHTML = "";
+  bericht.append(tekst);
+  if (metKnop) {
+    const knop = document.createElement("button");
+    knop.type = "button";
+    knop.className = "link";
+    knop.textContent = t("bijvulOpnieuw");          // "Opnieuw proberen"
+    knop.onclick = () => { captchaFoutCode = null; bericht.textContent = ""; resetCaptcha(); };
+    bericht.append(" ", knop);
+  }
+}
+
+// De controle van Cloudflare inladen en (meestal onzichtbaar) klaarzetten
 if (captchaAan()) {
   window.captchaKlaar = () => {
     captchaWidget = turnstile.render("#captcha", {
@@ -25,29 +41,74 @@ if (captchaAan()) {
       theme: "dark",
       size: "flexible",
       appearance: "interaction-only",   // alleen zichtbaar als Cloudflare twijfelt
-      language: taal
+      language: taal,
+      "refresh-expired": "auto",
+      // Cloudflare twijfelt: het vakje verschijnt. Dat moet je dan ook zien!
+      "before-interactive-callback": () => {
+        captchaVraagtKlik = true;
+        captchaMelding(t("captchaKlik"));
+        document.getElementById("captcha").scrollIntoView({ behavior: "smooth", block: "center" });
+      },
+      "after-interactive-callback": () => {
+        captchaVraagtKlik = false;
+        document.getElementById("loginBericht").textContent = "";
+      },
+      callback: () => { captchaFoutCode = null; },
+      "error-callback": (code) => {
+        captchaFoutCode = code;
+        console.warn("Turnstile-fout", code);
+        captchaMelding(t("captchaProbleem") + " (" + code + ")", true);
+        return true;                     // wij tonen zelf de melding
+      },
+      "unsupported-callback": () => { captchaMelding(t("captchaNietOndersteund")); }
     });
   };
   const script = document.createElement("script");
   script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=captchaKlaar";
   script.async = true;
+  script.onerror = () => captchaMelding(t("captchaGeladen"), false);
   document.head.appendChild(script);
 }
 
-// Het bewijs ("token") dat je geen robot bent. We wachten hooguit 10 seconden.
+// Het bewijs ("token") dat je geen robot bent.
+// Meestal is het er meteen. Moet je eerst het vakje aanklikken, dan wachten we tot 2 minuten.
 async function haalCaptchaToken() {
   if (!captchaAan()) return undefined;
-  const bericht = document.getElementById("loginBericht");
-  for (let poging = 0; poging < 40; poging++) {
+  const start = Date.now();
+  let gemeld = false;
+  while (true) {
     const token = captchaWidget !== null && window.turnstile ? turnstile.getResponse(captchaWidget) : "";
-    if (token) return token;
-    if (poging === 2) bericht.textContent = t("captchaWacht");
+    if (token) {
+      if (gemeld) document.getElementById("loginBericht").textContent = "";
+      return token;
+    }
+    const wachttijd = Date.now() - start;
+    if (captchaFoutCode) throw captchaFout(t("captchaProbleem") + " (" + captchaFoutCode + ")");
+    if (wachttijd > (captchaVraagtKlik ? 120000 : 20000)) throw captchaFout(t("captchaFout"));
+    if (captchaVraagtKlik && gemeld !== "klik") {        // het vakje staat er: zeg het en toon het
+      captchaMelding(t("captchaKlik"));
+      document.getElementById("captcha").scrollIntoView({ behavior: "smooth", block: "center" });
+      gemeld = "klik";
+    } else if (!gemeld && wachttijd > 700) {
+      captchaMelding(t("captchaWacht"));
+      gemeld = "wacht";
+    }
     await new Promise(klaar => setTimeout(klaar, 250));
   }
-  throw new Error(t("captchaFout"));
+}
+
+// Een fout van de controle: melding met knop "Opnieuw proberen" (app.js overschrijft die niet)
+function captchaFout(tekst) {
+  captchaMelding(tekst, true);
+  const fout = new Error(tekst);
+  fout.captcha = true;
+  return fout;
 }
 
 // Een bewijs werkt maar één keer: na elke poging vragen we een nieuw
 function resetCaptcha() {
-  if (captchaWidget !== null && window.turnstile) turnstile.reset(captchaWidget);
+  if (captchaWidget !== null && window.turnstile) {
+    captchaVraagtKlik = false;
+    turnstile.reset(captchaWidget);
+  }
 }

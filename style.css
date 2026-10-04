@@ -230,6 +230,9 @@ input[type="file"] { border: none; padding: 6px 0; font-size: 13px; }
   border-bottom-color: var(--accent);
 }
 #loginBericht { margin: 16px 0 0; font-size: 14px; color: var(--accent); }
+#loginBericht:not(:empty) { padding: 12px 14px; border-left: 3px solid var(--tekst); background: var(--vlak); }
+#loginBericht .link { display: inline; margin: 0; }
+#captcha { margin-top: 12px; }
 
 .vinkje {
   display: flex;
