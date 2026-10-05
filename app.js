@@ -287,10 +287,32 @@ function kies(id) {
 // ---------- Landen en steden: knoppen automatisch uit de data ----------
 
 // Het land van een bar, als code: "BE", "ES", "FR", …
+// Landnamen in verschillende talen → landcode, zodat "Spanje", "España" en "ES" één knop worden
+const LANDCODES = {
+  belgie: "BE", belgique: "BE", belgium: "BE", belgien: "BE",
+  spanje: "ES", espana: "ES", espagne: "ES", spain: "ES", spanien: "ES",
+  frankrijk: "FR", france: "FR", frankreich: "FR",
+  nederland: "NL", "pays-bas": "NL", netherlands: "NL", niederlande: "NL",
+  duitsland: "DE", allemagne: "DE", germany: "DE", deutschland: "DE",
+  italie: "IT", italy: "IT", italia: "IT", italien: "IT",
+  portugal: "PT",
+  denemarken: "DK", danemark: "DK", denmark: "DK", danmark: "DK",
+  "verenigd-koninkrijk": "GB", "royaume-uni": "GB", "united-kingdom": "GB", uk: "GB", engeland: "GB", england: "GB",
+  oostenrijk: "AT", autriche: "AT", austria: "AT", osterreich: "AT",
+  zwitserland: "CH", suisse: "CH", switzerland: "CH", schweiz: "CH",
+  luxemburg: "LU", luxembourg: "LU"
+};
+function landcodeUitNaam(naam) {
+  const sleutel = String(naam || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "");
+  return LANDCODES[sleutel] || null;
+}
+
 function landVan(stop) {
-  if (stop.landcode) return stop.landcode;
-  const belgie = ["België", "Belgique", "Belgium"];
-  return belgie.includes(stop.land || "België") ? "BE" : stop.land;
+  const code = String(stop.landcode || "").trim();
+  if (/^[A-Za-z]{2}$/.test(code)) return code.toUpperCase();
+  // Geen (geldige) code: afleiden uit de code-als-naam of uit de naam van het land
+  return landcodeUitNaam(code) || landcodeUitNaam(stop.land || "België") || stop.land;
 }
 
 // De naam van een land in de gekozen taal: "ES" wordt "Spanje", "Espagne" of "Spain"
