@@ -10,6 +10,7 @@
 
 let importRijen = [];        // de ingelezen bars, met hun status
 let importBezig = false;
+let importPlaatsRij = null;   // de rij die de beheerder zelf op de kaart aan het zetten is
 
 const importBlok = document.getElementById("importBlok");
 const importMelding = document.getElementById("importMelding");
@@ -99,11 +100,17 @@ async function zoekAlleAdressen() {
     tekenImportLijst();
 
     try {
-      // Eerst het adres, anders naam + plaats
+      // Eerst het adres, dan naam + plaats, dan de straat zonder huisnummer
       let gevonden = await zoekAdres(r.adres);
       if (!gevonden) {
         await wacht(1100);
         gevonden = await zoekAdres(r.naam + ", " + (r.plaats || ""));
+      }
+      const zonderNummer = zonderHuisnummer(r.adres);
+      if (!gevonden && zonderNummer !== r.adres) {
+        await wacht(1100);
+        gevonden = await zoekAdres(zonderNummer);
+        if (gevonden) r.ongeveer = true;          // ergens in de straat: liever even nakijken
       }
       r.gevonden = gevonden;
       if (!gevonden) {
@@ -131,6 +138,17 @@ async function zoekAlleAdressen() {
   tekenImportLijst();
 }
 
+// "Avenida de la Paz 20, 03724 Moraira" → "Avenida de la Paz, Moraira"
+function zonderHuisnummer(adres) {
+  return String(adres)
+    .replace(/\b\d+[a-zA-Z]?\b/g, "")          // huisnummers en postcodes weg
+    .replace(/\s+,/g, ",")
+    .replace(/,\s*(,\s*)+/g, ", ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[\s,]+|[\s,]+$/g, "")
+    .trim();
+}
+
 function wacht(ms) {
   return new Promise(klaar => setTimeout(klaar, ms));
 }
@@ -149,16 +167,31 @@ function tekenImportLijst() {
                ${r.status === "gevonden" || r.status === "anderLand" ? "" : "disabled"}>
         <span>
           <b>${esc(r.naam)}</b>
-          <small>${esc(r.plaats || "")} · ${r.type === "both" ? "🚴 " : ""}${IMPORT_STATUS[r.status]} ${t("importStatus_" + r.status)}${r.zeker === false ? " · " + t("importNietZeker") : ""}</small>
+          <small>${esc(r.plaats || "")} · ${r.type === "both" ? "🚴 " : ""}${IMPORT_STATUS[r.status]} ${t("importStatus_" + r.status)}${r.ongeveer ? " · " + t("importOngeveer") : ""}${r.zeker === false ? " · " + t("importNietZeker") : ""}${r.status === "fout" && r.fout ? " · " + esc(r.fout) : ""}</small>
         </span>
       </label>
       ${r.gevonden ? `<button type="button" data-toon="${i}" aria-label="Op de kaart">📍</button>` : ""}
+      ${["nietGevonden", "anderLand", "gevonden"].includes(r.status) && !importBezig
+        ? `<button type="button" class="link" data-plaats="${i}">${importPlaatsRij === i ? t("importKlikKaart") : t("importOpKaart")}</button>` : ""}
     </li>`).join("");
 
   lijst.querySelectorAll("[data-rij]").forEach(vakje => {
     vakje.onchange = () => {
       importRijen[Number(vakje.dataset.rij)].aan = vakje.checked;
       tekenImportKnop();
+    };
+  });
+  // Zelf op de kaart zetten: klik op de knop, daarna op de juiste plek op de kaart
+  lijst.querySelectorAll("[data-plaats]").forEach(knop => {
+    knop.onclick = () => {
+      const i = Number(knop.dataset.plaats);
+      importPlaatsRij = importPlaatsRij === i ? null : i;
+      const r = importRijen[i];
+      if (importPlaatsRij !== null) {
+        importMelding.textContent = t("importKlikKaartLang").replace("{naam}", r.naam);
+        document.getElementById("kaart").scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      tekenImportLijst();
     };
   });
   lijst.querySelectorAll("[data-toon]").forEach(knop => {
@@ -235,6 +268,23 @@ function leesKenmerken(r) {
   const laptop = String(r.laptop || r.pc || r["pc friendly"] || "").trim();
   return /^(ja|yes|y|1|true|x)$/i.test(laptop) ? ["laptop"] : [];
 }
+
+// Klik op de kaart terwijl een rij "op de kaart gezet" wordt
+kaart.on("click", (event) => {
+  if (importPlaatsRij === null || !isBeheerder()) return;
+  const r = importRijen[importPlaatsRij];
+  importPlaatsRij = null;
+  if (!r) return;
+  r.gevonden = {
+    lat: event.latlng.lat, lng: event.latlng.lng,
+    landcode: (r.landcode || "").toUpperCase(), land: r.land || "", plaats: r.plaats || "", provincie: r.provincie || ""
+  };
+  r.status = "gevonden";
+  r.ongeveer = false;
+  r.aan = true;
+  importMelding.textContent = t("importGeplaatst").replace("{naam}", r.naam);
+  tekenImportLijst();
+});
 
 // De statussen "toegevoegd" en "fout" horen er ook bij
 IMPORT_STATUS.toegevoegd = "✓";

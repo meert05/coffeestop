@@ -541,6 +541,7 @@ document.getElementById("zoek").oninput = teken;
 kaart.on("click", (event) => {
   if (!isBeheerder()) return;
   if (typeof routeModus !== "undefined" && routeModus) return;   // dan tekent route.js een punt
+  if (typeof importPlaatsRij !== "undefined" && importPlaatsRij !== null) return;   // dan zet import.js een bar
   nieuwePlek = [event.latlng.lat, event.latlng.lng];
   document.getElementById("plekTekst").textContent = t("plekGekozen");
   teken();
