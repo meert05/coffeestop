@@ -53,6 +53,11 @@ function kleur() {
 }
 
 // ---------- 3. Welke stops tonen we? ----------
+// Verborgen bars zijn alleen voor de beheerder (de database stuurt ze ook niet naar anderen)
+function magZien(stop) {
+  return stop.zichtbaar !== false || isBeheerder();
+}
+
 function zichtbareStops() {
   const zoekterm = document.getElementById("zoek").value.toLowerCase();
 
@@ -65,6 +70,8 @@ function zichtbareStops() {
     if (gekozenFilters.includes("zondagVroeg") && !zondagVroegOpen(stop)) return false;
     if (gekozenFilters.includes("favoriet") && !favorieten.includes(stop.id)) return false;
     if (gekozenFilters.includes("zonderFoto") && stop.foto) return false;
+    if (gekozenFilters.includes("verborgen") && stop.zichtbaar !== false) return false;
+    if (!magZien(stop)) return false;   // verborgen bars: alleen voor de beheerder
     if (!stop.naam.toLowerCase().includes(zoekterm)) return false;
     return true;
   });
@@ -88,7 +95,7 @@ function tekenKaart(stops) {
       color: "#FFFFFF",
       weight: 2,
       fillColor: kleur(stop.type),
-      fillOpacity: 1,
+      fillOpacity: stop.zichtbaar === false ? 0.3 : 1,   // verborgen bars: vaag (alleen de beheerder ziet ze)
       bubblingMouseEvents: false   // een klik op een bar is geen klik op de kaart
     });
     stip.bindTooltip(esc(stop.naam));
@@ -131,7 +138,7 @@ function tekenLijst(stops) {
 
   for (const stop of stops) {
     const li = document.createElement("li");
-    li.className = stop.type + (stop.id === gekozenStop ? " gekozen" : "");
+    li.className = stop.type + (stop.id === gekozenStop ? " gekozen" : "") + (stop.zichtbaar === false ? " verborgen" : "");
 
     const isFavoriet = favorieten.includes(stop.id);
     const route = "https://www.google.com/maps/search/?api=1&query=" +
@@ -146,6 +153,7 @@ function tekenLijst(stops) {
       <p></p>
       ${openingsurenHTML(stop)}
       <div class="labels">
+        ${stop.zichtbaar === false ? `<span class="label verborgenLabel">🙈 ${t("verborgen")}</span>` : ""}
         ${stop.type !== "coffee" ? `<span class="label" title="${esc(t("wielerUitleg"))}">🚴 ${t("wieler")}</span>` : ""}
         ${kenmerkenVan(stop).filter(k => KENMERKEN[k])
             .map(k => `<span class="label">${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</span>`).join("")}
@@ -163,6 +171,7 @@ function tekenLijst(stops) {
         <button class="reviewKnop">${reviewKnopTekst(stop)}</button>
         ${isBeheerder() ? `<button class="kenmerkKnop">${t("kenmerkenBewerken")}</button>` : ""}
         ${isBeheerder() ? `<button class="fotoKnop">${t("foto")}</button>` : ""}
+        ${isBeheerder() ? `<button class="zichtKnop">${stop.zichtbaar === false ? t("tonen") : t("verbergen")}</button>` : ""}
         ${isBeheerder() ? `<button class="wis">${t("verwijder")}</button>` : ""}
       </div>
       ${reviewsBlokHTML(stop)}`;
@@ -195,6 +204,22 @@ function tekenLijst(stops) {
         try {
           await verwijderStopUitDatabase(stop.id);
           alleStops = alleStops.filter(s => s.id !== stop.id);
+          teken();
+        } catch (fout) {
+          alert(t("opslaanMislukt") + " " + fout.message);
+        }
+      };
+    }
+
+    // Tonen of verbergen voor gebruikers (alleen de beheerder)
+    const zichtKnop = li.querySelector(".zichtKnop");
+    if (zichtKnop) {
+      zichtKnop.onclick = async (event) => {
+        event.stopPropagation();
+        const nieuw = stop.zichtbaar === false;          // verborgen → tonen, en omgekeerd
+        try {
+          await werkStopBij(stop.id, { zichtbaar: nieuw });
+          stop.zichtbaar = nieuw;
           teken();
         } catch (fout) {
           alert(t("opslaanMislukt") + " " + fout.message);
@@ -492,6 +517,8 @@ function tekenCategorieen() {
   if (isBeheerder()) {
     const zonder = alleStops.filter(s => !s.foto).length;
     filters.push(["zonderFoto", "📷 " + t("zonderFoto") + " (" + zonder + ")"]);
+    const verborgen = alleStops.filter(s => s.zichtbaar === false).length;
+    filters.push(["verborgen", "🙈 " + t("verborgen") + " (" + verborgen + ")"]);
   }
   for (const [sleutel, tekst] of filters) {
     maakKnop(rij, tekst, gekozenFilters.includes(sleutel), () => {
@@ -513,7 +540,7 @@ function tekenCategorieen() {
 function tekenFilters() {
   tekenCategorieen();
   // Welke landen komen voor in onze bars?
-  const landen = [...new Set(alleStops.map(landVan))]
+  const landen = [...new Set(alleStops.filter(magZien).map(landVan))]
     .sort((x, y) => (x === "BE" ? -1 : y === "BE" ? 1 : landNaam(x).localeCompare(landNaam(y))));
 
   // Maar één land? Dan is "alle landen" hetzelfde als dat ene land (zo blijven de stadsknoppen zichtbaar)
@@ -537,7 +564,7 @@ function tekenFilters() {
   if (gekozenLand === "alles") return;
 
   const volgorde = VASTE_STEDEN;
-  const groepen = [...new Set(alleStops.filter(s => landVan(s) === gekozenLand).map(groepVan))]
+  const groepen = [...new Set(alleStops.filter(s => magZien(s) && landVan(s) === gekozenLand).map(groepVan))]
     .sort((x, y) => {
       const ix = volgorde.indexOf(x), iy = volgorde.indexOf(y);
       if (ix !== -1 || iy !== -1) return (ix === -1 ? 99 : ix) - (iy === -1 ? 99 : iy);
@@ -646,16 +673,18 @@ document.getElementById("formulier").onsubmit = async (event) => {
 let gevondenLandcode = "";   // de landcode van het laatst opgezochte adres
 let gevondenProvincie = "";  // en de provincie
 
-async function zoekAdres(adres) {
+// ---------- Een adres opzoeken ----------
+// 1. OpenStreetMap (Nominatim): precies, maar streng met schrijfwijzen.
+// 2. Photon (Komoot): vergevingsgezinder, handig in het buitenland
+//    ("Avenida de la Paz" vindt ook "Avinguda de la Pau").
+// Met { grondig: true } proberen we daarna ook de straat zonder huisnummer en postcode.
+async function zoekNominatim(adres) {
   const url = "https://nominatim.openstreetmap.org/search"
-            + "?format=jsonv2&addressdetails=1&limit=1&accept-language=nl"
+            + "?format=jsonv2&addressdetails=1&limit=1&accept-language=" + (typeof taal !== "undefined" ? taal : "nl")
             + "&q=" + encodeURIComponent(adres);
-  const antwoord = await fetch(url);
-  const resultaten = await antwoord.json();
-  if (resultaten.length === 0) return null;   // niets gevonden
-
-  const r = resultaten[0];
-  const a = r.address;
+  const resultaten = await (await fetch(url)).json();
+  if (!Array.isArray(resultaten) || resultaten.length === 0) return null;
+  const r = resultaten[0], a = r.address || {};
   return {
     lat: Number(r.lat),
     lng: Number(r.lon),
@@ -665,6 +694,63 @@ async function zoekAdres(adres) {
     plaats: a.city || a.town || a.village || a.municipality || "",
     provincie: a.province || ""                        // bv. "Oost-Vlaanderen"
   };
+}
+
+async function zoekPhoton(adres) {
+  const lang = ["fr", "en", "de"].includes(typeof taal !== "undefined" ? taal : "") ? taal : "default";
+  const url = "https://photon.komoot.io/api/?limit=1&lang=" + lang + "&q=" + encodeURIComponent(adres);
+  const data = await (await fetch(url)).json();
+  const f = data && Array.isArray(data.features) ? data.features[0] : null;
+  if (!f) return null;
+  const p = f.properties || {};
+  return {
+    lat: Number(f.geometry.coordinates[1]),
+    lng: Number(f.geometry.coordinates[0]),
+    land: p.country || "",
+    landcode: (p.countrycode || "").toUpperCase(),
+    plaats: p.city || p.town || p.village || p.locality || p.district || "",
+    provincie: ""
+  };
+}
+
+// "Avenida de la Paz 20, 03724 Moraira" → "Avenida de la Paz, Moraira"
+function zonderHuisnummer(adres) {
+  return String(adres)
+    .replace(/\b\d+[a-zA-Z]?\b/g, "")          // huisnummers en postcodes weg
+    .replace(/\s+,/g, ",")
+    .replace(/,\s*(,\s*)+/g, ", ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[\s,]+|[\s,]+$/g, "")
+    .trim();
+}
+
+let laatsteNominatim = 0;
+async function rustigNominatim(adres) {        // OpenStreetMap vraagt hooguit één zoekvraag per seconde
+  const wachten = laatsteNominatim + 1100 - Date.now();
+  if (wachten > 0) await new Promise(klaar => setTimeout(klaar, wachten));
+  laatsteNominatim = Date.now();
+  return zoekNominatim(adres);
+}
+
+async function zoekAdres(adres, opties = {}) {
+  const pogingen = [
+    () => rustigNominatim(adres),
+    () => zoekPhoton(adres)
+  ];
+  const kort = zonderHuisnummer(adres);
+  if (opties.grondig && kort && kort !== adres) {
+    pogingen.push(async () => { const g = await rustigNominatim(kort); return g && { ...g, ongeveer: true }; });
+    pogingen.push(async () => { const g = await zoekPhoton(kort); return g && { ...g, ongeveer: true }; });
+  }
+  for (const poging of pogingen) {
+    try {
+      const gevonden = await poging();
+      if (gevonden && Number.isFinite(gevonden.lat) && Number.isFinite(gevonden.lng)) return gevonden;
+    } catch (fout) {
+      console.warn("Adres zoeken: een poging lukte niet", fout);
+    }
+  }
+  return null;
 }
 
 document.getElementById("zoekAdresKnop").onclick = async () => {
@@ -677,7 +763,7 @@ document.getElementById("zoekAdresKnop").onclick = async () => {
 
   tekst.textContent = t("adresZoeken");
   try {
-    const gevonden = await zoekAdres(adres);
+    const gevonden = await zoekAdres(adres, { grondig: true });
     if (!gevonden) {
       tekst.textContent = t("adresNietGevonden");
       return;
@@ -687,8 +773,8 @@ document.getElementById("zoekAdresKnop").onclick = async () => {
     gevondenLandcode = gevonden.landcode;
     gevondenProvincie = gevonden.provincie;
     document.getElementById("nieuwPlaats").value = gevonden.plaats;
-    tekst.textContent = t("adresGevonden");
-    kaart.setView(nieuwePlek, 17);   // inzoomen op de gevonden plek
+    tekst.textContent = gevonden.ongeveer ? t("adresOngeveer") : t("adresGevonden");
+    kaart.setView(nieuwePlek, gevonden.ongeveer ? 16 : 17);   // inzoomen op de gevonden plek
     teken();
   } catch (fout) {
     console.error(fout);
@@ -997,6 +1083,14 @@ async function naInloggen() {
   document.getElementById("voorstelBlok").hidden = !gebruiker || isBeheerder();
   // Voorstellen van gebruikers: alleen de beheerder ziet ze
   laadVoorstellen();
+
+  // Beheerder ingelogd? Dan opnieuw de bars ophalen: zo krijg je ook de verborgen bars.
+  // Uitgelogd? Dan de verborgen bars meteen uit de lijst halen.
+  if (isBeheerder()) {
+    try { alleStops = await haalStopsOp(); } catch (fout) { console.error(fout); }
+  } else {
+    alleStops = alleStops.filter(s => s.zichtbaar !== false);
+  }
 
   if (gebruiker) {
     try {

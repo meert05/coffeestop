@@ -444,7 +444,7 @@ function tekenBijvulBeheer() {
     if (!adres) { plekTekst.textContent = t("eerstAdres"); return; }
     plekTekst.textContent = t("adresZoeken");
     try {
-      const gevonden = await zoekAdres(adres);
+      const gevonden = await zoekAdres(adres, { grondig: true });
       if (!gevonden) { plekTekst.textContent = t("adresNietGevonden"); return; }
       zetBijvulPlek(gevonden.lat, gevonden.lng, gevonden.plaats);
       kaart.setView([gevonden.lat, gevonden.lng], 17);

@@ -1248,3 +1248,8 @@ body::before {
 /* Uitleg bij een filter (bv. wat cycling-friendly betekent) */
 #filterUitleg { margin: -14px 0 20px; max-width: 70ch; padding: 10px 14px; border-left: 3px solid var(--tekst); background: var(--vlak); color: #BDBCB7; font-size: 13px; line-height: 1.5; }
 @media (max-width: 560px) { #filterUitleg { margin: -6px 0 14px; font-size: 12.5px; } }
+
+/* Verborgen bars (alleen de beheerder ziet ze) */
+#lijst > li.verborgen { opacity: 0.55; }
+#lijst > li.verborgen:hover { opacity: 0.85; }
+.label.verborgenLabel { border-style: dashed; }

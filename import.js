@@ -138,17 +138,6 @@ async function zoekAlleAdressen() {
   tekenImportLijst();
 }
 
-// "Avenida de la Paz 20, 03724 Moraira" → "Avenida de la Paz, Moraira"
-function zonderHuisnummer(adres) {
-  return String(adres)
-    .replace(/\b\d+[a-zA-Z]?\b/g, "")          // huisnummers en postcodes weg
-    .replace(/\s+,/g, ",")
-    .replace(/,\s*(,\s*)+/g, ", ")
-    .replace(/\s{2,}/g, " ")
-    .replace(/^[\s,]+|[\s,]+$/g, "")
-    .trim();
-}
-
 function wacht(ms) {
   return new Promise(klaar => setTimeout(klaar, ms));
 }
@@ -236,6 +225,9 @@ document.getElementById("importToevoegen").onclick = async () => {
       lat: Number(g.lat.toFixed(5)),
       lng: Number(g.lng.toFixed(5)),
       info: (r.info || "").trim(),
+      // Vertalingen van het tekstje, als de lijst ze heeft
+      ...(r.info_fr ? { info_fr: String(r.info_fr).trim() } : {}),
+      ...(r.info_en ? { info_en: String(r.info_en).trim() } : {}),
       provincie: r.provincie || g.provincie || null,
       kenmerken: leesKenmerken(r)
     };
