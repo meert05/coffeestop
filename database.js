@@ -43,6 +43,12 @@ async function werkStopBij(stopId, velden) {
   if (error) throw error;
 }
 
+// Meerdere bars tegelijk bijwerken (bv. een hele regio verbergen)
+async function werkStopsBij(stopIds, velden) {
+  const { error } = await db.from("stops").update(velden).in("id", stopIds);
+  if (error) throw error;
+}
+
 async function zetKenmerken(stopId, kenmerken) {
   const { error } = await db.from("stops").update({ kenmerken: kenmerken }).eq("id", stopId);
   if (error) throw error;

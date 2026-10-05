@@ -58,6 +58,13 @@ function magZien(stop) {
   return stop.zichtbaar !== false || isBeheerder();
 }
 
+// Nieuw = de voorbije 7 dagen toegevoegd of openbaar gezet (de database houdt de datum bij)
+const NIEUW_DAGEN = 7;
+function isNieuw(stop) {
+  if (stop.zichtbaar === false || !stop.nieuw_sinds) return false;
+  return Date.now() - Date.parse(stop.nieuw_sinds) < NIEUW_DAGEN * 24 * 60 * 60 * 1000;
+}
+
 function zichtbareStops() {
   const zoekterm = document.getElementById("zoek").value.toLowerCase();
 
@@ -71,6 +78,7 @@ function zichtbareStops() {
     if (gekozenFilters.includes("favoriet") && !favorieten.includes(stop.id)) return false;
     if (gekozenFilters.includes("zonderFoto") && stop.foto) return false;
     if (gekozenFilters.includes("verborgen") && stop.zichtbaar !== false) return false;
+    if (gekozenFilters.includes("nieuw") && !isNieuw(stop)) return false;
     if (!magZien(stop)) return false;   // verborgen bars: alleen voor de beheerder
     if (!stop.naam.toLowerCase().includes(zoekterm)) return false;
     return true;
@@ -80,6 +88,7 @@ function zichtbareStops() {
 // ---------- 4. Alles tekenen ----------
 function teken() {
   tekenFilters();
+  tekenRegioBeheer();
   if (isBeheerder()) tekenVoorstellen();   // in de juiste taal
   const stops = zichtbareStops();
   tekenKaart(stops);
@@ -130,10 +139,12 @@ function tekenLijst(stops) {
   const lijst = document.getElementById("lijst");
   lijst.innerHTML = "";
 
-  // Je locatie bekend? Dan de dichtstbijzijnde bars eerst
+  // Je locatie bekend? Dan de dichtstbijzijnde bars eerst. Anders: nieuwe bars bovenaan.
   if (mijnPlek) {
     stops = [...stops].sort((a, b) =>
       afstandKm(mijnPlek, [a.lat, a.lng]) - afstandKm(mijnPlek, [b.lat, b.lng]));
+  } else {
+    stops = [...stops].sort((a, b) => isNieuw(b) - isNieuw(a));
   }
 
   for (const stop of stops) {
@@ -153,6 +164,7 @@ function tekenLijst(stops) {
       <p></p>
       ${openingsurenHTML(stop)}
       <div class="labels">
+        ${isNieuw(stop) ? `<span class="label nieuwLabel">✨ ${t("nieuwLabel")}</span>` : ""}
         ${stop.zichtbaar === false ? `<span class="label verborgenLabel">🙈 ${t("verborgen")}</span>` : ""}
         ${stop.type !== "coffee" ? `<span class="label" title="${esc(t("wielerUitleg"))}">🚴 ${t("wieler")}</span>` : ""}
         ${kenmerkenVan(stop).filter(k => KENMERKEN[k])
@@ -220,6 +232,7 @@ function tekenLijst(stops) {
         try {
           await werkStopBij(stop.id, { zichtbaar: nieuw });
           stop.zichtbaar = nieuw;
+          stop.nieuw_sinds = nieuw ? new Date().toISOString() : null;   // de database doet hetzelfde
           teken();
         } catch (fout) {
           alert(t("opslaanMislukt") + " " + fout.message);
@@ -513,6 +526,10 @@ function tekenCategorieen() {
     ["zondagVroeg", "☀️ " + t("zondagVroeg")],
     ["favoriet",    t("favorieten")]
   ];
+  // Zijn er nieuwe bars? Dan een filter "✨ Nieuw"
+  const aantalNieuw = alleStops.filter(s => magZien(s) && isNieuw(s)).length;
+  if (aantalNieuw > 0) filters.unshift(["nieuw", "✨ " + t("nieuwLabel") + " (" + aantalNieuw + ")"]);
+  else gekozenFilters = gekozenFilters.filter(f => f !== "nieuw");
   // Alleen voor de beheerder: welke bars hebben nog geen foto?
   if (isBeheerder()) {
     const zonder = alleStops.filter(s => !s.foto).length;
@@ -575,6 +592,44 @@ function tekenFilters() {
   for (const groep of groepen) {
     maakKnop(stedenRij, groepNaam(groep), gekozenStad === groep, () => kiesFilter(gekozenLand, groep));
   }
+}
+
+// Alleen voor de beheerder: alle bars van het gekozen land of de gekozen stad/regio in één keer verbergen of tonen
+function tekenRegioBeheer() {
+  const vak = document.getElementById("regioBeheer");
+  vak.innerHTML = "";
+  vak.hidden = !isBeheerder() || gekozenLand === "alles";
+  if (vak.hidden) return;
+
+  const regio = gekozenStad !== "alles" ? groepNaam(gekozenStad) : landNaam(gekozenLand);
+  const inRegio = alleStops.filter(s => landVan(s) === gekozenLand &&
+                                        (gekozenStad === "alles" || groepVan(s) === gekozenStad));
+  const zichtbaar = inRegio.filter(s => s.zichtbaar !== false);
+  const verborgen = inRegio.filter(s => s.zichtbaar === false);
+
+  const knop = (tekst, bars, tonen) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = tekst + " " + regio + " (" + bars.length + ")";
+    b.onclick = async () => {
+      if (!confirm(b.textContent + "?")) return;
+      b.disabled = true;
+      try {
+        await werkStopsBij(bars.map(s => s.id), { zichtbaar: tonen });
+        for (const s of bars) {
+          s.zichtbaar = tonen;
+          s.nieuw_sinds = tonen ? new Date().toISOString() : null;   // de database doet hetzelfde
+        }
+        teken();
+      } catch (fout) {
+        b.disabled = false;
+        alert(t("opslaanMislukt") + " " + fout.message);
+      }
+    };
+    vak.appendChild(b);
+  };
+  if (zichtbaar.length) knop("🙈 " + t("regioVerbergen"), zichtbaar, false);
+  if (verborgen.length) knop("👁 " + t("regioTonen"), verborgen, true);
 }
 
 function kiesFilter(land, stad) {
@@ -653,6 +708,7 @@ document.getElementById("formulier").onsubmit = async (event) => {
     }
 
     await voegStopToeInDatabase(nieuweStop);
+    nieuweStop.nieuw_sinds = new Date().toISOString();   // de database zet dezelfde datum
     alleStops.push(nieuweStop);
     gekozenLand = landVan(nieuweStop);   // toon het land van de nieuwe bar
     gekozenStad = "alles";
@@ -1176,7 +1232,7 @@ function toonKaartje(stop) {
   if (!opGsm.matches) return;
   kaartje.innerHTML = `
     ${stop.foto ? `<img src="${esc(stop.foto)}" alt="">` : ""}
-    <div class="tekst"><b></b><small></small><p></p></div>
+    <div class="tekst">${isNieuw(stop) ? `<span class="nieuwLabel">✨ ${t("nieuwLabel")}</span>` : ""}<b></b><small></small><p></p></div>
     <button type="button" class="sluiten" aria-label="Sluiten">✕</button>
     <button type="button" class="meer">${t("meerInfo")}</button>`;
   kaartje.querySelector("b").textContent = stop.naam;

@@ -1253,3 +1253,12 @@ body::before {
 #lijst > li.verborgen { opacity: 0.55; }
 #lijst > li.verborgen:hover { opacity: 0.85; }
 .label.verborgenLabel { border-style: dashed; }
+
+/* Nieuwe bars (7 dagen): label in omgekeerde kleuren, zodat het opvalt */
+.label.nieuwLabel { background: var(--tekst); color: var(--achtergrond); border-color: var(--tekst); }
+#kaartje .nieuwLabel { align-self: start; padding: 1px 7px; border-radius: 999px; font-family: var(--kop);
+  font-size: 10px; text-transform: uppercase; background: var(--tekst); color: var(--achtergrond); }
+
+/* Beheerder: hele regio verbergen of tonen */
+#regioBeheer { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+#regioBeheer button { border-style: dashed; font-size: 12px; }
