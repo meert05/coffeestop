@@ -1125,8 +1125,14 @@ async function regelProfiel() {
 }
 
 // Wordt uitgevoerd bij het openen van de pagina, na inloggen en na uitloggen
+let taalBijAccount = false;
 async function naInloggen() {
   toonScherm();
+  // De taal bij het account zetten (voor de mails van Supabase), als die nog niet klopt
+  if (gebruiker && !taalBijAccount && (gebruiker.user_metadata || {}).taal !== taal) {
+    taalBijAccount = true;   // één keer per bezoek is genoeg
+    bewaarTaalBijAccount(taal).catch(console.error);
+  }
   // Uitgelogd of account verwijderd? Dan het profielvenster sluiten
   const profielVenster = document.getElementById("profiel");
   if (!gebruiker && profielVenster.open) profielVenster.close();

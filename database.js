@@ -96,7 +96,8 @@ async function maakAccount(email, wachtwoord, voornaam, nieuwsbrief, gebruik, ca
       emailRedirectTo: TERUG_NAAR,
       captchaToken: captchaToken,     // bewijs dat je geen robot bent (captcha.js)
       // Extra info bij het account, zodat we ze later in het profiel kunnen zetten
-      data: { voornaam: voornaam, nieuwsbrief: nieuwsbrief, gebruik: gebruik }
+      // taal: zodat de mails van Supabase (bevestigen, wachtwoord) in jouw taal komen
+      data: { voornaam: voornaam, nieuwsbrief: nieuwsbrief, gebruik: gebruik, taal: taal }
     }
   });
   if (error) throw error;
@@ -126,6 +127,12 @@ async function stuurWachtwoordReset(email, captchaToken) {
     redirectTo: TERUG_NAAR + "?wachtwoord=nieuw",
     captchaToken: captchaToken
   });
+  if (error) throw error;
+}
+
+// De taal ook bij het account zelf bewaren: de mails van Supabase lezen ze daar
+async function bewaarTaalBijAccount(nieuweTaal) {
+  const { error } = await db.auth.updateUser({ data: { taal: nieuweTaal } });
   if (error) throw error;
 }
 

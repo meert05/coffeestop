@@ -917,7 +917,10 @@ function zetTaal(nieuweTaal) {
     tekenRoutePaneel();
   }
   // Ingelogd? Dan ook in je profiel bewaren (voor de mails in jouw taal)
-  if (typeof gebruiker !== "undefined" && gebruiker) bewaarProfiel({ taal: taal }).catch(console.error);
+  if (typeof gebruiker !== "undefined" && gebruiker) {
+    bewaarProfiel({ taal: taal }).catch(console.error);
+    if (typeof bewaarTaalBijAccount === "function") bewaarTaalBijAccount(taal).catch(console.error);
+  }
 }
 
 // Klikken op NL / FR / EN
