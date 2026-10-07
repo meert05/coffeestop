@@ -120,6 +120,9 @@ const teksten = {
     favorieten: "★ Mijn favorieten",
     verborgen: "Verborgen",
     nieuwLabel: "Nieuw",
+    installTekst: "Zet Waypour als app op je beginscherm.",
+    installKnop: "Installeren",
+    installIphone: "Zet Waypour op je beginscherm: tik op Deel (□↑) en kies \"Zet op beginscherm\".",
     regioVerbergen: "Alles verbergen in",
     regioTonen: "Alles tonen in",
     verbergen: "🙈 Verbergen",
@@ -425,6 +428,9 @@ const teksten = {
     favorieten: "★ Mes favoris",
     verborgen: "Masqué",
     nieuwLabel: "Nouveau",
+    installTekst: "Ajoute Waypour comme app sur ton écran d'accueil.",
+    installKnop: "Installer",
+    installIphone: "Ajoute Waypour à ton écran d'accueil : touche Partager (□↑) puis « Sur l'écran d'accueil ».",
     regioVerbergen: "Tout masquer à",
     regioTonen: "Tout afficher à",
     verbergen: "🙈 Masquer",
@@ -706,6 +712,9 @@ const teksten = {
     favorieten: "★ My favourites",
     verborgen: "Hidden",
     nieuwLabel: "New",
+    installTekst: "Add Waypour to your home screen as an app.",
+    installKnop: "Install",
+    installIphone: "Add Waypour to your home screen: tap Share (□↑) and choose \"Add to Home Screen\".",
     regioVerbergen: "Hide everything in",
     regioTonen: "Show everything in",
     verbergen: "🙈 Hide",
@@ -910,6 +919,7 @@ function zetTaal(nieuweTaal) {
   taal = nieuweTaal;
   localStorage.setItem("taal", taal);   // onthouden voor de volgende keer
   vertaalPagina();
+  if (typeof tekenInstallBalk === "function") tekenInstallBalk();   // balkje "als app installeren"
   teken();                              // de lijst opnieuw tekenen in de nieuwe taal
   if (typeof tekenLagenKnop === "function") tekenLagenKnop();   // het blokje met kaartlagen
   if (typeof tekenRoutePaneel === "function") {   // ook het routepaneel (stijlen, tips, bijvullen)

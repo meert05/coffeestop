@@ -228,11 +228,14 @@ document.getElementById("importToevoegen").onclick = async () => {
       // Vertalingen van het tekstje, als de lijst ze heeft
       ...(r.info_fr ? { info_fr: String(r.info_fr).trim() } : {}),
       ...(r.info_en ? { info_en: String(r.info_en).trim() } : {}),
+      // Openingsuren, als de lijst ze heeft ({ "ma": "08:00-17:00", ..., "zo": "" })
+      ...(r.openingsuren && typeof r.openingsuren === "object" ? { openingsuren: r.openingsuren } : {}),
       provincie: r.provincie || g.provincie || null,
       kenmerken: leesKenmerken(r)
     };
     try {
       await voegStopToeInDatabase(stop);
+      stop.nieuw_sinds = new Date().toISOString();   // de database zet dezelfde datum
       alleStops.push(stop);
       r.status = "toegevoegd";
       r.aan = false;

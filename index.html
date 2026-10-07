@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Waypour</title>
 
   <!-- Veiligheid: de browser mag alleen code en gegevens laden van deze websites -->
@@ -16,6 +16,16 @@
   <!-- Onze eigen opmaak -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Als app op je beginscherm (PWA): icoon, naam en kleur -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0B0B0B">
+  <link rel="icon" type="image/png" sizes="32x32" href="iconen/favicon-32.png">
+  <link rel="apple-touch-icon" href="iconen/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Waypour">
 </head>
 <body>
 
@@ -372,5 +382,14 @@
   <script src="bijvullen.js"></script>
   <script src="profiel.js"></script>
   <script src="import.js"></script>
+  <script src="pwa.js"></script>
+
+  <!-- Balkje onderaan op de gsm: Waypour als app installeren (pwa.js) -->
+  <div id="installBalk" hidden>
+    <img src="iconen/icoon-192.png" alt="" width="40" height="40">
+    <p class="tekst"></p>
+    <button type="button" class="installeer" hidden></button>
+    <button type="button" class="sluiten" aria-label="Sluiten">✕</button>
+  </div>
 </body>
 </html>

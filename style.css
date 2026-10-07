@@ -1262,3 +1262,19 @@ body::before {
 /* Beheerder: hele regio verbergen of tonen */
 #regioBeheer { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
 #regioBeheer button { border-style: dashed; font-size: 12px; }
+
+/* Balkje "Waypour als app installeren" (alleen op gsm, pwa.js) */
+#installBalk:not([hidden]) {
+  position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 2000;
+  display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px;
+  background: var(--tekst); color: var(--achtergrond); box-shadow: 0 8px 30px rgba(0,0,0,.45);
+}
+#installBalk img { flex: none; }
+#installBalk .tekst { margin: 0; flex: 1; font-size: 13px; line-height: 1.4; }
+#installBalk .installeer { flex: none; background: var(--achtergrond); color: var(--tekst); border: none; padding: 10px 14px; font-size: 12px; }
+#installBalk .sluiten { flex: none; background: none; border: none; color: var(--achtergrond); font-size: 16px; padding: 8px; min-width: 36px; min-height: 36px; }
+
+/* Geopend als app (vanaf het beginscherm): ruimte voor de inkeping van de iPhone */
+@media (display-mode: standalone) {
+  body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+}
