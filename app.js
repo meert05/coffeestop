@@ -976,18 +976,25 @@ document.getElementById("nieuwFormulier").onsubmit = async (event) => {
   event.preventDefault();
   const voornaam = document.getElementById("nieuwVoornaam").value.trim();
   const nieuwsbrief = document.getElementById("nieuwsbriefBijStart").checked;
+  const partners = document.getElementById("partnersBijStart").checked;   // aanbiedingen van partners
+  // Verplicht: akkoord met de privacyverklaring (de browser houdt dit normaal al tegen)
+  if (!document.getElementById("privacyAkkoord").checked) {
+    bericht.textContent = t("privacyVerplicht");
+    return;
+  }
   // Waarvoor gebruik je Waypour? (optioneel, meerdere vakjes mogelijk)
   const gebruik = [...document.querySelectorAll('input[name="gebruik"]:checked')].map(v => v.value);
 
   // Voornaam, nieuwsbriefkeuze en gebruik onthouden tot het profiel gemaakt wordt
-  localStorage.setItem("nieuwProfiel", JSON.stringify({ voornaam, nieuwsbrief, gebruik }));
+  localStorage.setItem("nieuwProfiel", JSON.stringify({ voornaam, nieuwsbrief, gebruik, partners, privacy: new Date().toISOString() }));
 
   try {
     const meteenIngelogd = await maakAccount(
       document.getElementById("nieuwEmail").value.trim(),
       document.getElementById("nieuwWachtwoord").value,
       voornaam, nieuwsbrief, gebruik,
-      await haalCaptchaToken()               // bewijs dat je geen robot bent
+      await haalCaptchaToken(),              // bewijs dat je geen robot bent
+      partners
     );
     // Moet het e-mailadres eerst bevestigd worden? Dan tonen we een duidelijk scherm.
     if (!meteenIngelogd) toonMailCheck(document.getElementById("nieuwEmail").value.trim());
@@ -1091,6 +1098,20 @@ document.getElementById("nieuwsbrief").onchange = async (event) => {
   }
 };
 
+// Aanbiedingen van partners aan- of uitzetten (in je profiel)
+document.getElementById("partners").onchange = async (event) => {
+  const aan = event.target.checked;
+  try {
+    await bewaarProfiel({
+      partner_aanbiedingen: aan,
+      partner_toestemming_op: aan ? new Date().toISOString() : null   // moment van toestemming (GDPR)
+    });
+  } catch (fout) {
+    console.error(fout);
+    event.target.checked = !aan;   // mislukt? zet het vinkje terug
+  }
+};
+
 // Het profiel aanmaken of bijwerken na het inloggen
 async function regelProfiel() {
   let profiel = await haalProfielOp();
@@ -1108,6 +1129,14 @@ async function regelProfiel() {
       velden.nieuwsbrief = true;
       velden.nieuwsbrief_toestemming_op = new Date().toISOString();
     }
+    // Wanneer de gebruiker akkoord ging met de privacyverklaring
+    if (wachtend && (wachtend.privacy || wachtend.privacy_akkoord)) {
+      velden.privacy_akkoord_op = wachtend.privacy || wachtend.privacy_akkoord;
+    }
+    if (wachtend && wachtend.partners) {
+      velden.partner_aanbiedingen = true;
+      velden.partner_toestemming_op = new Date().toISOString();
+    }
     // Waarvoor je Waypour gebruikt (alleen als je iets aanvinkte)
     if (wachtend && Array.isArray(wachtend.gebruik) && wachtend.gebruik.length) {
       velden.gebruik = wachtend.gebruik;
@@ -1120,6 +1149,7 @@ async function regelProfiel() {
   mijnVoornaam = (profiel && profiel.voornaam) ? profiel.voornaam : "";
   document.getElementById("wie").textContent = mijnVoornaam || gebruiker.email;
   document.getElementById("nieuwsbrief").checked = Boolean(profiel && profiel.nieuwsbrief);
+  document.getElementById("partners").checked = Boolean(profiel && profiel.partner_aanbiedingen);
   // Profielfoto en voorkeuren (profiel.js)
   if (typeof profielGeladen === "function") profielGeladen(profiel);
 }

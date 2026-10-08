@@ -1278,3 +1278,6 @@ body::before {
 @media (display-mode: standalone) {
   body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
 }
+
+/* Aanmelden: link naar de privacyverklaring in het vinkje */
+.vinkje a { color: inherit; text-decoration: underline; }

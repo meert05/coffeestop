@@ -58,15 +58,24 @@
       <input id="nieuwEmail" type="email" placeholder="jouw@email.be" data-t-placeholder="email" autocomplete="email" required>
       <input id="nieuwWachtwoord" type="password" minlength="8" placeholder="Wachtwoord (min. 8 tekens)" data-t-placeholder="wachtwoordNieuw" autocomplete="new-password" required>
 
-      <!-- Nieuwsbrief: standaard UIT, de gebruiker kiest zelf -->
+      <!-- Verplicht: akkoord met de privacyverklaring -->
+      <label class="vinkje">
+        <input id="privacyAkkoord" type="checkbox" required>
+        <span><span data-t="privacyAkkoord">Ik ga akkoord met de</span> <a href="privacy.html" target="_blank" data-t="privacyLinkKort">privacyverklaring</a>.</span>
+      </label>
+
+      <!-- Nieuwsbrief en aanbiedingen van partners: optioneel en standaard UIT (zo wil de wet het) -->
       <label class="vinkje">
         <input id="nieuwsbriefBijStart" type="checkbox">
         <span data-t="nieuwsbriefVraag">Ja, stuur me maandelijks een mail met nieuwe bars.</span>
       </label>
+      <label class="vinkje">
+        <input id="partnersBijStart" type="checkbox">
+        <span data-t="partnersVraag">Ja, stuur me af en toe aanbiedingen van Waypour-partners.</span>
+      </label>
 
       <button type="submit" data-t="accountMaken">Account maken</button>
       <small data-t="privacy">We bewaren alleen je voornaam, je e-mailadres, je favorieten, je bewaarde routes, je nieuwsbriefkeuze en (als je het invult) waarvoor je de app gebruikt. Je kunt je altijd uitschrijven.</small>
-      <small><a href="privacy.html" target="_blank" data-t="privacyLink">Privacyverklaring</a></small>
     </form>
 
     <!-- Inloggen -->
@@ -201,6 +210,10 @@
         <label class="vinkje">
           <input id="nieuwsbrief" type="checkbox">
           <span data-t="nieuwsbriefKort">Maandelijkse mail</span>
+        </label>
+        <label class="vinkje">
+          <input id="partners" type="checkbox">
+          <span data-t="partnersKort">Aanbiedingen van partners</span>
         </label>
         <button type="submit" data-t="bewaren">Bewaren</button>
       </form>
