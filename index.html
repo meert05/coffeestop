@@ -165,8 +165,50 @@
         <span id="avatarKlein" class="avatar"></span>
         <span id="wie"></span>
       </button>
+      <!-- Samen rijden: vrienden en rit-uitnodigingen (vrienden.js) -->
+      <button id="rittenKnop" type="button" hidden>
+        <span data-t="samenRijden">👥 Samen rijden</span>
+        <span id="rittenTeller" class="teller" hidden>0</span>
+      </button>
       <button id="uitlogKnop" data-t="uitloggen">Uitloggen</button>
     </div>
+
+    <!-- ===== SAMEN RIJDEN: ritten en vrienden ===== -->
+    <dialog id="ritten" class="venster">
+      <div class="profielKop">
+        <h2 data-t="rittenTitel">Samen rijden</h2>
+        <button id="rittenSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+      <section>
+        <h3 data-t="rittenKop">Geplande ritten</h3>
+        <div id="rittenLijst"></div>
+      </section>
+      <section>
+        <h3 data-t="vrienden">Vrienden</h3>
+        <p class="uitleg" data-t="vriendenUitleg">Stuur je vriendenlink naar wie je wil toevoegen. Wie erop klikt en inlogt, wordt je vriend. Vrienden zien alleen je voornaam en profielfoto.</p>
+        <button id="deelVriendenlink" type="button" data-t="deelVriendenlink">🔗 Deel mijn vriendenlink</button>
+        <ul id="vriendenLijst"></ul>
+      </section>
+    </dialog>
+
+    <!-- ===== VRIENDEN UITNODIGEN voor een rit ===== -->
+    <dialog id="nodigUit" class="venster">
+      <div class="profielKop">
+        <h2 data-t="nodigUitTitel">Vrienden uitnodigen</h2>
+        <button id="nodigUitSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+      <form id="nodigUitFormulier">
+        <p id="nodigUitWat"></p>
+        <label class="veld"><span data-t="wanneer">Wanneer?</span>
+          <input id="nodigUitWanneer" type="datetime-local" required></label>
+        <label class="veld"><span data-t="bericht">Bericht (optioneel)</span>
+          <textarea id="nodigUitBericht" maxlength="200" rows="2" placeholder="Zin in een ritje? Koffie op de terugweg ☕" data-t-placeholder="berichtVoorbeeld"></textarea></label>
+        <h3 data-t="kiesVrienden">Wie nodig je uit?</h3>
+        <div id="nodigUitVrienden"></div>
+        <small id="nodigUitMelding"></small>
+        <button id="nodigUitStuur" type="submit" data-t="uitnodigingSturen">Uitnodiging sturen →</button>
+      </form>
+    </dialog>
 
     <!-- ===== MIJN PROFIEL: een venster boven de app ===== -->
     <dialog id="profiel">
@@ -298,6 +340,7 @@
             <button id="routeGpx" type="button" data-t="gpx">⬇️ GPX</button>
             <button id="routeGoogle" type="button" data-t="googleMaps">Google Maps</button>
             <button id="routeDelen" type="button" data-t="routeDelen">🔗 Delen</button>
+            <button id="routeUitnodigen" type="button" data-t="uitnodigen">👥 Uitnodigen</button>
             <button id="routeBewaar" type="button" data-t="routeBewaren">💾 Bewaren</button>
             <button id="routeWissen" type="button" class="link" data-t="routeWissen">Wissen</button>
           </div>
@@ -394,6 +437,7 @@
   <script src="route.js"></script>
   <script src="bijvullen.js"></script>
   <script src="profiel.js"></script>
+  <script src="vrienden.js"></script>
   <script src="import.js"></script>
   <script src="pwa.js"></script>
 

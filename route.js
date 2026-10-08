@@ -861,6 +861,24 @@ document.getElementById("routeBewaar").onclick = async () => {
   }
 };
 
+// De route die nu op het scherm staat, om vrienden voor uit te nodigen (vrienden.js)
+function routeVoorUitnodiging() {
+  if (!routeLijn) return null;
+  const km = Number(routeLijn.km.toFixed(1));
+  if (routeImport) {
+    return {
+      soort: "import", naam: routeImport.naam,
+      punten: { naam: routeImport.naam, spoor: routeImport.spoor, omwegen: routeImport.omwegen },
+      km: km, hoogtemeters: routeLijn.hoogtemeters
+    };
+  }
+  return {
+    soort: "gepland", naam: t("routeStandaardNaam") + " " + km.toFixed(0) + " km",
+    punten: routePunten.map(p => ({ lat: p.lat, lng: p.lng, naam: p.naam, stopId: p.stopId, ...(p.bijvulId ? { bijvulId: p.bijvulId } : {}) })),
+    rondrit: routeRondrit, stijl: routeStijl, km: km, hoogtemeters: routeLijn.hoogtemeters
+  };
+}
+
 // Een bewaarde of gepubliceerde route openen
 function openBewaardeRoute(r) {
   const bron = { id: r.id, publiek: Boolean(r.publiek) };

@@ -291,3 +291,82 @@ async function verwijderBijvulpunt(id) {
   const { error } = await db.from("bijvulpunten").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ---------- Vrienden en ritten (vrienden.js) ----------
+async function haalVriendcodeOp() {
+  const { data, error } = await db.rpc("mijn_vriendcode");
+  if (error) throw error;
+  return data;
+}
+
+async function wordVriend(code) {
+  const { data, error } = await db.rpc("word_vriend", { code: code });
+  if (error) throw error;
+  return data;   // de voornaam van je nieuwe vriend
+}
+
+async function haalVriendenOp() {
+  const { data, error } = await db.rpc("mijn_vrienden");
+  if (error) throw error;
+  return data || [];
+}
+
+async function verwijderVriend(id) {
+  // In de database staat een vriendschap als (kleinste id, grootste id)
+  const [a, b] = [gebruiker.id, id].sort();
+  const { error } = await db.from("vrienden").delete().eq("a", a).eq("b", b);
+  if (error) throw error;
+}
+
+// Alle ritten waarvoor je uitgenodigd bent, of die je zelf maakte, met wie er meedoet
+async function haalRittenOp() {
+  const [uitgenodigd, gemaakt] = await Promise.all([
+    db.from("rit_genodigden").select("rit_id").eq("gebruiker", gebruiker.id),
+    db.from("ritten").select("id").eq("maker", gebruiker.id)
+  ]);
+  if (uitgenodigd.error) throw uitgenodigd.error;
+  if (gemaakt.error) throw gemaakt.error;
+  const ids = [...new Set([...(uitgenodigd.data || []).map(r => r.rit_id), ...(gemaakt.data || []).map(r => r.id)])];
+  if (!ids.length) return [];
+
+  const [ritten, genodigden] = await Promise.all([
+    db.from("ritten").select("*").in("id", ids),
+    db.from("rit_genodigden").select("*").in("rit_id", ids)
+  ]);
+  if (ritten.error) throw ritten.error;
+  if (genodigden.error) throw genodigden.error;
+  return (ritten.data || []).map(rit => ({
+    ...rit,
+    genodigden: (genodigden.data || []).filter(g => g.rit_id === rit.id)
+  }));
+}
+
+async function maakRit(rit, genodigden) {
+  const { data, error } = await db.from("ritten").insert(rit).select();
+  if (error) throw error;
+  const nieuw = data && data[0];
+  const rijen = genodigden.map(v => ({ rit_id: nieuw.id, gebruiker: v.id, naam: (v.voornaam || "").slice(0, 40) }));
+  const uitnodigingen = await db.from("rit_genodigden").insert(rijen);
+  if (uitnodigingen.error) {
+    await db.from("ritten").delete().eq("id", nieuw.id);   // niet half laten staan
+    throw uitnodigingen.error;
+  }
+  return nieuw;
+}
+
+async function beantwoordRit(ritId, antwoord) {
+  const { error } = await db.from("rit_genodigden")
+    .update({ antwoord: antwoord, gezien: true }).eq("rit_id", ritId).eq("gebruiker", gebruiker.id);
+  if (error) throw error;
+}
+
+async function markeerRittenGezien() {
+  const { error } = await db.from("rit_genodigden")
+    .update({ gezien: true }).eq("gebruiker", gebruiker.id).eq("gezien", false);
+  if (error) throw error;
+}
+
+async function verwijderRit(id) {
+  const { error } = await db.from("ritten").delete().eq("id", id);
+  if (error) throw error;
+}

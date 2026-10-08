@@ -181,6 +181,7 @@ function tekenLijst(stops) {
         ${typeof routeKnopHTML === "function" ? routeKnopHTML(stop) : ""}
         <a href="${route}" target="_blank">${t("route")}</a>
         <button class="reviewKnop">${reviewKnopTekst(stop)}</button>
+        ${gebruiker && typeof uitnodigKnopHTML === "function" ? uitnodigKnopHTML(stop) : ""}
         ${isBeheerder() ? `<button class="kenmerkKnop">${t("kenmerkenBewerken")}</button>` : ""}
         ${isBeheerder() ? `<button class="fotoKnop">${t("foto")}</button>` : ""}
         ${isBeheerder() ? `<button class="zichtKnop">${stop.zichtbaar === false ? t("tonen") : t("verbergen")}</button>` : ""}
@@ -191,6 +192,13 @@ function tekenLijst(stops) {
     li.querySelector("h3").textContent = stop.naam;
     li.querySelector("small").textContent = stop.adres || "";
     li.querySelector("p").textContent = stop["info_" + taal] || stop.info || "";
+
+    // Vrienden uitnodigen om samen naar deze bar te rijden (vrienden.js)
+    const uitnodigKnop = li.querySelector(".uitnodigKnop");
+    if (uitnodigKnop) uitnodigKnop.onclick = (event) => {
+      event.stopPropagation();
+      openUitnodiging({ stop });
+    };
 
     // Favoriet aan/uit
     li.querySelector(".ster").onclick = async (event) => {
@@ -1205,6 +1213,8 @@ async function naInloggen() {
   teken();
   // Kwam je binnen via een gedeelde routelink? Dan tonen we die route nu
   if (typeof openGedeeldeRoute === "function") openGedeeldeRoute();
+  // Vrienden en ritten (vrienden.js)
+  if (typeof vriendenNaInloggen === "function") vriendenNaInloggen();
 }
 
 // ---------- 8. Kleur van de app ----------
@@ -1219,7 +1229,13 @@ async function start() {
   db.auth.onAuthStateChange((gebeurtenis, sessie) => {
     gebruiker = sessie ? sessie.user : null;
     if (gebeurtenis === "PASSWORD_RECOVERY") wachtwoordHerstel = true;
-    setTimeout(naInloggen, 0);   // even wachten tot Supabase klaar is
+    // Even wachten tot Supabase klaar is én alle scripts van de pagina geladen zijn
+    // (anders missen we bv. routes en vrienden, die in latere bestanden staan)
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => setTimeout(naInloggen, 0), { once: true });
+    } else {
+      setTimeout(naInloggen, 0);
+    }
   });
 
   // Dan de bars ophalen

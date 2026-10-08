@@ -5,11 +5,11 @@
 // Alleen zonder internet vallen we terug op de laatst bewaarde bestanden.
 // Gegevens van de database, kaarten en routes gaan altijd rechtstreeks naar het internet.
 
-const CACHE = "waypour-v1";
+const CACHE = "waypour-v2";
 const BASIS = [
   "./", "index.html", "style.css", "manifest.webmanifest",
   "database.js", "captcha.js", "vertalingen.js", "locatie.js", "openingsuren.js", "reviews.js",
-  "voorstellen.js", "app.js", "route.js", "bijvullen.js", "profiel.js", "import.js", "pwa.js",
+  "voorstellen.js", "app.js", "route.js", "bijvullen.js", "profiel.js", "vrienden.js", "import.js", "pwa.js",
   "stops.json", "iconen/icoon-192.png", "iconen/icoon-512.png", "iconen/apple-touch-icon.png"
 ];
 

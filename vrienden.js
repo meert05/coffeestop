@@ -1,0 +1,377 @@
+// =====================================================
+//  WAYPOUR – vrienden en samen rijden
+// =====================================================
+// * Je vriendenlink (…/?vriend=CODE): wie erop klikt en inlogt, wordt je vriend.
+// * Een rit-uitnodiging: een bar of route + dag/uur + bericht, naar één of meer vrienden.
+// * Vrienden antwoorden "Ik doe mee" of "Kan niet". Nieuwe uitnodigingen: rood bolletje.
+
+let mijnVrienden = [];   // [{ id, voornaam, foto }]
+let mijnRitten = [];     // ritten met hun genodigden
+let mijnVriendcode = null;
+let uitnodigingVoor = null;   // { stop } of { route } in het venster "Vrienden uitnodigen"
+
+// ---------- Komt iemand binnen via een vriendenlink of een mail over een rit? ----------
+(function leesLinkUitAdres() {
+  const p = new URLSearchParams(location.search);
+  const code = p.get("vriend");
+  const rit = p.get("rit");
+  try {
+    if (code) localStorage.setItem("vriendWachtend", code);
+    if (rit) localStorage.setItem("ritOpenen", rit);
+  } catch {}
+  if (code || rit) {
+    p.delete("vriend");
+    p.delete("rit");
+    const rest = p.toString();
+    history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash);
+  }
+})();
+
+function lokaal(sleutel) {
+  try { return localStorage.getItem(sleutel); } catch { return null; }
+}
+function lokaalWeg(sleutel) {
+  try { localStorage.removeItem(sleutel); } catch {}
+}
+
+// Een kort berichtje onderaan het scherm
+function toonMelding(tekst) {
+  let vak = document.getElementById("toast");
+  if (!vak) {
+    vak = document.createElement("div");
+    vak.id = "toast";
+    vak.setAttribute("role", "status");
+    document.body.appendChild(vak);
+  }
+  vak.textContent = tekst;
+  vak.hidden = false;
+  clearTimeout(toonMelding.timer);
+  toonMelding.timer = setTimeout(() => { vak.hidden = true; }, 4500);
+}
+
+// "zondag 12 oktober om 09:00"
+function ritDatum(iso) {
+  const locale = taal === "fr" ? "fr-BE" : taal === "en" ? "en-GB" : "nl-BE";
+  return new Date(iso).toLocaleString(locale, {
+    weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"
+  });
+}
+
+// "🚴 Rit van 62 km" of "🚴 Mijn GPX · 62 km" (geen dubbele km)
+function routeTitel(route) {
+  const naam = route.naam || t("route");
+  const km = route.km && !/\bkm\b/i.test(naam) ? " · " + Math.round(route.km) + " km" : "";
+  return "🚴 " + naam + km;
+}
+
+// ---------- Na het inloggen en uitloggen (opgeroepen door app.js) ----------
+async function vriendenNaInloggen() {
+  const knop = document.getElementById("rittenKnop");
+  if (!gebruiker) {
+    mijnVrienden = [];
+    mijnRitten = [];
+    mijnVriendcode = null;
+    knop.hidden = true;
+    // Kwam je via een vriendenlink? Zeg dan dat je eerst moet inloggen.
+    if (lokaal("vriendWachtend")) {
+      const bericht = document.getElementById("loginBericht");
+      if (bericht && !bericht.textContent) bericht.textContent = t("vriendNaLogin");
+    }
+    return;
+  }
+  knop.hidden = false;
+
+  // Een vriendenlink die nog wachtte
+  const code = lokaal("vriendWachtend");
+  if (code) {
+    lokaalWeg("vriendWachtend");
+    try {
+      const naam = await wordVriend(code);
+      toonMelding(t("nuVrienden").replace("{naam}", naam || "?"));
+    } catch (fout) {
+      const tekst = String(fout.message || "");
+      toonMelding(tekst.includes("eigen") ? t("eigenVriendenlink") : t("onbekendeVriendenlink"));
+    }
+  }
+
+  await laadVrienden();
+  await laadRitten();
+
+  // Kwam je binnen via de mail over een rit? Dan het venster meteen openen.
+  if (lokaal("ritOpenen")) {
+    lokaalWeg("ritOpenen");
+    openRitten();
+  }
+}
+
+async function laadVrienden() {
+  try { mijnVrienden = await haalVriendenOp(); }
+  catch (fout) { console.error(fout); mijnVrienden = []; }
+  tekenVrienden();
+}
+
+async function laadRitten() {
+  try {
+    const grens = Date.now() - 12 * 60 * 60 * 1000;   // tot 12 uur na de start tonen we de rit nog
+    mijnRitten = (await haalRittenOp())
+      .filter(r => Date.parse(r.wanneer) > grens)
+      .sort((x, y) => Date.parse(x.wanneer) - Date.parse(y.wanneer));
+  } catch (fout) {
+    console.error(fout);
+    mijnRitten = [];
+  }
+  tekenTeller();
+  tekenRitten();
+}
+
+// Het rode bolletje: uitnodigingen die je nog niet zag
+function tekenTeller() {
+  const teller = document.getElementById("rittenTeller");
+  if (!teller || !gebruiker) return;
+  const nieuw = mijnRitten.filter(r => r.genodigden.some(g => g.gebruiker === gebruiker.id && !g.gezien)).length;
+  teller.textContent = nieuw;
+  teller.hidden = nieuw === 0;
+}
+
+// Even terugkomen naar de app (bv. na WhatsApp)? Dan opnieuw kijken
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && typeof gebruiker !== "undefined" && gebruiker) laadRitten();
+});
+
+// ---------- Het venster "Samen rijden" ----------
+function openRitten() {
+  const venster = document.getElementById("ritten");
+  tekenRitten();
+  tekenVrienden();
+  if (!venster.open) {
+    if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
+  }
+  // Alles wat je nu ziet, telt als gezien
+  if (mijnRitten.some(r => r.genodigden.some(g => g.gebruiker === gebruiker.id && !g.gezien))) {
+    markeerRittenGezien().catch(console.error);
+    for (const r of mijnRitten) for (const g of r.genodigden) if (g.gebruiker === gebruiker.id) g.gezien = true;
+    tekenTeller();
+  }
+}
+document.getElementById("rittenKnop").onclick = openRitten;
+document.getElementById("rittenSluiten").onclick = () => document.getElementById("ritten").close();
+
+function tekenRitten() {
+  const lijst = document.getElementById("rittenLijst");
+  if (!lijst || !gebruiker) return;
+  lijst.innerHTML = "";
+  if (!mijnRitten.length) {
+    lijst.innerHTML = `<p class="uitleg">${esc(t("geenRitten"))}</p>`;
+    return;
+  }
+  for (const rit of mijnRitten) {
+    const ikMaak = rit.maker === gebruiker.id;
+    const mij = rit.genodigden.find(g => g.gebruiker === gebruiker.id);
+    const stop = rit.stop_id ? alleStops.find(s => s.id === rit.stop_id) : null;
+    const wat = rit.route ? routeTitel(rit.route) : "☕ " + (stop ? stop.naam : t("barNietGevonden"));
+    const symbool = { ja: "✅", nee: "❌", open: "⏳" };
+    const wie = [`<span>👑 ${esc(ikMaak ? t("jij") : (rit.maker_naam || "?"))}</span>`]
+      .concat(rit.genodigden.map(g =>
+        `<span>${symbool[g.antwoord] || "⏳"} ${esc(g.gebruiker === gebruiker.id ? t("jij") : (g.naam || "?"))}</span>`))
+      .join("");
+
+    const li = document.createElement("article");
+    li.className = "rit" + (mij && !mij.gezien ? " nieuw" : "");
+    li.innerHTML = `
+      <small class="ritWanneer"></small>
+      <h4></h4>
+      <p class="ritVan"></p>
+      ${rit.bericht ? `<p class="ritBericht"></p>` : ""}
+      <div class="ritWie">${wie}</div>
+      <div class="acties">
+        ${mij ? `<button type="button" class="ja ${mij.antwoord === "ja" ? "actief" : ""}">${esc(t("ikDoeMee"))}</button>
+                 <button type="button" class="nee ${mij.antwoord === "nee" ? "actief" : ""}">${esc(t("kanNiet"))}</button>` : ""}
+        ${rit.route ? `<button type="button" class="toon">${esc(t("toonRoute"))}</button>`
+                    : stop ? `<button type="button" class="toon">${esc(t("toonBar"))}</button>` : ""}
+        ${ikMaak ? `<button type="button" class="link wis">${esc(t("ritWissen"))}</button>` : ""}
+      </div>`;
+    li.querySelector(".ritWanneer").textContent = ritDatum(rit.wanneer);
+    li.querySelector("h4").textContent = wat;
+    li.querySelector(".ritVan").textContent = ikMaak ? t("jijOrganiseert") : t("vanNaam").replace("{naam}", rit.maker_naam || "?");
+    if (rit.bericht) li.querySelector(".ritBericht").textContent = "“" + rit.bericht + "”";
+
+    const antwoord = async (waarde) => {
+      try {
+        await beantwoordRit(rit.id, waarde);
+        mij.antwoord = waarde;
+        mij.gezien = true;
+        tekenRitten();
+        tekenTeller();
+      } catch (fout) {
+        alert(t("opslaanMislukt") + " " + fout.message);
+      }
+    };
+    const ja = li.querySelector(".ja"), nee = li.querySelector(".nee");
+    if (ja) ja.onclick = () => antwoord("ja");
+    if (nee) nee.onclick = () => antwoord("nee");
+
+    const toon = li.querySelector(".toon");
+    if (toon) toon.onclick = () => {
+      document.getElementById("ritten").close();
+      if (rit.route) {
+        if (typeof openBewaardeRoute === "function") {
+          openBewaardeRoute({ ...rit.route, id: null, publiek: false });
+        }
+      } else if (stop) {
+        gekozenLand = landVan(stop);
+        gekozenStad = "alles";
+        gekozenFilters = [];
+        kies(stop.id);
+      }
+      document.getElementById("kaart").scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    const wis = li.querySelector(".wis");
+    if (wis) wis.onclick = async () => {
+      if (!confirm(t("zekerRitWissen"))) return;
+      try {
+        await verwijderRit(rit.id);
+        mijnRitten = mijnRitten.filter(r => r.id !== rit.id);
+        tekenRitten();
+        tekenTeller();
+      } catch (fout) {
+        alert(t("opslaanMislukt") + " " + fout.message);
+      }
+    };
+    lijst.appendChild(li);
+  }
+}
+
+// ---------- Vrienden: je link delen en je lijst ----------
+function tekenVrienden() {
+  const lijst = document.getElementById("vriendenLijst");
+  if (!lijst) return;
+  lijst.innerHTML = "";
+  if (!mijnVrienden.length) {
+    lijst.innerHTML = `<li class="uitleg">${esc(t("geenVrienden"))}</li>`;
+    return;
+  }
+  for (const v of mijnVrienden) {
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="avatar">${v.foto ? `<img src="${esc(v.foto)}" alt="">` : esc((v.voornaam || "?").charAt(0).toUpperCase())}</span>
+      <span class="naam"></span>
+      <button type="button" class="link">${esc(t("vriendWeg"))}</button>`;
+    li.querySelector(".naam").textContent = v.voornaam || "?";
+    li.querySelector("button").onclick = async () => {
+      if (!confirm(t("zekerVriendWeg").replace("{naam}", v.voornaam || "?"))) return;
+      try {
+        await verwijderVriend(v.id);
+        mijnVrienden = mijnVrienden.filter(x => x.id !== v.id);
+        tekenVrienden();
+      } catch (fout) {
+        alert(t("opslaanMislukt") + " " + fout.message);
+      }
+    };
+    lijst.appendChild(li);
+  }
+}
+
+document.getElementById("deelVriendenlink").onclick = async () => {
+  try {
+    if (!mijnVriendcode) mijnVriendcode = await haalVriendcodeOp();
+  } catch (fout) {
+    alert(t("opslaanMislukt") + " " + fout.message);
+    return;
+  }
+  const link = location.origin + location.pathname + "?vriend=" + mijnVriendcode;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "Waypour", text: t("vriendDeelTekst"), url: link });
+      return;
+    } catch (fout) {
+      if (fout.name === "AbortError") return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(link);
+    toonMelding(t("linkGekopieerd"));
+  } catch {
+    prompt(t("kopieerLink"), link);
+  }
+};
+
+// ---------- Vrienden uitnodigen voor een rit ----------
+// Het knopje bij elke bar (app.js zet het in de lijst)
+function uitnodigKnopHTML() {
+  return `<button type="button" class="uitnodigKnop">${esc(t("ritPlannen"))}</button>`;
+}
+
+// Standaard: komende zondag om 9 uur
+function volgendeZondag() {
+  const d = new Date();
+  d.setDate(d.getDate() + ((7 - d.getDay()) % 7 || 7));
+  d.setHours(9, 0, 0, 0);
+  const twee = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${twee(d.getMonth() + 1)}-${twee(d.getDate())}T09:00`;
+}
+
+function openUitnodiging(wat) {
+  if (!gebruiker) { alert(t("eerstInloggen")); return; }
+  uitnodigingVoor = wat;
+  const venster = document.getElementById("nodigUit");
+  document.getElementById("nodigUitWat").textContent = wat.route ? routeTitel(wat.route) : "☕ " + wat.stop.naam;
+  document.getElementById("nodigUitWanneer").value = volgendeZondag();
+  document.getElementById("nodigUitBericht").value = "";
+  document.getElementById("nodigUitMelding").textContent = "";
+
+  const vak = document.getElementById("nodigUitVrienden");
+  vak.innerHTML = "";
+  if (!mijnVrienden.length) {
+    vak.innerHTML = `<p class="uitleg">${esc(t("geenVrienden"))}</p>
+      <button type="button" class="link" id="nodigUitDeel">${esc(t("deelVriendenlink"))}</button>`;
+    vak.querySelector("#nodigUitDeel").onclick = () => document.getElementById("deelVriendenlink").click();
+  }
+  for (const v of mijnVrienden) {
+    const label = document.createElement("label");
+    label.className = "vinkje";
+    label.innerHTML = `<input type="checkbox" value="${esc(v.id)}"> <span></span>`;
+    label.querySelector("span").textContent = v.voornaam || "?";
+    vak.appendChild(label);
+  }
+  document.getElementById("nodigUitStuur").disabled = !mijnVrienden.length;
+  if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
+}
+document.getElementById("nodigUitSluiten").onclick = () => document.getElementById("nodigUit").close();
+
+document.getElementById("nodigUitFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  const melding = document.getElementById("nodigUitMelding");
+  const gekozen = [...document.querySelectorAll("#nodigUitVrienden input:checked")]
+    .map(v => mijnVrienden.find(x => x.id === v.value)).filter(Boolean);
+  if (!gekozen.length) { melding.textContent = t("kiesMinstensEen"); return; }
+  const wanneer = document.getElementById("nodigUitWanneer").value;
+  if (!wanneer) { melding.textContent = t("wanneer"); return; }
+
+  const knop = document.getElementById("nodigUitStuur");
+  knop.disabled = true;
+  try {
+    const rit = {
+      maker_naam: (mijnVoornaam || "").slice(0, 40) || null,
+      wanneer: new Date(wanneer).toISOString(),
+      bericht: document.getElementById("nodigUitBericht").value.trim().slice(0, 200) || null,
+      stop_id: uitnodigingVoor.stop ? uitnodigingVoor.stop.id : null,
+      route: uitnodigingVoor.route || null
+    };
+    await maakRit(rit, gekozen);
+    document.getElementById("nodigUit").close();
+    toonMelding(t("uitnodigingVerstuurd"));
+    laadRitten();
+  } catch (fout) {
+    melding.textContent = t("opslaanMislukt") + " " + fout.message;
+  } finally {
+    knop.disabled = false;
+  }
+};
+
+// De knop "👥 Uitnodigen" in het routepaneel
+document.getElementById("routeUitnodigen").onclick = () => {
+  if (!gebruiker) { alert(t("eerstInloggen")); return; }
+  const route = typeof routeVoorUitnodiging === "function" ? routeVoorUitnodiging() : null;
+  if (!route) { document.getElementById("routeMelding").textContent = t("eerstRoute"); return; }
+  openUitnodiging({ route });
+};

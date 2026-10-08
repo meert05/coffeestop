@@ -1281,3 +1281,57 @@ body::before {
 
 /* Aanmelden: link naar de privacyverklaring in het vinkje */
 .vinkje a { color: inherit; text-decoration: underline; }
+
+/* ---------- Samen rijden: vrienden en ritten (vrienden.js) ---------- */
+#rittenKnop { position: relative; padding: 6px 14px; font-size: 11px; }
+#rittenKnop .teller {
+  position: absolute; top: -7px; right: -7px; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 9px; background: #D9483B; color: #FFFFFF; font-size: 10px; line-height: 18px; text-align: center;
+}
+#rittenKnop .teller[hidden] { display: none; }
+
+/* De vensters gebruiken dezelfde stijl als "Mijn profiel" */
+dialog.venster {
+  width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; overflow-y: auto;
+  border: 1px solid var(--lijn); background: var(--achtergrond); color: var(--tekst);
+}
+dialog.venster::backdrop { background: rgba(0, 0, 0, 0.75); }
+dialog.venster > * { padding: 22px 26px; border-bottom: 1px solid var(--lijn); margin: 0; }
+dialog.venster h3 {
+  margin: 0 0 14px; font-family: var(--kop); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--grijs);
+}
+dialog.venster .uitleg { margin: -6px 0 12px; font-size: 13px; color: var(--grijs); }
+#nodigUitFormulier { display: flex; flex-direction: column; gap: 10px; }
+#nodigUitFormulier textarea { font: inherit; color: var(--tekst); background: var(--vlak); border: 1px solid var(--lijn); padding: 10px; resize: vertical; }
+#nodigUitFormulier input[type="datetime-local"] { color: var(--tekst); color-scheme: dark; }
+#nodigUitFormulier button[type="submit"] { align-self: flex-start; margin-top: 6px; }
+#nodigUitWat { margin: 0; font-family: var(--kop); font-size: 18px; font-weight: 700; }
+#nodigUitMelding { color: var(--grijs); }
+
+.rit { padding: 14px 0; border-bottom: 1px solid var(--lijn); display: flex; flex-direction: column; gap: 6px; }
+.rit:last-child { border-bottom: none; }
+.rit.nieuw { border-left: 3px solid #D9483B; padding-left: 12px; }
+.rit h4 { margin: 0; font-family: var(--kop); font-size: 17px; font-weight: 700; }
+.ritWanneer { display: block; font-family: var(--cijfers); font-size: 12px; color: var(--grijs); }
+.ritWanneer::first-letter { text-transform: uppercase; }
+.ritVan, .ritBericht { margin: 0; font-size: 13px; color: #BDBCB7; }
+.ritWie { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--grijs); }
+.rit .acties { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.rit .acties button { padding: 8px 12px; font-size: 11px; }
+.rit .acties button.actief { background: var(--tekst); color: var(--achtergrond); }
+
+#vriendenLijst { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+#vriendenLijst li { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+#vriendenLijst li.uitleg { font-size: 13px; color: var(--grijs); }
+#vriendenLijst .avatar { width: 32px; height: 32px; flex: none; }
+#vriendenLijst .link { margin-left: auto; font-size: 12px; }
+#nodigUitVrienden { display: flex; flex-direction: column; gap: 2px; }
+
+/* Kort berichtje onderaan (bv. "Je bent nu vrienden met Lea") */
+#toast:not([hidden]) {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 3000;
+  max-width: calc(100vw - 32px); padding: 12px 18px; background: var(--tekst); color: var(--achtergrond);
+  font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.45);
+}
+@media (max-width: 560px) { dialog.venster > * { padding: 18px; } }
