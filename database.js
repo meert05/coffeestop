@@ -401,3 +401,37 @@ async function verwijderVriendverzoek(andereId, richting) {
   const { error } = await db.from("vriendverzoeken").delete().eq("van", van).eq("naar", naar);
   if (error) throw error;
 }
+
+// ---------- Berichten (chat.js) ----------
+async function haalGesprekkenOp() {
+  const { data, error } = await db.rpc("mijn_gesprekken");
+  if (error) throw error;
+  return data || [];
+}
+
+// De laatste 200 berichten tussen jou en een vriend, oudste eerst
+async function haalGesprekOp(vriendId) {
+  const [mijn, hun] = await Promise.all([
+    db.from("berichten").select("*").eq("van", gebruiker.id).eq("naar", vriendId)
+      .order("verzonden", { ascending: false }).limit(200),
+    db.from("berichten").select("*").eq("van", vriendId).eq("naar", gebruiker.id)
+      .order("verzonden", { ascending: false }).limit(200)
+  ]);
+  if (mijn.error) throw mijn.error;
+  if (hun.error) throw hun.error;
+  return [...(mijn.data || []), ...(hun.data || [])]
+    .sort((x, y) => Date.parse(x.verzonden) - Date.parse(y.verzonden))
+    .slice(-200);
+}
+
+async function stuurBericht(naar, tekst) {
+  const { data, error } = await db.from("berichten").insert({ naar: naar, tekst: tekst.slice(0, 1000) }).select();
+  if (error) throw error;
+  return data && data[0];
+}
+
+async function markeerGelezen(vanId) {
+  const { error } = await db.from("berichten")
+    .update({ gelezen: true }).eq("van", vanId).eq("naar", gebruiker.id).eq("gelezen", false);
+  if (error) throw error;
+}

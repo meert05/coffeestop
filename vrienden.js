@@ -75,6 +75,10 @@ async function vriendenNaInloggen() {
     mijnVriendcode = null;
     mijnVerzoeken = [];
     mijnGebruikersnaam = null;
+    naamGecontroleerd = false;
+    const naamVenster = document.getElementById("kiesNaam");
+    if (naamVenster && naamVenster.open) naamVenster.close();
+    if (typeof chatNaInloggen === "function") chatNaInloggen();   // live verbinding stoppen
     knop.hidden = true;
     // Kwam je via een vriendenlink? Zeg dan dat je eerst moet inloggen.
     if (lokaal("vriendWachtend")) {
@@ -102,17 +106,22 @@ async function vriendenNaInloggen() {
   try {
     const profiel = await haalProfielOp();
     mijnGebruikersnaam = profiel && profiel.gebruikersnaam ? profiel.gebruikersnaam : null;
+    naamGecontroleerd = Boolean(profiel);   // alleen vragen als het profiel echt geladen is
   } catch (fout) { console.error(fout); }
   toonGebruikersnaam();
+  vraagGebruikersnaamAlsNodig();
 
   await laadVrienden();
   await laadVerzoeken();
   await laadRitten();
 
+  // Berichten en live meldingen (chat.js)
+  if (typeof chatNaInloggen === "function") chatNaInloggen();
+
   // Kwam je binnen via de mail over een rit? Dan het venster meteen openen.
   if (lokaal("ritOpenen")) {
     lokaalWeg("ritOpenen");
-    openRitten();
+    openRitten("ritten");
   }
 }
 
@@ -140,10 +149,17 @@ async function laadRitten() {
 function tekenTeller() {
   const teller = document.getElementById("rittenTeller");
   if (!teller || !gebruiker) return;
-  const nieuw = mijnRitten.filter(r => r.genodigden.some(g => g.gebruiker === gebruiker.id && !g.gezien)).length
-              + mijnVerzoeken.filter(v => v.richting === "in").length;   // en vriendschapsverzoeken
+  const n = nieuwePerTab();
+  const nieuw = n.ritten + n.berichten + n.vrienden;
   teller.textContent = nieuw;
   teller.hidden = nieuw === 0;
+  // Ook een tellertje op elk tabblad
+  document.querySelectorAll("#samenTabs button").forEach(k => {
+    const t2 = k.querySelector(".teller");
+    const aantal = n[k.dataset.tab] || 0;
+    t2.textContent = aantal;
+    t2.hidden = aantal === 0;
+  });
 }
 
 // Even terugkomen naar de app (bv. na WhatsApp)? Dan opnieuw kijken
@@ -155,23 +171,48 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // ---------- Het venster "Samen rijden" ----------
-function openRitten() {
+// Hoeveel nieuwe dingen per tabblad?
+function nieuwePerTab() {
+  if (!gebruiker) return { ritten: 0, berichten: 0, vrienden: 0 };
+  return {
+    ritten: mijnRitten.filter(r => r.genodigden.some(g => g.gebruiker === gebruiker.id && !g.gezien)).length,
+    berichten: typeof ongelezenBerichten === "function" ? ongelezenBerichten() : 0,
+    vrienden: mijnVerzoeken.filter(v => v.richting === "in").length
+  };
+}
+
+let huidigTab = "ritten";
+function toonTabblad(tab) {
+  huidigTab = tab;
+  document.querySelectorAll("#samenTabs button").forEach(k => k.classList.toggle("actief", k.dataset.tab === tab));
+  document.querySelectorAll("#ritten [data-tabblad]").forEach(s => { s.hidden = s.dataset.tabblad !== tab; });
+  if (tab === "berichten" && typeof tekenGesprekken === "function") tekenGesprekken();
+  // Wat je in het tabblad Ritten ziet, telt als gezien
+  if (tab === "ritten" && mijnRitten.some(r => r.genodigden.some(g => g.gebruiker === gebruiker.id && !g.gezien))) {
+    markeerRittenGezien().catch(console.error);
+    for (const r of mijnRitten) for (const g of r.genodigden) if (g.gebruiker === gebruiker.id) g.gezien = true;
+  }
+  tekenTeller();
+}
+document.querySelectorAll("#samenTabs button").forEach(k => { k.onclick = () => toonTabblad(k.dataset.tab); });
+
+function openRitten(tab) {
   const venster = document.getElementById("ritten");
   tekenRitten();
   tekenVrienden();
   tekenVerzoeken();
   toonGebruikersnaam();
+  // Geen tabblad gekozen? Dan dat met iets nieuws (berichten, ritten, verzoeken), anders Ritten
+  if (typeof tab !== "string") {
+    const n = nieuwePerTab();
+    tab = n.berichten ? "berichten" : n.ritten ? "ritten" : n.vrienden ? "vrienden" : "ritten";
+  }
   if (!venster.open) {
     if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
   }
-  // Alles wat je nu ziet, telt als gezien
-  if (mijnRitten.some(r => r.genodigden.some(g => g.gebruiker === gebruiker.id && !g.gezien))) {
-    markeerRittenGezien().catch(console.error);
-    for (const r of mijnRitten) for (const g of r.genodigden) if (g.gebruiker === gebruiker.id) g.gezien = true;
-    tekenTeller();
-  }
+  toonTabblad(tab);
 }
-document.getElementById("rittenKnop").onclick = openRitten;
+document.getElementById("rittenKnop").onclick = () => openRitten();
 document.getElementById("rittenSluiten").onclick = () => document.getElementById("ritten").close();
 
 function tekenRitten() {
@@ -286,6 +327,63 @@ document.getElementById("gebruikersnaamFormulier").onsubmit = async (event) => {
   }
 };
 
+// ---------- Verplicht een gebruikersnaam kiezen ----------
+// Iedereen zonder gebruikersnaam krijgt na het inloggen dit venster (ook bestaande accounts).
+// Het verschijnt pas als de app zichtbaar is (dus na "profiel afmaken").
+let naamGecontroleerd = false;   // pas vragen als we zeker weten dat er geen gebruikersnaam is
+
+function voorstelGebruikersnaam() {
+  let basis = (mijnVoornaam || (gebruiker && gebruiker.email ? gebruiker.email.split("@")[0] : "") || "fietser")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")   // é → e
+    .toLowerCase().replace(/[^a-z0-9._]/g, "").slice(0, 16);
+  if (basis.length < 3) basis = (basis + "rider").slice(0, 16);
+  return basis;
+}
+
+function vraagGebruikersnaamAlsNodig() {
+  const venster = document.getElementById("kiesNaam");
+  if (!venster || !gebruiker || !naamGecontroleerd || mijnGebruikersnaam) return;
+  if (document.getElementById("app").hidden || venster.open) return;
+  document.getElementById("kiesNaamVeld").value = voorstelGebruikersnaam();
+  document.getElementById("kiesNaamMelding").textContent = t("gebruikersnaam_vorm");
+  if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
+}
+
+// Niet wegklikken met Escape: kiezen is verplicht
+document.getElementById("kiesNaam").addEventListener("cancel", (event) => event.preventDefault());
+
+// Zodra de app zichtbaar wordt (bv. na "profiel afmaken"), opnieuw kijken
+new MutationObserver(() => vraagGebruikersnaamAlsNodig())
+  .observe(document.getElementById("app"), { attributes: true, attributeFilter: ["hidden"] });
+
+document.getElementById("kiesNaamFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  const melding = document.getElementById("kiesNaamMelding");
+  const veld = document.getElementById("kiesNaamVeld");
+  const naam = veld.value.trim().replace(/^@/, "").toLowerCase();
+  const knop = event.target.querySelector("button[type=submit]");
+  knop.disabled = true;
+  try {
+    const uitkomst = await zetGebruikersnaam(naam);
+    if (uitkomst === "ok") {
+      mijnGebruikersnaam = naam;
+      toonGebruikersnaam();
+      document.getElementById("kiesNaam").close();
+      toonMelding(t("gebruikersnaamBewaard").replace("{naam}", naam));
+    } else {
+      melding.textContent = t("gebruikersnaam_" + uitkomst).replace("{naam}", naam);
+      // Bezet? Stel meteen een variant voor
+      if (uitkomst === "bezet" || uitkomst === "gereserveerd") {
+        veld.value = (naam.slice(0, 16) + Math.floor(10 + Math.random() * 90)).slice(0, 20);
+      }
+    }
+  } catch (fout) {
+    melding.textContent = t("opslaanMislukt") + " " + fout.message;
+  } finally {
+    knop.disabled = false;
+  }
+};
+
 // ---------- Een vriend toevoegen op gebruikersnaam ----------
 document.getElementById("vriendToevoegen").onsubmit = async (event) => {
   event.preventDefault();
@@ -368,10 +466,12 @@ function tekenVrienden() {
     const li = document.createElement("li");
     li.innerHTML = `${avatarHTML(v)}
       <span class="naam"><b></b><small></small></span>
-      <button type="button" class="link">${esc(t("vriendWeg"))}</button>`;
+      <button type="button" class="chatKnop" aria-label="${esc(t("stuurBericht"))}">💬</button>
+      <button type="button" class="link wegKnop">${esc(t("vriendWeg"))}</button>`;
     li.querySelector("b").textContent = v.voornaam || "?";
     li.querySelector("small").textContent = v.gebruikersnaam ? "@" + v.gebruikersnaam : "";
-    li.querySelector("button").onclick = async () => {
+    li.querySelector(".chatKnop").onclick = () => { if (typeof openChat === "function") openChat(v); };
+    li.querySelector(".wegKnop").onclick = async () => {
       if (!confirm(t("zekerVriendWeg").replace("{naam}", v.voornaam || "?"))) return;
       try {
         await verwijderVriend(v.id);

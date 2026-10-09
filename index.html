@@ -179,11 +179,25 @@
         <h2 data-t="rittenTitel">Samen rijden</h2>
         <button id="rittenSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
       </div>
-      <section>
+      <!-- Tabbladen: ritten, berichten en vrienden -->
+      <nav id="samenTabs" class="tabbladen">
+        <button type="button" data-tab="ritten"><span data-t="tabRitten">Ritten</span> <span class="teller" hidden></span></button>
+        <button type="button" data-tab="berichten"><span data-t="tabBerichten">Berichten</span> <span class="teller" hidden></span></button>
+        <button type="button" data-tab="vrienden"><span data-t="tabVrienden">Vrienden</span> <span class="teller" hidden></span></button>
+      </nav>
+      <section data-tabblad="ritten">
         <h3 data-t="rittenKop">Geplande ritten</h3>
         <div id="rittenLijst"></div>
       </section>
-      <section>
+      <section data-tabblad="berichten" hidden>
+        <h3 data-t="tabBerichten">Berichten</h3>
+        <ul id="gesprekkenLijst"></ul>
+        <div id="nieuwGesprekBlok" hidden>
+          <h3 data-t="stuurBerichtAan">Stuur een bericht aan</h3>
+          <div id="nieuwGesprekVrienden"></div>
+        </div>
+      </section>
+      <section data-tabblad="vrienden" hidden>
         <h3 data-t="vrienden">Vrienden</h3>
         <!-- Je eigen gebruikersnaam: zo kunnen vrienden je vinden -->
         <form id="gebruikersnaamFormulier" class="rijFormulier">
@@ -212,6 +226,36 @@
         <p class="uitleg ruimte" data-t="vriendenUitleg">Of deel je vriendenlink: wie erop klikt en inlogt, wordt meteen je vriend. Vrienden zien alleen je voornaam, gebruikersnaam en profielfoto.</p>
         <button id="deelVriendenlink" type="button" data-t="deelVriendenlink">🔗 Deel mijn vriendenlink</button>
       </section>
+    </dialog>
+
+    <!-- ===== CHAT met een vriend ===== -->
+    <dialog id="chat" class="venster">
+      <div class="profielKop">
+        <button id="chatTerug" type="button" class="sluiten terug" aria-label="Terug">←</button>
+        <span id="chatAvatar"></span>
+        <div class="naam"><h2 id="chatNaam"></h2><small id="chatHandle"></small></div>
+        <button id="chatSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+      <div id="chatBerichten" role="log" aria-live="polite"></div>
+      <form id="chatFormulier">
+        <label class="srAlleen" for="chatTekst" data-t="chatPlaceholder">Schrijf een bericht…</label>
+        <textarea id="chatTekst" rows="1" maxlength="1000" placeholder="Schrijf een bericht…" data-t-placeholder="chatPlaceholder"></textarea>
+        <button type="submit" aria-label="Versturen" data-t="stuurBericht">Versturen</button>
+      </form>
+    </dialog>
+
+    <!-- ===== VERPLICHT: je gebruikersnaam kiezen (na het inloggen, als je er nog geen hebt) ===== -->
+    <dialog id="kiesNaam" class="venster">
+      <div class="profielKop">
+        <h2 data-t="kiesNaamTitel">Kies je gebruikersnaam</h2>
+      </div>
+      <form id="kiesNaamFormulier">
+        <p class="uitleg" data-t="kiesNaamUitleg">Zo kunnen vrienden je vinden en uitnodigen voor een rit. Je kan hem later nog wijzigen bij 👥 Samen rijden.</p>
+        <label class="veld"><span data-t="mijnGebruikersnaam">Jouw gebruikersnaam</span>
+          <span class="metAt">@<input id="kiesNaamVeld" maxlength="20" required autocomplete="off" autocapitalize="none" spellcheck="false"></span></label>
+        <small id="kiesNaamMelding" class="melding" data-t="gebruikersnaam_vorm">3 tot 20 tekens: kleine letters, cijfers, punt of _ (geen spaties).</small>
+        <button type="submit" data-t="bewaren">Bewaren</button>
+      </form>
     </dialog>
 
     <!-- ===== VRIENDEN UITNODIGEN voor een rit ===== -->
@@ -461,6 +505,7 @@
   <script src="bijvullen.js"></script>
   <script src="profiel.js"></script>
   <script src="vrienden.js"></script>
+  <script src="chat.js"></script>
   <script src="import.js"></script>
   <script src="pwa.js"></script>
 
