@@ -370,3 +370,34 @@ async function verwijderRit(id) {
   const { error } = await db.from("ritten").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ---------- Gebruikersnaam en vriendschapsverzoeken ----------
+async function zetGebruikersnaam(naam) {
+  const { data, error } = await db.rpc("zet_gebruikersnaam", { naam: naam });
+  if (error) throw error;
+  return data;   // 'ok', 'vorm', 'bezet' of 'gereserveerd'
+}
+
+async function stuurVriendverzoek(naam) {
+  const { data, error } = await db.rpc("stuur_vriendverzoek", { naam: naam });
+  if (error) throw error;
+  return data;   // 'verstuurd', 'vrienden', 'al_vrienden', 'al_gevraagd', 'onbekend' of 'jezelf'
+}
+
+async function haalVriendverzoekenOp() {
+  const { data, error } = await db.rpc("mijn_vriendverzoeken");
+  if (error) throw error;
+  return data || [];
+}
+
+async function aanvaardVriendverzoek(vanId) {
+  const { error } = await db.rpc("aanvaard_vriendverzoek", { van_id: vanId });
+  if (error) throw error;
+}
+
+// Weigeren (binnengekomen) of intrekken (zelf gestuurd)
+async function verwijderVriendverzoek(andereId, richting) {
+  const [van, naar] = richting === "in" ? [andereId, gebruiker.id] : [gebruiker.id, andereId];
+  const { error } = await db.from("vriendverzoeken").delete().eq("van", van).eq("naar", naar);
+  if (error) throw error;
+}

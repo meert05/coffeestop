@@ -8,6 +8,8 @@
 let mijnVrienden = [];   // [{ id, voornaam, foto }]
 let mijnRitten = [];     // ritten met hun genodigden
 let mijnVriendcode = null;
+let mijnVerzoeken = [];       // [{ id, voornaam, foto, gebruikersnaam, richting: "in" | "uit" }]
+let mijnGebruikersnaam = null;
 let uitnodigingVoor = null;   // { stop } of { route } in het venster "Vrienden uitnodigen"
 
 // ---------- Komt iemand binnen via een vriendenlink of een mail over een rit? ----------
@@ -71,6 +73,8 @@ async function vriendenNaInloggen() {
     mijnVrienden = [];
     mijnRitten = [];
     mijnVriendcode = null;
+    mijnVerzoeken = [];
+    mijnGebruikersnaam = null;
     knop.hidden = true;
     // Kwam je via een vriendenlink? Zeg dan dat je eerst moet inloggen.
     if (lokaal("vriendWachtend")) {
@@ -94,7 +98,15 @@ async function vriendenNaInloggen() {
     }
   }
 
+  // Je gebruikersnaam (om in het venster te tonen)
+  try {
+    const profiel = await haalProfielOp();
+    mijnGebruikersnaam = profiel && profiel.gebruikersnaam ? profiel.gebruikersnaam : null;
+  } catch (fout) { console.error(fout); }
+  toonGebruikersnaam();
+
   await laadVrienden();
+  await laadVerzoeken();
   await laadRitten();
 
   // Kwam je binnen via de mail over een rit? Dan het venster meteen openen.
@@ -128,14 +140,18 @@ async function laadRitten() {
 function tekenTeller() {
   const teller = document.getElementById("rittenTeller");
   if (!teller || !gebruiker) return;
-  const nieuw = mijnRitten.filter(r => r.genodigden.some(g => g.gebruiker === gebruiker.id && !g.gezien)).length;
+  const nieuw = mijnRitten.filter(r => r.genodigden.some(g => g.gebruiker === gebruiker.id && !g.gezien)).length
+              + mijnVerzoeken.filter(v => v.richting === "in").length;   // en vriendschapsverzoeken
   teller.textContent = nieuw;
   teller.hidden = nieuw === 0;
 }
 
 // Even terugkomen naar de app (bv. na WhatsApp)? Dan opnieuw kijken
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && typeof gebruiker !== "undefined" && gebruiker) laadRitten();
+  if (document.visibilityState === "visible" && typeof gebruiker !== "undefined" && gebruiker) {
+    laadVerzoeken();
+    laadRitten();
+  }
 });
 
 // ---------- Het venster "Samen rijden" ----------
@@ -143,6 +159,8 @@ function openRitten() {
   const venster = document.getElementById("ritten");
   tekenRitten();
   tekenVrienden();
+  tekenVerzoeken();
+  toonGebruikersnaam();
   if (!venster.open) {
     if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
   }
@@ -242,6 +260,101 @@ function tekenRitten() {
   }
 }
 
+// ---------- Je gebruikersnaam ----------
+function toonGebruikersnaam() {
+  const veld = document.getElementById("gebruikersnaam");
+  if (!veld) return;
+  veld.value = mijnGebruikersnaam || "";
+  document.getElementById("gebruikersnaamMelding").textContent = mijnGebruikersnaam ? "" : t("kiesGebruikersnaam");
+}
+
+document.getElementById("gebruikersnaamFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  const melding = document.getElementById("gebruikersnaamMelding");
+  const naam = document.getElementById("gebruikersnaam").value.trim().replace(/^@/, "").toLowerCase();
+  try {
+    const uitkomst = await zetGebruikersnaam(naam);
+    if (uitkomst === "ok") {
+      mijnGebruikersnaam = naam;
+      document.getElementById("gebruikersnaam").value = naam;
+      melding.textContent = t("gebruikersnaamBewaard").replace("{naam}", naam);
+    } else {
+      melding.textContent = t("gebruikersnaam_" + uitkomst).replace("{naam}", naam);
+    }
+  } catch (fout) {
+    melding.textContent = t("opslaanMislukt") + " " + fout.message;
+  }
+};
+
+// ---------- Een vriend toevoegen op gebruikersnaam ----------
+document.getElementById("vriendToevoegen").onsubmit = async (event) => {
+  event.preventDefault();
+  const melding = document.getElementById("vriendMelding");
+  const veld = document.getElementById("vriendNaam");
+  const naam = veld.value.trim().replace(/^@/, "").toLowerCase();
+  if (!naam) return;
+  try {
+    const uitkomst = await stuurVriendverzoek(naam);
+    melding.textContent = t("verzoek_" + uitkomst).replace("{naam}", naam);
+    if (uitkomst === "verstuurd" || uitkomst === "vrienden") veld.value = "";
+    if (uitkomst === "vrienden") await laadVrienden();
+    await laadVerzoeken();
+  } catch (fout) {
+    melding.textContent = t("opslaanMislukt") + " " + fout.message;
+  }
+};
+
+async function laadVerzoeken() {
+  try { mijnVerzoeken = await haalVriendverzoekenOp(); }
+  catch (fout) { console.error(fout); mijnVerzoeken = []; }
+  tekenVerzoeken();
+  tekenTeller();
+}
+
+function tekenVerzoeken() {
+  const blok = document.getElementById("verzoekenBlok");
+  const lijst = document.getElementById("verzoekenLijst");
+  if (!blok || !lijst) return;
+  lijst.innerHTML = "";
+  blok.hidden = mijnVerzoeken.length === 0;
+  // Eerst wat binnenkwam, dan wat je zelf stuurde
+  const gesorteerd = [...mijnVerzoeken].sort((x, y) => (x.richting === "in" ? 0 : 1) - (y.richting === "in" ? 0 : 1));
+  for (const v of gesorteerd) {
+    const li = document.createElement("li");
+    li.className = v.richting === "in" ? "binnen" : "weg";
+    li.innerHTML = `${avatarHTML(v)}
+      <span class="naam"><b></b><small></small></span>
+      ${v.richting === "in"
+        ? `<button type="button" class="ja">${esc(t("aanvaarden"))}</button>
+           <button type="button" class="link nee">${esc(t("weigeren"))}</button>`
+        : `<button type="button" class="link nee">${esc(t("intrekken"))}</button>`}`;
+    li.querySelector("b").textContent = v.voornaam || "?";
+    li.querySelector("small").textContent = (v.gebruikersnaam ? "@" + v.gebruikersnaam + " · " : "") +
+      (v.richting === "in" ? t("wilVriendWorden") : t("wachtOpAntwoord"));
+    const ja = li.querySelector(".ja");
+    if (ja) ja.onclick = async () => {
+      try {
+        await aanvaardVriendverzoek(v.id);
+        toonMelding(t("nuVrienden").replace("{naam}", v.voornaam || "?"));
+        await laadVrienden();
+        await laadVerzoeken();
+      } catch (fout) { alert(t("opslaanMislukt") + " " + fout.message); }
+    };
+    li.querySelector(".nee").onclick = async () => {
+      try {
+        await verwijderVriendverzoek(v.id, v.richting);
+        await laadVerzoeken();
+      } catch (fout) { alert(t("opslaanMislukt") + " " + fout.message); }
+    };
+    lijst.appendChild(li);
+  }
+}
+
+// Een rondje met de profielfoto, of anders de eerste letter
+function avatarHTML(v) {
+  return `<span class="avatar">${v.foto ? `<img src="${esc(v.foto)}" alt="">` : esc((v.voornaam || "?").charAt(0).toUpperCase())}</span>`;
+}
+
 // ---------- Vrienden: je link delen en je lijst ----------
 function tekenVrienden() {
   const lijst = document.getElementById("vriendenLijst");
@@ -253,10 +366,11 @@ function tekenVrienden() {
   }
   for (const v of mijnVrienden) {
     const li = document.createElement("li");
-    li.innerHTML = `<span class="avatar">${v.foto ? `<img src="${esc(v.foto)}" alt="">` : esc((v.voornaam || "?").charAt(0).toUpperCase())}</span>
-      <span class="naam"></span>
+    li.innerHTML = `${avatarHTML(v)}
+      <span class="naam"><b></b><small></small></span>
       <button type="button" class="link">${esc(t("vriendWeg"))}</button>`;
-    li.querySelector(".naam").textContent = v.voornaam || "?";
+    li.querySelector("b").textContent = v.voornaam || "?";
+    li.querySelector("small").textContent = v.gebruikersnaam ? "@" + v.gebruikersnaam : "";
     li.querySelector("button").onclick = async () => {
       if (!confirm(t("zekerVriendWeg").replace("{naam}", v.voornaam || "?"))) return;
       try {
@@ -330,7 +444,7 @@ function openUitnodiging(wat) {
     const label = document.createElement("label");
     label.className = "vinkje";
     label.innerHTML = `<input type="checkbox" value="${esc(v.id)}"> <span></span>`;
-    label.querySelector("span").textContent = v.voornaam || "?";
+    label.querySelector("span").textContent = (v.voornaam || "?") + (v.gebruikersnaam ? " (@" + v.gebruikersnaam + ")" : "");
     vak.appendChild(label);
   }
   document.getElementById("nodigUitStuur").disabled = !mijnVrienden.length;

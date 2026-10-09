@@ -1335,3 +1335,21 @@ dialog.venster .uitleg { margin: -6px 0 12px; font-size: 13px; color: var(--grij
   font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.45);
 }
 @media (max-width: 560px) { dialog.venster > * { padding: 18px; } }
+
+/* Gebruikersnaam en vriendschapsverzoeken (vrienden.js) */
+.rijFormulier { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.rijFormulier .veld { flex: 1; min-width: 180px; }
+.rijFormulier button { padding: 10px 14px; font-size: 11px; }
+.metAt { display: flex; align-items: center; gap: 2px; color: var(--grijs); font-size: 15px; }
+.metAt input { flex: 1; min-width: 0; }
+dialog.venster .melding { display: block; min-height: 1em; margin: 6px 0 14px; font-size: 12px; color: var(--grijs); }
+dialog.venster .uitleg.ruimte { margin: 18px 0 10px; }
+#verzoekenBlok { margin: 4px 0 18px; }
+#verzoekenLijst { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+#verzoekenLijst li { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+#verzoekenLijst li.binnen { padding: 10px; border: 1px solid var(--lijn); border-left: 3px solid #D9483B; }
+#verzoekenLijst .ja { margin-left: auto; padding: 8px 12px; font-size: 11px; }
+#verzoekenLijst li.weg .nee { margin-left: auto; }
+#verzoekenLijst .avatar { width: 32px; height: 32px; }
+.naam { display: flex; flex-direction: column; min-width: 0; }
+.naam small { color: var(--grijs); font-size: 12px; }

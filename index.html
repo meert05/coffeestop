@@ -185,9 +185,32 @@
       </section>
       <section>
         <h3 data-t="vrienden">Vrienden</h3>
-        <p class="uitleg" data-t="vriendenUitleg">Stuur je vriendenlink naar wie je wil toevoegen. Wie erop klikt en inlogt, wordt je vriend. Vrienden zien alleen je voornaam en profielfoto.</p>
-        <button id="deelVriendenlink" type="button" data-t="deelVriendenlink">🔗 Deel mijn vriendenlink</button>
+        <!-- Je eigen gebruikersnaam: zo kunnen vrienden je vinden -->
+        <form id="gebruikersnaamFormulier" class="rijFormulier">
+          <label class="veld"><span data-t="mijnGebruikersnaam">Jouw gebruikersnaam</span>
+            <span class="metAt">@<input id="gebruikersnaam" maxlength="20" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="milan"></span></label>
+          <button type="submit" data-t="bewaren">Bewaren</button>
+        </form>
+        <small id="gebruikersnaamMelding" class="melding"></small>
+
+        <!-- Een vriend toevoegen op gebruikersnaam -->
+        <form id="vriendToevoegen" class="rijFormulier">
+          <label class="veld"><span data-t="vriendToevoegen">Vriend toevoegen</span>
+            <span class="metAt">@<input id="vriendNaam" maxlength="21" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="gebruikersnaam" data-t-placeholder="gebruikersnaamVoorbeeld"></span></label>
+          <button type="submit" data-t="verzoekSturen">Verzoek sturen</button>
+        </form>
+        <small id="vriendMelding" class="melding"></small>
+
+        <!-- Vriendschapsverzoeken (binnengekomen en zelf gestuurd) -->
+        <div id="verzoekenBlok" hidden>
+          <h3 data-t="verzoeken">Verzoeken</h3>
+          <ul id="verzoekenLijst"></ul>
+        </div>
+
+        <h3 data-t="mijnVrienden">Mijn vrienden</h3>
         <ul id="vriendenLijst"></ul>
+        <p class="uitleg ruimte" data-t="vriendenUitleg">Of deel je vriendenlink: wie erop klikt en inlogt, wordt meteen je vriend. Vrienden zien alleen je voornaam, gebruikersnaam en profielfoto.</p>
+        <button id="deelVriendenlink" type="button" data-t="deelVriendenlink">🔗 Deel mijn vriendenlink</button>
       </section>
     </dialog>
 
