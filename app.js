@@ -54,8 +54,27 @@ function kleur() {
 
 // ---------- 3. Welke stops tonen we? ----------
 // Verborgen bars zijn alleen voor de beheerder (de database stuurt ze ook niet naar anderen)
+// Beheer-modus: alleen als die aan staat, ziet de beheerder zijn knoppen en de verborgen bars.
+// Uit = je ziet de app zoals gewone gebruikers.
+let beheerModus = (() => { try { return localStorage.getItem("beheerModus") === "1"; } catch { return false; } })();
+function inBeheer() {
+  return isBeheerder() && beheerModus;
+}
+function zetBeheerModus() {
+  document.body.classList.toggle("beheerModus", inBeheer());
+  const knop = document.getElementById("beheerKnop");
+  knop.hidden = !isBeheerder();
+  knop.classList.toggle("actief", inBeheer());
+}
+document.getElementById("beheerKnop").onclick = () => {
+  beheerModus = !beheerModus;
+  try { localStorage.setItem("beheerModus", beheerModus ? "1" : "0"); } catch {}
+  zetBeheerModus();
+  teken();
+};
+
 function magZien(stop) {
-  return stop.zichtbaar !== false || isBeheerder();
+  return stop.zichtbaar !== false || inBeheer();
 }
 
 // Nieuw = de voorbije 7 dagen toegevoegd of openbaar gezet (de database houdt de datum bij)
@@ -134,6 +153,21 @@ function tekenKaart(stops) {
   }
 }
 
+// De korte regel onder de naam: open of dicht, en hooguit 2 kenmerken
+function kortRegel(stop) {
+  const delen = [];
+  const status = typeof openStatus === "function" ? openStatus(stop) : null;
+  if (status && status.open) delen.push(`<span class="open">●</span> ${esc(t("openTot").replace("{uur}", status.tot))}`);
+  else if (status) delen.push(`<span class="dicht">●</span> ${esc(status.opent ? t("dichtOpent").replace("{uur}", status.opent) : t("gesloten"))}`);
+  const kenmerken = [];
+  if (isNieuw(stop)) kenmerken.push("✨ " + t("nieuwLabel"));
+  if (stop.type !== "coffee") kenmerken.push(t("wieler"));
+  if (kenmerkenVan(stop).includes("laptop")) kenmerken.push(t("kenmerk_laptop"));
+  if (stop.zichtbaar === false) kenmerken.push("🙈 " + t("verborgen"));
+  for (const k of kenmerken.slice(0, 2)) delen.push(esc(k));
+  return delen.join('<span class="punt"> · </span>');
+}
+
 function tekenLijst(stops) {
   document.getElementById("teller").textContent = stops.length + " " + t("stops");
 
@@ -161,7 +195,9 @@ function tekenLijst(stops) {
       <button class="ster">${isFavoriet ? "★" : "☆"}</button>
       <h3></h3>
       <small></small>
-      ${mijnPlek ? `<span class="afstand">📍 ${afstandTekst(stop)}</span>` : ""}
+      ${mijnPlek ? `<span class="afstand">${afstandTekst(stop)}</span>` : ""}
+      <div class="kort">${kortRegel(stop)}</div>
+      <div class="detail">
       <p></p>
       ${openingsurenHTML(stop)}
       <div class="labels">
@@ -183,12 +219,13 @@ function tekenLijst(stops) {
         <a href="${route}" target="_blank">${t("route")}</a>
         <button class="reviewKnop">${reviewKnopTekst(stop)}</button>
         ${gebruiker && typeof uitnodigKnopHTML === "function" ? uitnodigKnopHTML(stop) : ""}
-        ${isBeheerder() ? `<button class="kenmerkKnop">${t("kenmerkenBewerken")}</button>` : ""}
-        ${isBeheerder() ? `<button class="fotoKnop">${t("foto")}</button>` : ""}
-        ${isBeheerder() ? `<button class="zichtKnop">${stop.zichtbaar === false ? t("tonen") : t("verbergen")}</button>` : ""}
-        ${isBeheerder() ? `<button class="wis">${t("verwijder")}</button>` : ""}
+        ${inBeheer() ? `<button class="kenmerkKnop">${t("kenmerkenBewerken")}</button>` : ""}
+        ${inBeheer() ? `<button class="fotoKnop">${t("foto")}</button>` : ""}
+        ${inBeheer() ? `<button class="zichtKnop">${stop.zichtbaar === false ? t("tonen") : t("verbergen")}</button>` : ""}
+        ${inBeheer() ? `<button class="wis">${t("verwijder")}</button>` : ""}
       </div>
-      ${reviewsBlokHTML(stop)}`;
+      ${reviewsBlokHTML(stop)}
+      </div>`;
 
     li.querySelector("h3").textContent = stop.naam;
     li.querySelector("small").textContent = stop.adres || "";
@@ -539,8 +576,8 @@ function tekenCategorieen() {
   const aantalNieuw = alleStops.filter(s => magZien(s) && isNieuw(s)).length;
   if (aantalNieuw > 0) filters.unshift(["nieuw", "✨ " + t("nieuwLabel") + " (" + aantalNieuw + ")"]);
   else gekozenFilters = gekozenFilters.filter(f => f !== "nieuw");
-  // Alleen voor de beheerder: welke bars hebben nog geen foto?
-  if (isBeheerder()) {
+  // Alleen voor de beheerder (in beheer-modus): welke bars hebben nog geen foto?
+  if (inBeheer()) {
     const zonder = alleStops.filter(s => !s.foto).length;
     filters.push(["zonderFoto", "📷 " + t("zonderFoto") + " (" + zonder + ")"]);
     const verborgen = alleStops.filter(s => s.zichtbaar === false).length;
@@ -649,7 +686,7 @@ document.getElementById("landen").addEventListener("click", (event) => {
 function tekenRegioBeheer() {
   const vak = document.getElementById("regioBeheer");
   vak.innerHTML = "";
-  vak.hidden = !isBeheerder() || gekozenLand === "alles";
+  vak.hidden = !inBeheer() || gekozenLand === "alles";
   if (vak.hidden) return;
 
   const regio = gekozenStad !== "alles" ? groepNaam(gekozenStad) : landNaam(gekozenLand);
@@ -694,7 +731,7 @@ document.getElementById("zoek").oninput = teken;
 
 // Klikken op de kaart: plek kiezen (alleen voor de beheerder)
 kaart.on("click", (event) => {
-  if (!isBeheerder()) return;
+  if (!inBeheer()) return;   // alleen in beheer-modus een nieuwe bar prikken
   if (typeof routeModus !== "undefined" && routeModus) return;   // dan tekent route.js een punt
   if (typeof importPlaatsRij !== "undefined" && importPlaatsRij !== null) return;   // dan zet import.js een bar
   nieuwePlek = [event.latlng.lat, event.latlng.lng];
@@ -1218,6 +1255,8 @@ async function naInloggen() {
   const profielVenster = document.getElementById("profiel");
   if (!gebruiker && profielVenster.open) profielVenster.close();
 
+  // Beheer-modus: knop tonen en de juiste stand zetten
+  zetBeheerModus();
   // Het formulier voor nieuwe bars: alleen voor jou
   document.getElementById("formulier").hidden = !isBeheerder();
   // Bars importeren uit een lijst: ook alleen voor jou

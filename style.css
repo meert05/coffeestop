@@ -1549,3 +1549,58 @@ dialog.paneel .paneelVoet { position: sticky; bottom: 0; background: var(--achte
   dialog.paneel .paneelVoet { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
 }
 #topbalk #rittenKnop, #topbalk #inboxKnop { padding: 0; font-size: inherit; }
+
+/* =====================================================
+   RUSTIG ONTWERP – STAP 2a: eenvoudige kaartjes en beheer-modus
+   ===================================================== */
+
+/* Beheer-modus uit: geen beheerblokken (je ziet de app zoals gebruikers) */
+body:not(.beheerModus) #formulier,
+body:not(.beheerModus) #importBlok,
+body:not(.beheerModus) #voorstellenBeheer,
+body:not(.beheerModus) #regioBeheer { display: none !important; }
+#beheerKnop[hidden] { display: none; }
+
+/* Geen nummers meer voor de bars */
+#lijst > li { padding-left: 0; }
+#lijst > li::before { content: none; }
+
+/* Een kaartje: naam, adres, afstand en één korte regel */
+#lijst > li { padding-top: 18px; padding-bottom: 18px; cursor: pointer; }
+#lijst h3 {
+  font-family: var(--kop); font-size: 18px; font-weight: 700;
+  letter-spacing: -0.01em; text-transform: none; margin: 0 40px 2px 0;
+}
+#lijst > li.gekozen h3 { color: var(--tekst); }
+#lijst small { font-size: 13px; }
+#lijst .afstand { margin-left: 6px; font-size: 13px; color: var(--grijs); }
+#lijst .afstand::before { content: "· "; }
+#lijst .kort { margin-top: 6px; font-size: 13px; color: #BDBCB7; }
+#lijst .kort .open { color: #6FCF8E; }
+#lijst .kort .dicht { color: var(--grijs); }
+#lijst .kort .punt { color: var(--grijs); }
+#lijst .kort:empty { display: none; }
+
+/* Alles verder (tekstje, uren, knoppen, reviews) pas na een klik op de bar */
+#lijst > li:not(.gekozen) .detail { display: none; }
+#lijst > li.gekozen .kort { display: none; }
+#lijst .detail { cursor: auto; }
+#lijst > li.gekozen { background: var(--vlak); padding-left: 14px; padding-right: 14px; margin: 0 -14px; }
+
+/* Foto: klein vierkant rechts, zoals in het ontwerp */
+#lijst .foto {
+  float: right; width: 72px; height: 72px; aspect-ratio: auto; margin: 0 0 8px 14px;
+  border-radius: 12px; object-fit: cover; filter: none;
+}
+#lijst > li.gekozen .foto { width: 100%; height: 180px; float: none; margin: 0 0 14px; }
+#lijst > li:has(.foto) .ster { top: 18px; right: 96px; color: var(--tekst); text-shadow: none; }
+#lijst > li.gekozen:has(.foto) .ster { top: 30px; right: 26px; color: #FFFFFF; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+#lijst > li:has(.foto) h3 { margin-right: 0; }
+
+@media (max-width: 560px) {
+  #lijst > li { padding: 16px 0; }
+  #lijst .foto { width: 64px; height: 64px; }
+  #lijst > li:has(.foto) .ster { top: 16px; right: 80px; }
+  #lijst > li.gekozen { padding-left: 14px; padding-right: 14px; }
+  #lijst > li.gekozen .foto { height: 160px; }
+}
