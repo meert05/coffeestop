@@ -89,6 +89,7 @@ function zichtbareStops() {
 function teken() {
   tekenFilters();
   tekenRegioBeheer();
+  tekenZoekbalk();
   if (isBeheerder()) tekenVoorstellen();   // in de juiste taal
   const stops = zichtbareStops();
   tekenKaart(stops);
@@ -601,6 +602,48 @@ function tekenFilters() {
     maakKnop(stedenRij, groepNaam(groep), gekozenStad === groep, () => kiesFilter(gekozenLand, groep));
   }
 }
+
+// ---------- De zoekbalk: labels op de knoppen "📍 Regio" en "Filters" ----------
+function tekenZoekbalk() {
+  const regio = gekozenLand === "alles"
+    ? t("alleLanden")
+    : landNaam(gekozenLand) + (gekozenStad !== "alles" ? " · " + groepNaam(gekozenStad) : "");
+  document.getElementById("regioLabel").textContent = regio;
+  document.getElementById("regioKnop").classList.toggle("actief", gekozenLand !== "alles" && gekozenStad !== "alles");
+
+  const aantal = gekozenFilters.length;
+  document.getElementById("filterAantal").textContent = aantal ? " · " + aantal : "";
+  document.getElementById("filterKnop").classList.toggle("actief", aantal > 0);
+  const n = zichtbareStops().length;
+  document.getElementById("filterToon").textContent = n === 1 ? t("toonEen") : t("toonAantal").replace("{n}", n);
+}
+
+// De panelen voor regio en filters openen en sluiten
+function openPaneel(id) {
+  const venster = document.getElementById(id);
+  if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
+}
+document.getElementById("regioKnop").onclick = () => openPaneel("regioVenster");
+document.getElementById("filterKnop").onclick = () => openPaneel("filterVenster");
+document.getElementById("regioSluiten").onclick = () => document.getElementById("regioVenster").close();
+document.getElementById("filterSluiten").onclick = () => document.getElementById("filterVenster").close();
+document.getElementById("filterToon").onclick = () => document.getElementById("filterVenster").close();
+// Een klik op de donkere achtergrond naast het paneel sluit het ook
+for (const id of ["regioVenster", "filterVenster"]) {
+  document.getElementById(id).addEventListener("click", (event) => {
+    if (event.target.id === id) event.target.close();
+  });
+}
+// Een stad gekozen? Dan is het paneel klaar. Een land zonder steden ook.
+document.getElementById("steden").addEventListener("click", (event) => {
+  if (event.target.closest("button")) document.getElementById("regioVenster").close();
+});
+document.getElementById("landen").addEventListener("click", (event) => {
+  if (!event.target.closest("button")) return;
+  setTimeout(() => {
+    if (document.getElementById("steden").hidden) document.getElementById("regioVenster").close();
+  }, 0);
+});
 
 // Alleen voor de beheerder: alle bars van het gekozen land of de gekozen stad/regio in één keer verbergen of tonen
 function tekenRegioBeheer() {

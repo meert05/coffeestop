@@ -80,6 +80,7 @@ async function vriendenNaInloggen() {
     if (naamVenster && naamVenster.open) naamVenster.close();
     if (typeof chatNaInloggen === "function") chatNaInloggen();   // live verbinding stoppen
     knop.hidden = true;
+    document.getElementById("inboxKnop").hidden = true;
     // Kwam je via een vriendenlink? Zeg dan dat je eerst moet inloggen.
     if (lokaal("vriendWachtend")) {
       const bericht = document.getElementById("loginBericht");
@@ -88,6 +89,7 @@ async function vriendenNaInloggen() {
     return;
   }
   knop.hidden = false;
+  document.getElementById("inboxKnop").hidden = false;
 
   // Een vriendenlink die nog wachtte
   const code = lokaal("vriendWachtend");
@@ -150,9 +152,15 @@ function tekenTeller() {
   const teller = document.getElementById("rittenTeller");
   if (!teller || !gebruiker) return;
   const n = nieuwePerTab();
-  const nieuw = n.ritten + n.berichten + n.vrienden;
+  // 👥 = ritten en vriendschapsverzoeken; 💬 = ongelezen berichten
+  const nieuw = n.ritten + n.vrienden;
   teller.textContent = nieuw;
   teller.hidden = nieuw === 0;
+  const inbox = document.getElementById("inboxTeller");
+  if (inbox) {
+    inbox.textContent = n.berichten;
+    inbox.hidden = n.berichten === 0;
+  }
   // Ook een tellertje op elk tabblad
   document.querySelectorAll("#samenTabs button").forEach(k => {
     const t2 = k.querySelector(".teller");
@@ -212,7 +220,12 @@ function openRitten(tab) {
   }
   toonTabblad(tab);
 }
-document.getElementById("rittenKnop").onclick = () => openRitten();
+// 👥 opent ritten (of vrienden als daar iets nieuws is), 💬 opent meteen de berichten
+document.getElementById("rittenKnop").onclick = () => {
+  const n = nieuwePerTab();
+  openRitten(n.ritten ? "ritten" : n.vrienden ? "vrienden" : "ritten");
+};
+document.getElementById("inboxKnop").onclick = () => openRitten("berichten");
 document.getElementById("rittenSluiten").onclick = () => document.getElementById("ritten").close();
 
 function tekenRitten() {
@@ -420,7 +433,7 @@ function tekenVerzoeken() {
   for (const v of gesorteerd) {
     const li = document.createElement("li");
     li.className = v.richting === "in" ? "binnen" : "weg";
-    li.innerHTML = `${avatarHTML(v)}
+    li.innerHTML = `${vriendAvatarHTML(v)}
       <span class="naam"><b></b><small></small></span>
       ${v.richting === "in"
         ? `<button type="button" class="ja">${esc(t("aanvaarden"))}</button>
@@ -449,7 +462,7 @@ function tekenVerzoeken() {
 }
 
 // Een rondje met de profielfoto, of anders de eerste letter
-function avatarHTML(v) {
+function vriendAvatarHTML(v) {
   return `<span class="avatar">${v.foto ? `<img src="${esc(v.foto)}" alt="">` : esc((v.voornaam || "?").charAt(0).toUpperCase())}</span>`;
 }
 
@@ -464,7 +477,7 @@ function tekenVrienden() {
   }
   for (const v of mijnVrienden) {
     const li = document.createElement("li");
-    li.innerHTML = `${avatarHTML(v)}
+    li.innerHTML = `${vriendAvatarHTML(v)}
       <span class="naam"><b></b><small></small></span>
       <button type="button" class="chatKnop" aria-label="${esc(t("stuurBericht"))}">💬</button>
       <button type="button" class="link wegKnop">${esc(t("vriendWeg"))}</button>`;

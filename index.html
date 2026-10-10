@@ -29,16 +29,35 @@
 </head>
 <body>
 
-  <header>
-    <!-- Taalkeuze -->
+  <!-- ===== BOVENBALK: klein logo links, iconen rechts ===== -->
+  <header id="topbalk">
+    <a class="merk" href="./" aria-label="Waypour"><svg viewBox="0 0 100 120" width="16" height="19" aria-hidden="true"><path d="M50 116 C50 116 12 72 12 44 A38 38 0 0 1 88 44 C88 72 50 116 50 116Z" fill="currentColor"></path><g transform="rotate(32 50 44)"><ellipse cx="50" cy="44" rx="14" ry="20" fill="var(--achtergrond)"></ellipse></g></svg><span>WAYPOUR</span></a>
+
+    <!-- Taalkeuze: alleen als je niet ingelogd bent (daarna in je profiel) -->
     <div id="talen">
       <button data-taal="nl">NL</button>
       <button data-taal="fr">FR</button>
       <button data-taal="en">EN</button>
     </div>
 
-    <h1>Way<span>pour</span></h1>
-    <p data-t="ondertitel">Koffiebars</p>
+    <!-- Ingelogd: samen rijden, berichten en je profiel -->
+    <div id="ingelogd" hidden>
+      <button id="rittenKnop" type="button" class="rondKnop" hidden>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M17 14.5c2.4 0 4.1 1.5 4.6 4"></path></svg>
+        <span class="srAlleen" data-t="samenRijden">Samen rijden</span>
+        <span id="rittenTeller" class="teller" hidden>0</span>
+      </button>
+      <button id="inboxKnop" type="button" class="rondKnop" hidden>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z"></path><path d="M8 10h8M8 13h5"></path></svg>
+        <span class="srAlleen" data-t="tabBerichten">Berichten</span>
+        <span id="inboxTeller" class="teller" hidden>0</span>
+      </button>
+      <!-- Klik op je foto: je profiel openen -->
+      <button id="profielKnop" type="button" class="rondKnop">
+        <span id="avatarKlein" class="avatar"></span>
+        <span id="wie" class="srAlleen"></span>
+      </button>
+    </div>
   </header>
 
   <!-- ===== WELKOMSTSCHERM: zichtbaar zolang je niet bent ingelogd ===== -->
@@ -158,20 +177,6 @@
   <!-- ===== DE APP: zichtbaar na het inloggen ===== -->
   <div id="app" hidden>
 
-    <!-- Ingelogd als… met nieuwsbrief-schakelaar en uitloggen -->
-    <div id="ingelogd">
-      <!-- Klik op je naam of foto: je profiel openen -->
-      <button id="profielKnop" type="button">
-        <span id="avatarKlein" class="avatar"></span>
-        <span id="wie"></span>
-      </button>
-      <!-- Samen rijden: vrienden en rit-uitnodigingen (vrienden.js) -->
-      <button id="rittenKnop" type="button" hidden>
-        <span data-t="samenRijden">👥 Samen rijden</span>
-        <span id="rittenTeller" class="teller" hidden>0</span>
-      </button>
-      <button id="uitlogKnop" data-t="uitloggen">Uitloggen</button>
-    </div>
 
     <!-- ===== SAMEN RIJDEN: ritten en vrienden ===== -->
     <dialog id="ritten" class="venster">
@@ -358,27 +363,66 @@
 
       <p id="profielMelding" role="status"></p>
 
+      <section>
+        <button id="uitlogKnop" type="button" data-t="uitloggen">Uitloggen</button>
+      </section>
       <section class="gevaar">
         <button id="verwijderAccountKnop" type="button" class="link" data-t="accountVerwijderen">Account verwijderen</button>
       </section>
     </dialog>
 
-    <!-- Knoppen per land en per stad: worden automatisch gemaakt in app.js -->
-    <nav id="landen" hidden></nav>
-    <nav id="steden"></nav>
-    <div id="regioBeheer" hidden></div>
-
-    <!-- Zoeken en filteren op type -->
+    <!-- ===== ZOEKEN: één zoekbalk en daaronder een paar knoppen ===== -->
     <div id="filters">
-      <input id="zoek" type="search" placeholder="Zoek een stop…" data-t-placeholder="zoek">
-      <button id="dichtbijKnop" type="button" data-t="dichtbij">📍 Dichtbij mij</button>
-      <button id="routeKnop" type="button" data-t="routePlannen">🚴 Route plannen</button>
+      <label class="zoekVeld">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <span class="srAlleen" data-t="zoek">Zoek een koffiebar</span>
+        <input id="zoek" type="search" placeholder="Zoek een koffiebar" data-t-placeholder="zoek">
+      </label>
+      <div class="chips">
+        <button id="dichtbijKnop" type="button" class="chip" data-t="dichtbij">➤ Dichtbij mij</button>
+        <button id="regioKnop" type="button" class="chip" aria-haspopup="dialog">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
+          <span id="regioLabel">België</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <button id="filterKnop" type="button" class="chip" aria-haspopup="dialog">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
+          <span data-t="filtersTitel">Filters</span><span id="filterAantal"></span>
+        </button>
+        <button id="routeKnop" type="button" class="chip" data-t="routePlannen">🚴 Route plannen</button>
+      </div>
     </div>
 
-    <!-- Knopjes: Alles · Cycling-friendly · PC-friendly · Mijn favorieten (gemaakt in app.js) -->
-    <div id="kenmerkFilters"></div>
-    <!-- Uitleg bij een filter, bv. wat we verstaan onder cycling-friendly -->
-    <p id="filterUitleg" hidden></p>
+    <!-- ===== REGIO KIEZEN: land en stad, in een paneel ===== -->
+    <dialog id="regioVenster" class="venster paneel">
+      <div class="profielKop">
+        <h2 data-t="regioTitel">Regio</h2>
+        <button id="regioSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+      <section>
+        <!-- Knoppen per land en per stad: worden automatisch gemaakt in app.js -->
+        <nav id="landen" hidden></nav>
+        <nav id="steden"></nav>
+        <div id="regioBeheer" hidden></div>
+      </section>
+    </dialog>
+
+    <!-- ===== FILTERS: cycling-friendly, PC-friendly, nu open, … in een paneel ===== -->
+    <dialog id="filterVenster" class="venster paneel">
+      <div class="profielKop">
+        <h2 data-t="filtersTitel">Filters</h2>
+        <button id="filterSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+      <section>
+        <!-- Knopjes: Alles · Cycling-friendly · PC-friendly · Mijn favorieten (gemaakt in app.js) -->
+        <div id="kenmerkFilters"></div>
+        <!-- Uitleg bij een filter, bv. wat we verstaan onder cycling-friendly -->
+        <p id="filterUitleg" hidden></p>
+      </section>
+      <div class="paneelVoet">
+        <button id="filterToon" type="button" class="hoofdKnop">Toon de koffiebars</button>
+      </div>
+    </dialog>
 
     <main>
       <div id="kaart"></div>

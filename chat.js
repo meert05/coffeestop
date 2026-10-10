@@ -92,7 +92,7 @@ function tekenGesprekken() {
   for (const g of gesprekken) {
     const li = document.createElement("li");
     li.innerHTML = `<button type="button" class="gesprek${g.ongelezen ? " ongelezen" : ""}">
-        ${avatarHTML(g)}
+        ${vriendAvatarHTML(g)}
         <span class="naam"><b></b><small></small></span>
         <span class="wanneer"></span>
         ${g.ongelezen ? `<span class="teller">${g.ongelezen}</span>` : ""}
@@ -114,7 +114,7 @@ function tekenGesprekken() {
     const knop = document.createElement("button");
     knop.type = "button";
     knop.className = "vriendChip";
-    knop.innerHTML = `${avatarHTML(v)}<span></span>`;
+    knop.innerHTML = `${vriendAvatarHTML(v)}<span></span>`;
     knop.querySelector("span:last-child").textContent = v.voornaam || "?";
     knop.onclick = () => openChat(v);
     vak.appendChild(knop);
@@ -125,7 +125,7 @@ function tekenGesprekken() {
 async function openChat(vriend) {
   chatMet = vriend;
   chatLijst = [];
-  document.getElementById("chatAvatar").innerHTML = avatarHTML(vriend);
+  document.getElementById("chatAvatar").innerHTML = vriendAvatarHTML(vriend);
   document.getElementById("chatNaam").textContent = vriend.voornaam || "?";
   document.getElementById("chatHandle").textContent = vriend.gebruikersnaam ? "@" + vriend.gebruikersnaam : "";
   document.getElementById("chatBerichten").innerHTML = "";
