@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Voor koffiebars – Waypour</title>
+  <meta name="description" content="Waypour brengt fietsers en koffieliefhebbers naar de beste specialty koffiebars van België. Gratis vermelding voor geselecteerde bars.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://ydowujqenhmppwgsapyi.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="theme-color" content="#0B0B0B">
+  <link rel="icon" href="iconen/icoon-192.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+  <style>
+    :root {
+      color-scheme: dark;
+      --achtergrond: #0B0B0B; --vlak: #161615; --vlak2: #1C1C1B; --tekst: #F2F1EE; --zacht: #CFCEC9;
+      --grijs: #9A998F; --lijn: #2B2B29; --groen: #8FE0A6;
+      --kop: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+      --lettertype: "Inter", "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+    body { margin: 0; background: var(--achtergrond); color: var(--tekst); font-family: var(--lettertype); font-size: 16px; line-height: 1.55; }
+    a { color: var(--tekst); text-underline-offset: 3px; }
+    .breedte { width: min(1080px, 100% - 32px); margin: 0 auto; }
+
+    /* Bovenbalk */
+    .balk { position: sticky; top: 0; z-index: 10; background: rgba(11, 11, 11, .92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--lijn); }
+    .balk .breedte { display: flex; align-items: center; gap: 16px; height: 64px; }
+    .merk { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-family: var(--kop); font-weight: 800; font-size: 16px; letter-spacing: .08em; }
+    .merk small { font-family: var(--lettertype); font-weight: 500; font-size: 13px; letter-spacing: 0; color: var(--grijs); }
+    .talen { margin-left: auto; display: flex; gap: 4px; }
+    .talen button { height: 36px; min-width: 40px; padding: 0 10px; border-radius: 18px; border: 1px solid var(--lijn); background: none; color: var(--grijs); font: 500 13px var(--lettertype); cursor: pointer; }
+    .talen button.actief { background: var(--tekst); border-color: var(--tekst); color: var(--achtergrond); }
+    .naarApp { height: 36px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 18px; border: 1px solid var(--lijn); text-decoration: none; font-size: 13px; font-weight: 500; white-space: nowrap; }
+
+    /* Knoppen */
+    .knop { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; padding: 0 22px; border-radius: 14px; border: 1px solid #3A3A38; background: none; color: var(--tekst); font: 600 15px var(--lettertype); text-decoration: none; cursor: pointer; }
+    .knop.hoofd { background: var(--tekst); border-color: var(--tekst); color: var(--achtergrond); }
+    .knop:hover { opacity: .9; }
+
+    /* Opening */
+    .opening { padding: clamp(56px, 10vw, 112px) 0 clamp(48px, 8vw, 88px); border-bottom: 1px solid var(--lijn); }
+    .klein { margin: 0 0 18px; font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--grijs); }
+    h1 { margin: 0; max-width: 15ch; font-family: var(--kop); font-weight: 800; font-size: clamp(38px, 7vw, 72px); line-height: 1.02; letter-spacing: -.03em; text-wrap: balance; }
+    .opening p.intro { margin: 24px 0 32px; max-width: 58ch; font-size: clamp(17px, 2.2vw, 19px); color: var(--zacht); }
+    .opening .knoppen { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    section.blok { padding: clamp(48px, 8vw, 88px) 0; border-bottom: 1px solid var(--lijn); }
+    h2 { margin: 0 0 12px; font-family: var(--kop); font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -.02em; text-wrap: balance; }
+    .blok > .breedte > p.uitleg { margin: 0 0 32px; max-width: 60ch; color: var(--zacht); }
+
+    /* Drie kaarten */
+    .drie { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .kaart { padding: 24px; border-radius: 18px; background: var(--vlak); }
+    .kaart svg { display: block; margin-bottom: 18px; color: var(--tekst); }
+    .kaart h3 { margin: 0 0 8px; font-family: var(--kop); font-size: 19px; font-weight: 700; }
+    .kaart p { margin: 0; color: var(--zacht); font-size: 15px; }
+
+    /* Beloftes */
+    .beloftes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; }
+    .beloftes li { display: flex; gap: 14px; padding: 18px 0; border-top: 1px solid var(--lijn); }
+    .beloftes li b { display: block; margin-bottom: 2px; font-weight: 600; }
+    .beloftes li span { color: var(--zacht); font-size: 15px; }
+    .beloftes .vink { flex: none; width: 26px; height: 26px; border-radius: 50%; background: #1E2A22; color: var(--groen); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; margin-top: 1px; }
+
+    /* Aanbod */
+    .aanbod { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .pakket { display: flex; flex-direction: column; padding: 28px; border-radius: 20px; border: 1px solid var(--lijn); }
+    .pakket.uitgelicht { background: var(--vlak); border-color: var(--vlak); }
+    .pakket .naam { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .pakket h3 { margin: 0; font-family: var(--kop); font-size: 22px; font-weight: 700; }
+    .pil { padding: 4px 10px; border-radius: 999px; background: var(--vlak2); color: #DCDBD6; font-size: 12px; font-weight: 500; white-space: nowrap; }
+    .pakket.uitgelicht .pil { background: var(--tekst); color: var(--achtergrond); }
+    .prijs { margin: 6px 0 18px; font-family: var(--kop); font-size: 36px; font-weight: 800; letter-spacing: -.02em; }
+    .prijs small { font-family: var(--lettertype); font-size: 15px; font-weight: 400; color: var(--grijs); letter-spacing: 0; }
+    .pakket ul { list-style: none; margin: 0 0 22px; padding: 0; flex: 1; }
+    .pakket li { position: relative; padding: 9px 0 9px 26px; border-top: 1px solid var(--lijn); font-size: 15px; color: var(--zacht); }
+    .pakket li::before { content: "✓"; position: absolute; left: 0; top: 9px; color: var(--groen); font-weight: 600; }
+    .pakket .voet { margin: 0; font-size: 13px; color: var(--grijs); }
+    .noot { margin: 18px 0 0; font-size: 14px; color: var(--grijs); }
+
+    /* Cycling-friendly */
+    .twee { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+    .tips { list-style: none; margin: 0; padding: 0; }
+    .tips li { display: flex; gap: 14px; align-items: baseline; padding: 14px 0; border-top: 1px solid var(--lijn); color: var(--zacht); }
+    .tips li b { flex: none; width: 28px; color: var(--tekst); font-family: var(--kop); }
+
+    /* Formulier */
+    form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 760px; }
+    .veld { display: flex; flex-direction: column; gap: 6px; }
+    .veld.vol, fieldset, .verstuur, .formMelding { grid-column: 1 / -1; }
+    label > span, legend { font-size: 13px; font-weight: 500; color: var(--grijs); }
+    input, textarea { width: 100%; font: inherit; font-size: 16px; color: var(--tekst); background: var(--vlak); border: 1px solid var(--lijn); border-radius: 12px; padding: 13px 14px; outline: none; }
+    input:focus, textarea:focus { border-color: var(--grijs); }
+    textarea { min-height: 120px; resize: vertical; }
+    fieldset { margin: 0; padding: 0; border: none; }
+    legend { margin-bottom: 8px; padding: 0; }
+    .keuzes { display: flex; flex-wrap: wrap; gap: 8px; }
+    .keuzes label { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid var(--lijn); cursor: pointer; font-size: 14px; }
+    .keuzes input { width: 18px; height: 18px; margin: 0; padding: 0; accent-color: var(--tekst); }
+    .keuzes label:has(input:checked) { border-color: var(--tekst); background: var(--vlak); }
+    .valstrik { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+    .verstuur { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 6px; }
+    .verstuur p { margin: 0; flex: 1; min-width: 220px; font-size: 13px; color: var(--grijs); }
+    .formMelding { margin: 0; font-size: 14px; color: var(--grijs); }
+    .formMelding:empty { display: none; }
+    .bedankt { max-width: 760px; padding: 28px; border-radius: 20px; background: #1E2A22; }
+    .bedankt h3 { margin: 0 0 6px; font-family: var(--kop); font-size: 22px; color: var(--groen); }
+    .bedankt p { margin: 0; color: var(--zacht); }
+
+    footer { padding: 32px 0 calc(40px + env(safe-area-inset-bottom)); color: var(--grijs); font-size: 13px; }
+    footer .breedte { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+    footer a { color: var(--grijs); }
+
+    @media (max-width: 760px) {
+      .drie, .aanbod, .twee, .beloftes, form { grid-template-columns: 1fr; }
+      .twee { gap: 20px; }
+      .merk small { display: none; }
+      .opening .knoppen .knop { flex: 1 1 auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="balk">
+    <div class="breedte">
+      <a class="merk" href="./">
+        <svg viewBox="0 0 100 120" width="16" height="19" aria-hidden="true"><path d="M50 116 C50 116 12 72 12 44 A38 38 0 0 1 88 44 C88 72 50 116 50 116Z" fill="#F2F1EE"></path><g transform="rotate(32 50 44)"><ellipse cx="50" cy="44" rx="14" ry="20" fill="#0B0B0B"></ellipse></g></svg>
+        WAYPOUR <small data-k="balkTitel">voor koffiebars</small>
+      </a>
+      <div class="talen" role="group" aria-label="Taal / Langue">
+        <button type="button" data-taal="nl">NL</button>
+        <button type="button" data-taal="fr">FR</button>
+      </div>
+      <a class="naarApp" href="./" data-k="naarApp">Open de app</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="opening">
+      <div class="breedte">
+        <p class="klein" data-k="kicker">Voor koffiebars</p>
+        <h1 data-k="titel">Fietsers en koffieliefhebbers vinden jouw bar.</h1>
+        <p class="intro" data-k="intro">Waypour is een kaart met de beste specialty koffiebars van België, voor wie fietst, werkt of gewoon goede koffie zoekt. Fietsers plannen er hun rit langs een koffiestop en spreken af met vrienden. Een plek op de kaart is gratis, en nooit te koop.</p>
+        <div class="knoppen">
+          <a class="knop hoofd" href="#aanmelden" data-k="knopAanmelden">Meld je bar aan – gratis</a>
+          <a class="knop" href="./" data-k="knopApp">Bekijk de app</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="blok">
+      <div class="breedte">
+        <h2 data-k="watTitel">Wat Waypour doet</h2>
+        <p class="uitleg" data-k="watUitleg">Gemaakt door een student en wielrenner uit België, voor mensen die een goede koffie meer waard vinden dan de dichtstbijzijnde.</p>
+        <div class="drie">
+          <div class="kaart">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
+            <h3 data-k="wat1Titel">Een kaart met enkel goede koffie</h3>
+            <p data-k="wat1">Per stad en regio, met openingsuren, foto's en wat je mag verwachten: cycling-friendly, laptop-vriendelijk, open op zondag.</p>
+          </div>
+          <div class="kaart">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="17" r="3.5"></circle><circle cx="18.5" cy="17" r="3.5"></circle><path d="M5.5 17l4-8h6l3 8M9.5 9L8 6h3M15.5 9l-2 8"></path></svg>
+            <h3 data-k="wat2Titel">Routes langs een koffiestop</h3>
+            <p data-k="wat2">Fietsers plannen een rit die langs jouw bar loopt en zetten hem op hun Garmin of Wahoo. Zo stoppen ze bij jou in plaats van bij het eerste tankstation.</p>
+          </div>
+          <div class="kaart">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M17 14.5c2.4 0 4.1 1.5 4.6 4"></path></svg>
+            <h3 data-k="wat3Titel">Samen afspreken</h3>
+            <p data-k="wat3">Vrienden nodigen elkaar uit voor een rit naar een bar, met dag en uur. Een groepje van vijf aan je toog, op zondagochtend.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blok">
+      <div class="breedte">
+        <h2 data-k="kiesTitel">Hoe kiezen we bars?</h2>
+        <p class="uitleg" data-k="kiesUitleg">Waypour is alleen iets waard als de lijst klopt. Daarom gelden deze regels, voor iedereen.</p>
+        <ul class="beloftes">
+          <li><span class="vink">✓</span><div><b data-k="b1Titel">We kiezen zelf, op de koffie</b><span data-k="b1">Specialty koffie, met zorg gezet. We gaan zelf langs of vertrouwen op mensen die we kennen.</span></div></li>
+          <li><span class="vink">✓</span><div><b data-k="b2Titel">Een plek is nooit te koop</b><span data-k="b2">Betalen geeft geen betere plaats in de lijst of op de kaart. Ook niet als partner.</span></div></li>
+          <li><span class="vink">✓</span><div><b data-k="b3Titel">Kwaliteit telt, altijd</b><span data-k="b3">Gaat de koffie erop achteruit, dan verdwijnt een bar van de kaart. Ook als hij betaalt.</span></div></li>
+          <li><span class="vink">✓</span><div><b data-k="b4Titel">Geen advertenties, geen data verkopen</b><span data-k="b4">Gebruikers zien geen banners, en we verkopen nooit gegevens. Alles wat betaald is, staat duidelijk zo vermeld.</span></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="blok">
+      <div class="breedte">
+        <h2 data-k="aanbodTitel">Wat krijg je?</h2>
+        <p class="uitleg" data-k="aanbodUitleg">Sta je op de kaart, dan is dat gratis. Wil je meer, dan komt er een klein pakket voor geselecteerde bars.</p>
+        <div class="aanbod">
+          <div class="pakket">
+            <div class="naam"><h3 data-k="gratisTitel">Gratis</h3><span class="pil" data-k="gratisPil">Voor elke geselecteerde bar</span></div>
+            <p class="prijs">€0</p>
+            <ul>
+              <li data-k="g1">Je staat op de kaart en in de lijst, met foto, openingsuren en een korte tekst</li>
+              <li data-k="g2">Elke maand je cijfers per mail: hoe vaak je bar bekeken werd, hoe vaak iemand de route vroeg en hoe vaak je in een fietsroute of groepsrit zat</li>
+              <li data-k="g3">Je info klopt: stuur ons nieuwe foto's, uren of een tekst, wij passen het aan</li>
+            </ul>
+            <p class="voet" data-k="gratisVoet">Geen contract, geen kosten.</p>
+          </div>
+          <div class="pakket uitgelicht">
+            <div class="naam"><h3 data-k="pakketTitel">Bar-pakket</h3><span class="pil" data-k="pakketPil">Binnenkort</span></div>
+            <p class="prijs">± €7 <small data-k="perMaand">per maand</small></p>
+            <ul>
+              <li data-k="p1">Alles van gratis</li>
+              <li data-k="p2">Uitgebreidere cijfers, met de evolutie van maand tot maand</li>
+              <li data-k="p3">Je events in de app: een coffee ride vanuit je bar, nieuwe bonen, een latte-art-avond</li>
+              <li data-k="p4">Later zelf je foto's, uren en tekst aanpassen</li>
+              <li data-k="p5">Een sticker "Te vinden op Waypour" voor je raam</li>
+            </ul>
+            <p class="voet" data-k="pakketVoet">Alleen voor bars die al geselecteerd zijn. Maandelijks opzegbaar.</p>
+          </div>
+        </div>
+        <p class="noot" data-k="aanbodNoot">Het bar-pakket geeft nooit een betere plaats in de lijst. Dat blijft zo.</p>
+      </div>
+    </section>
+
+    <section class="blok">
+      <div class="breedte twee">
+        <div>
+          <h2 data-k="fietsTitel">Wat betekent cycling-friendly?</h2>
+          <p class="uitleg" data-k="fietsUitleg">Bij die bars staat een label in de app, en fietsers zoeken er gericht op. Je stopt er makkelijk tijdens een rit.</p>
+        </div>
+        <ul class="tips">
+          <li><b>01</b><span data-k="t1">Je fiets kan veilig staan, het liefst in het zicht van het terras of het raam.</span></li>
+          <li><b>02</b><span data-k="t2">Koersplunje en klikschoenen zijn geen probleem.</span></li>
+          <li><b>03</b><span data-k="t3">Je kan er je drinkbus bijvullen.</span></li>
+          <li><b>04</b><span data-k="t4">Extra fijn: open in het weekend vanaf 8 uur, een pomp of wat gereedschap achter de toog.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="blok" id="aanmelden">
+      <div class="breedte">
+        <h2 data-k="formTitel">Meld je bar aan</h2>
+        <p class="uitleg" data-k="formUitleg">Laat je gegevens achter, dan neem ik binnen een paar dagen contact op. Sta je al op de kaart? Dan kan je hier ook je cijfers of het bar-pakket aanvragen.</p>
+
+        <form id="aanvraag" novalidate>
+          <label class="veld"><span data-k="vBar">Naam van de bar *</span><input name="bar" required maxlength="100" autocomplete="organization"></label>
+          <label class="veld"><span data-k="vGemeente">Gemeente *</span><input name="gemeente" required maxlength="100" autocomplete="address-level2"></label>
+          <label class="veld"><span data-k="vNaam">Jouw naam *</span><input name="naam" required maxlength="80" autocomplete="name"></label>
+          <label class="veld"><span data-k="vEmail">E-mailadres *</span><input name="email" type="email" required maxlength="200" autocomplete="email"></label>
+          <label class="veld"><span data-k="vTelefoon">Telefoon (mag leeg)</span><input name="telefoon" type="tel" maxlength="40" autocomplete="tel"></label>
+          <fieldset>
+            <legend data-k="vWaarvoor">Waarvoor?</legend>
+            <div class="keuzes">
+              <label><input type="radio" name="interesse" value="gratis" checked> <span data-k="kGratis">Gratis vermelding</span></label>
+              <label><input type="radio" name="interesse" value="pakket"> <span data-k="kPakket">Interesse in het bar-pakket</span></label>
+              <label><input type="radio" name="interesse" value="vraag"> <span data-k="kVraag">Ik heb een vraag</span></label>
+            </div>
+          </fieldset>
+          <label class="veld vol"><span data-k="vBericht">Bericht (mag leeg)</span><textarea name="bericht" maxlength="1000"></textarea></label>
+          <!-- Valstrik voor spamrobots: mensen zien dit vakje niet -->
+          <label class="valstrik" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off"></label>
+          <div class="verstuur">
+            <button class="knop hoofd" type="submit" data-k="versturen">Versturen</button>
+            <p><span data-k="privacyZin">We gebruiken je gegevens alleen om je te contacteren over Waypour.</span> <a href="privacy.html" data-k="privacyLink">Privacyverklaring</a></p>
+          </div>
+          <p class="formMelding" id="formMelding" role="status" aria-live="polite"></p>
+        </form>
+
+        <div class="bedankt" id="bedankt" hidden>
+          <h3 data-k="bedanktTitel">Bedankt!</h3>
+          <p data-k="bedankt">Je aanvraag is goed aangekomen. Ik neem binnen een paar dagen contact op.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="breedte">
+      <span>Waypour © 2026</span>
+      <a href="./" data-k="naarApp">Open de app</a>
+      <a href="privacy.html" data-k="privacyLink">Privacyverklaring</a>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
+          integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+  <script src="database.js"></script>
+  <script src="voor-bars.js"></script>
+</body>
+</html>

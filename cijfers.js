@@ -144,6 +144,42 @@ function openCijfers() {
   const venster = document.getElementById("cijfersVenster");
   if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
   tekenCijferOverzicht();
+  tekenAanvragen();
+}
+
+// ---------- Aanvragen van bars (pagina voor-bars.html) ----------
+const INTERESSE = { gratis: "Gratis vermelding", pakket: "Bar-pakket", vraag: "Vraag" };
+async function tekenAanvragen() {
+  const vak = document.getElementById("aanvragenLijst");
+  vak.textContent = "Laden…";
+  let lijst;
+  try { lijst = await haalBarAanvragenOp(); }
+  catch (fout) { vak.textContent = "Niet geladen. Voerde je bar-aanvragen.sql al uit? (" + fout.message + ")"; return; }
+  if (!lijst.length) { vak.innerHTML = `<p class="uitleg">Nog geen aanvragen.</p>`; return; }
+  vak.innerHTML = "";
+  for (const a of lijst) {
+    const div = document.createElement("div");
+    div.className = "aanvraag";
+    const datum = new Date(a.gemaakt).toLocaleDateString("nl-BE", { day: "numeric", month: "short", year: "numeric" });
+    div.innerHTML = `<div class="kop"><b></b><span class="pil"></span></div>
+      <small class="wie"></small>
+      <p class="tekst"></p>
+      <div class="knoppen"><a class="mail">✉️ Mailen</a><button type="button" class="klaar">✓ Afgehandeld</button></div>`;
+    div.querySelector("b").textContent = a.bar + " · " + a.gemeente;
+    div.querySelector(".pil").textContent = INTERESSE[a.interesse] || a.interesse;
+    div.querySelector(".wie").textContent = [a.naam, a.email, a.telefoon, datum, (a.taal || "nl").toUpperCase()].filter(Boolean).join(" · ");
+    const tekstVak = div.querySelector(".tekst");
+    tekstVak.textContent = a.bericht || "";
+    tekstVak.hidden = !a.bericht;
+    div.querySelector(".mail").href = "mailto:" + encodeURIComponent(a.email) +
+      "?subject=" + encodeURIComponent(a.taal === "fr" ? "Waypour – " + a.bar : "Waypour – " + a.bar);
+    div.querySelector(".klaar").onclick = async () => {
+      if (!confirm("Deze aanvraag wissen? (Bewaar eerst wat je nodig hebt.)")) return;
+      try { await verwijderBarAanvraag(a.id); div.remove(); }
+      catch (fout) { alert("Wissen lukte niet: " + fout.message); }
+    };
+    vak.appendChild(div);
+  }
 }
 
 document.getElementById("cijfersKnop").onclick = openCijfers;

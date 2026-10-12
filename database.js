@@ -449,3 +449,19 @@ async function haalBarCijfersOp(sinds, tot = null) {
   if (error) throw error;
   return data || [];
 }
+
+// ---------- Aanvragen van koffiebars (bar-aanvragen.sql, pagina voor-bars.html) ----------
+async function stuurBarAanvraag(velden) {
+  const { error } = await db.from("bar_aanvragen").insert(velden);
+  if (error) throw error;
+}
+// Alleen voor de beheerder
+async function haalBarAanvragenOp() {
+  const { data, error } = await db.from("bar_aanvragen").select("*").order("gemaakt", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+async function verwijderBarAanvraag(id) {
+  const { error } = await db.from("bar_aanvragen").delete().eq("id", id);
+  if (error) throw error;
+}

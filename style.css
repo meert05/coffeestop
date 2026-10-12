@@ -1824,3 +1824,16 @@ body.barOpen #lijst { border-top: none; }
 #cijfersCsv { height: 40px; }
 #lijst .cijferTegels { grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); }
 #lijst .cijferTegels span { font-family: var(--lettertype); font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--grijs); }
+
+/* Aanvragen van bars in het venster "Cijfers" */
+#aanvragenLijst { display: flex; flex-direction: column; gap: 10px; }
+#cijfersVenster h3 a { color: var(--grijs); font-size: 11px; letter-spacing: 0; text-transform: none; margin-left: 6px; }
+.aanvraag { padding: 14px; border: 1px solid var(--lijn); border-radius: 12px; display: flex; flex-direction: column; gap: 6px; }
+.aanvraag .kop { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.aanvraag .pil { flex: none; padding: 3px 9px; border-radius: 999px; background: var(--vlak); font-size: 11px; color: var(--grijs); }
+.aanvraag .wie { color: var(--grijs); font-size: 12px; overflow-wrap: anywhere; }
+.aanvraag .tekst { margin: 0; font-size: 14px; white-space: pre-wrap; color: #CFCEC9; }
+.aanvraag .knoppen { display: flex; gap: 8px; margin-top: 4px; }
+.aanvraag .mail { display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border: 1px solid var(--lijn); border-radius: 10px; font-size: 13px; text-decoration: none; }
+.aanvraag .klaar { height: 34px; padding: 0 12px; }
+#lijstVak > footer { display: flex; flex-wrap: wrap; gap: 6px 16px; }
