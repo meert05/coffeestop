@@ -1798,3 +1798,29 @@ body.barOpen #lijst { border-top: none; }
   #filters { flex-direction: row; align-items: center; gap: 12px; }
   #filters .zoekVeld { flex: 0 1 420px; height: 44px; }
 }
+
+/* ---------- Cijfers per bar (beheer-modus, cijfers.js) ---------- */
+.barCijfers { margin-top: 20px; padding: 16px; border: 1px dashed var(--lijn); border-radius: 14px; }
+.barCijfers h4 { margin: 0 0 12px; font-family: var(--lettertype); font-size: 13px; font-weight: 600; color: var(--grijs); }
+.cijferTegels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: var(--grijs); }
+.cijferTegels .tegel { display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; border-radius: 10px; background: var(--vlak); min-width: 0; }
+.cijferTegels b { font-family: var(--kop); font-size: 20px; font-weight: 700; color: var(--tekst); }
+.cijferTegels span { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rapportKnoppen { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.rapportKnoppen button { height: 36px; padding: 0 12px; }
+.rapportMelding { display: block; margin-top: 8px; font-size: 12px; color: var(--grijs); }
+.rapportMelding:empty { display: none; }
+@media (max-width: 420px) { .cijferTegels { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+#cijfersKnop[hidden] { display: none; }
+#cijfersPeriode { margin: 0; flex-wrap: wrap; overflow: visible; padding: 0; }
+#cijfersTabel { overflow-x: auto; margin: 0 0 16px; }
+.cijferTabel { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cijferTabel th, .cijferTabel td { padding: 9px 8px; border-bottom: 1px solid var(--lijn); text-align: right; white-space: nowrap; }
+.cijferTabel th:first-child, .cijferTabel td:first-child { text-align: left; white-space: normal; padding-left: 0; }
+.cijferTabel th { font-weight: 500; color: var(--grijs); font-size: 12px; }
+.cijferTabel td { font-variant-numeric: tabular-nums; }
+.cijferTabel tr.totaal td { font-weight: 700; }
+#cijfersCsv { height: 40px; }
+#lijst .cijferTegels { grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); }
+#lijst .cijferTegels span { font-family: var(--lettertype); font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--grijs); }

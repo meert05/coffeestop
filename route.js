@@ -138,6 +138,7 @@ function wisselBarInRoute(stop) {
     routePunten = routePunten.filter(p => p.stopId !== stop.id);
   } else {
     voegInOpBesteplek({ lat: stop.lat, lng: stop.lng, naam: stop.naam, stopId: stop.id });
+    if (typeof telBar === "function") telBar(stop.id, "in_route");   // anoniem tellen
   }
   routeGewijzigd();
 }
@@ -380,6 +381,7 @@ async function wisselOmweg(stop) {
     routeGewijzigd();
     return;
   }
+  if (typeof telBar === "function") telBar(stop.id, "in_route");   // anoniem tellen
   const deze = routeImport;
   const index = dichtstePuntIndex(deze.spoor, [stop.lat, stop.lng]);
   const [lat, lng] = deze.spoor[index];

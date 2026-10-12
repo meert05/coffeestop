@@ -65,6 +65,7 @@ function zetBeheerModus() {
   const knop = document.getElementById("beheerKnop");
   knop.hidden = !isBeheerder();
   knop.classList.toggle("actief", inBeheer());
+  document.getElementById("cijfersKnop").hidden = !inBeheer();
 }
 document.getElementById("beheerKnop").onclick = () => {
   beheerModus = !beheerModus;
@@ -243,6 +244,7 @@ function tekenLijst(stops) {
               ${kenmerkenVan(stop).includes(k) ? "checked" : ""}> ${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</label>`).join("")}
           ${urenBewerkenHTML(stop)}
         </div>` : ""}
+        ${typeof barCijfersHTML === "function" ? barCijfersHTML(stop) : ""}
         ${inBeheer() ? `<div class="beheerActies">
           <button type="button" class="kenmerkKnop">${t("kenmerkenBewerken")}</button>
           <button type="button" class="fotoKnop">${t("foto")}</button>
@@ -264,11 +266,22 @@ function tekenLijst(stops) {
       openUitnodiging({ stop });
     };
 
+    // Anoniem tellen: iemand vraagt de route (cijfers.js)
+    li.querySelector(".knopHoofd").addEventListener("click", () => {
+      if (typeof telBar === "function") telBar(stop.id, "route");
+    });
+
+    // Cijfers van deze bar (alleen de beheerder, in beheer-modus)
+    if (typeof vulBarCijfers === "function") vulBarCijfers(li, stop);
+
     // Favoriet aan/uit
     li.querySelector(".ster").onclick = async (event) => {
       event.stopPropagation();
       if (isFavoriet) favorieten = favorieten.filter(id => id !== stop.id);
-      else favorieten.push(stop.id);
+      else {
+        favorieten.push(stop.id);
+        if (typeof telBar === "function") telBar(stop.id, "favoriet");
+      }
       bewaarLokaal();
       teken();
 

@@ -585,6 +585,7 @@ document.getElementById("nodigUitFormulier").onsubmit = async (event) => {
       route: uitnodigingVoor.route || null
     };
     await maakRit(rit, gekozen);
+    if (rit.stop_id && typeof telBar === "function") telBar(rit.stop_id, "rit");   // anoniem tellen
     document.getElementById("nodigUit").close();
     toonMelding(t("uitnodigingVerstuurd"));
     laadRitten();

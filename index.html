@@ -391,8 +391,28 @@
         </button>
         <!-- Alleen voor de beheerder: je beheerknoppen aan of uit -->
         <button id="beheerKnop" type="button" class="chip" hidden data-t="beheer">⚙️ Beheer</button>
+        <button id="cijfersKnop" type="button" class="chip" hidden>📊 Cijfers</button>
       </div>
     </div>
+
+    <!-- ===== CIJFERS PER BAR (alleen de beheerder, cijfers.js) ===== -->
+    <dialog id="cijfersVenster" class="venster">
+      <div class="profielKop">
+        <h2>📊 Cijfers</h2>
+        <button id="cijfersSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+      <section>
+        <div id="cijfersPeriode" class="chips">
+          <button type="button" class="chip" data-periode="7">7 dagen</button>
+          <button type="button" class="chip" data-periode="30">30 dagen</button>
+          <button type="button" class="chip" data-periode="90">90 dagen</button>
+          <button type="button" class="chip" data-periode="vorigeMaand">Vorige maand</button>
+        </div>
+        <p class="uitleg ruimte">Anoniem geteld: we weten niet wie. Jouw eigen klikken tellen niet mee.</p>
+        <div id="cijfersTabel"></div>
+        <button id="cijfersCsv" type="button">⬇️ Download als CSV</button>
+      </section>
+    </dialog>
 
     <!-- ===== REGIO KIEZEN: land en stad, in een paneel ===== -->
     <dialog id="regioVenster" class="venster paneel">
@@ -577,6 +597,7 @@
   <script src="chat.js"></script>
   <script src="import.js"></script>
   <script src="scherm.js"></script>
+  <script src="cijfers.js"></script>
   <script src="pwa.js"></script>
 
   <!-- Balkje onderaan op de gsm: Waypour als app installeren (pwa.js) -->

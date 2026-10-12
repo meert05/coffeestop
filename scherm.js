@@ -142,6 +142,7 @@ function zetBarScherm() {
 // Opgeroepen door kies() in app.js, na een klik op een bar
 function barGeopend(bron) {
   if (!document.body.classList.contains("barOpen")) return;
+  if (typeof telBar === "function") telBar(gekozenStop, "bekeken");   // anoniem tellen (cijfers.js)
   lijstVak.scrollTop = 0;
   if (gsmScherm.matches) {
     zetVel(bron === "kaart" ? "half" : "vol");

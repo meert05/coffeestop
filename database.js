@@ -435,3 +435,17 @@ async function markeerGelezen(vanId) {
     .update({ gelezen: true }).eq("van", vanId).eq("naar", gebruiker.id).eq("gelezen", false);
   if (error) throw error;
 }
+
+// ---------- Anonieme tellers per bar (tellers.sql) ----------
+// We bewaren niet wie het was: alleen bar, dag, soort en een aantal.
+async function telBarInDatabase(stopId, soort) {
+  const { error } = await db.rpc("tel_bar", { bar: stopId, wat: soort });
+  if (error) throw error;
+}
+
+// Alleen voor de beheerder: totalen per bar en per soort tussen twee dagen ("2026-10-01")
+async function haalBarCijfersOp(sinds, tot = null) {
+  const { data, error } = await db.rpc("bar_cijfers", { sinds: sinds, tot: tot });
+  if (error) throw error;
+  return data || [];
+}
