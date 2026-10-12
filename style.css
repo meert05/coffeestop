@@ -1850,3 +1850,73 @@ body.barOpen #lijst { border-top: none; }
 .barOproep .pijl { flex: none; font-size: 26px; line-height: 1; color: var(--grijs); }
 #welkom .barOproep { margin-top: 32px; }
 body.barOpen #lijstVak > .barOproep { display: none; }
+
+/* =====================================================
+   RUSTIG ONTWERP – het paneel "Route plannen"
+   ===================================================== */
+#routePaneel {
+  gap: 12px; padding: 20px; border-radius: 18px; background: var(--vlak);
+  font-family: var(--lettertype); font-size: 14px; font-weight: 400; color: var(--tekst);
+}
+#routePaneel > strong {
+  font-family: var(--kop); font-size: 18px; font-weight: 700; letter-spacing: -0.01em; text-transform: none; color: var(--tekst);
+}
+#routeLeeg { font-size: 14px; line-height: 1.5; color: #BDBCB7; }
+
+/* Tussentitels: gewone letters */
+#routeTips > strong, #routeBijvullen > strong, #bijvulBeheer > strong, #mijnRoutes > strong, #publiekeRoutes > strong {
+  font-family: var(--lettertype); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--grijs);
+}
+#routeBijvullen .bijvulStop { font-family: var(--lettertype); font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--grijs); }
+
+/* Namen en kleine tekst in de lijstjes */
+#routeStops li.bar .naam, #routeTips li b, #routeBijvullen li b, #mijnRoutes li b, #publiekeRoutes li b {
+  font-family: var(--lettertype); font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none;
+}
+#routeStops .nr, #routeTips li small, #routeBijvullen li small, #mijnRoutes li small, #publiekeRoutes li small,
+#routeSamenvatting span, #routeMelding {
+  font-family: var(--lettertype); font-size: 12px; letter-spacing: 0; color: var(--grijs);
+}
+#routeStops li { padding: 10px 0; font-size: 15px; }
+#routeTips li, #routeBijvullen li, #mijnRoutes li, #publiekeRoutes li { padding: 10px 0; }
+#routeBijvullen li .bijvulFoto { border-radius: 8px; }
+
+/* Afstand en hoogtemeters: groot en rustig */
+#routeSamenvatting { gap: 6px 14px; }
+#routeSamenvatting b { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+#routeSamenvatting b.hm { font-size: 18px; color: var(--grijs); }
+
+/* Knoppen: zelfde zachte stijl als de rest */
+#routeStijlen { gap: 8px; }
+#routeStijlen button, .routeKnoppen button, #routeTips li button, #routeBijvullen li button,
+#mijnRoutes .knopjes button, #publiekeRoutes .knopjes button {
+  height: 36px; padding: 0 14px; border-radius: 10px; border-color: var(--lijn);
+  font-family: var(--lettertype); font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none;
+}
+#routeStijlen button { border-radius: 18px; }
+#routeStijlen button.actief, #mijnRoutes .knopjes [data-publiek].actief {
+  background: var(--tekst); border-color: var(--tekst); color: var(--achtergrond);
+}
+#routeStops .knopjes button { height: 32px; min-width: 32px; padding: 0 6px; border-radius: 8px; font-size: 14px; }
+.routeKnoppen { gap: 8px; }
+.routeKnoppen .link { height: auto; border: none; padding: 0 4px; color: var(--grijs); }
+#routeGpx, #routeBewaar { background: var(--tekst); border-color: var(--tekst); color: var(--achtergrond); }
+#routeGpx:hover, #routeBewaar:hover { opacity: 0.9; background: var(--tekst); color: var(--achtergrond); }
+#routeGpx:disabled, #routeBewaar:disabled { opacity: 0.35; }
+
+/* "Eigen GPX inladen": een gewone knop */
+#routePaneel .knopLabel {
+  align-self: flex-start; display: inline-flex; align-items: center; height: 40px; padding: 0 16px;
+  border: 1px dashed var(--lijn); border-radius: 12px;
+  font-family: var(--lettertype); font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--tekst);
+}
+#routePaneel .knopLabel:hover { border-color: var(--grijs); }
+#routePaneel .vinkje { font-size: 14px; }
+
+/* Nummertjes van de punten op de kaart: rond */
+.routePunt { border-radius: 50%; font-family: var(--lettertype); }
+#routeStops li.import .naam { font-family: var(--lettertype); font-weight: 600; text-transform: none; }
+#routeStops .omwegKm { font-family: var(--lettertype); font-size: 12px; }
+#routeStops li.bar .naam::before { content: none; }
+#routeStops li.bar .nr { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--tekst); color: var(--achtergrond); font-size: 11px; font-weight: 600; }
+#routeStops .knopjes button { color: var(--grijs); }
