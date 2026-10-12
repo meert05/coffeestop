@@ -83,8 +83,8 @@ function openingsurenHTML(stop) {
   if (status === null) return "";
 
   const kop = status.open
-    ? `🟢 ${t("nuOpen")} · ${t("tot")} ${status.tot}`
-    : `🔴 ${t("gesloten")}${status.opent ? " · " + t("opent") + " " + status.opent : ""}`;
+    ? `${t("nuOpen")} · ${t("tot")} ${status.tot}`
+    : `${t("gesloten")}${status.opent ? " · " + t("opent") + " " + status.opent : ""}`;
 
   const vandaag = DAGEN[new Date().getDay()];
   const week = WEEK.map(dag => `
@@ -93,7 +93,7 @@ function openingsurenHTML(stop) {
       <span>${stop.openingsuren[dag] ? esc(stop.openingsuren[dag]) : t("gesloten")}</span>
     </li>`).join("");
 
-  return `<details class="uren"><summary>${kop}</summary><ul>${week}</ul></details>`;
+  return `<details class="uren"><summary><span>${t("openingsuren")}</span><span class="waarde ${status.open ? "open" : ""}">${kop}</span></summary><ul>${week}</ul></details>`;
 }
 
 // De invulvakjes voor de beheerder (in het paneel "✏️ Aanpassen")

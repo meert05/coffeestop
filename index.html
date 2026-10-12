@@ -389,7 +389,6 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
           <span data-t="filtersTitel">Filters</span><span id="filterAantal"></span>
         </button>
-        <button id="routeKnop" type="button" class="chip" data-t="routePlannen">🚴 Route plannen</button>
         <!-- Alleen voor de beheerder: je beheerknoppen aan of uit -->
         <button id="beheerKnop" type="button" class="chip" hidden data-t="beheer">⚙️ Beheer</button>
       </div>
@@ -427,9 +426,34 @@
     </dialog>
 
     <main>
-      <div id="kaart"></div>
+      <!-- De kaart, met zwevende knoppen: mijn locatie en route plannen -->
+      <div id="kaartVak">
+        <div id="kaart"></div>
+        <div class="kaartKnoppen">
+          <button id="locatieKnop" type="button" class="rondKnop zweef" aria-label="Toon mijn locatie" data-t-label="toonLocatie">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
+          </button>
+          <button id="routeKnop" type="button" class="zweefKnop">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="17" r="3.5"></circle><circle cx="18.5" cy="17" r="3.5"></circle><path d="M5.5 17l4-8h6l3 8M9.5 9L8 6h3M15.5 9l-2 8"></path></svg>
+            <span data-t="routePlannen">Route plannen</span>
+          </button>
+        </div>
+      </div>
 
-      <section>
+      <!-- De lijst: op een gsm een paneel dat je omhoog en omlaag schuift -->
+      <section id="lijstVak">
+        <div id="lijstKop">
+          <div class="greep" aria-hidden="true"></div>
+          <div class="lijstTitel">
+            <h2 id="lijstTitel">Koffiebars</h2>
+            <span id="teller"></span>
+          </div>
+          <!-- Een bar open? Dan een knop terug naar de lijst -->
+          <button id="terugNaarLijst" type="button" class="terugKnop" hidden>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+            <span data-t="alleBars">Alle koffiebars</span>
+          </button>
+        </div>
         <!-- Route plannen: zichtbaar na een klik op "🚴 Route plannen" -->
         <div id="routePaneel" hidden>
           <strong data-t="jouwRoute">Jouw route</strong>
@@ -509,6 +533,8 @@
         <!-- Voor de beheerder: voorstellen van gebruikers -->
         <div id="voorstellenBeheer" hidden></div>
 
+        <ul id="lijst"></ul>
+
         <!-- Voor gebruikers: een bar voorstellen -->
         <div id="voorstelBlok" hidden>
           <button id="voorstelKnop" type="button" data-t="barVoorstellen">➕ Bar voorstellen</button>
@@ -521,14 +547,11 @@
           <small id="voorstelMelding"></small>
         </div>
 
-        <p id="teller"></p>
-        <ul id="lijst"></ul>
+        <footer>
+          <a href="privacy.html" target="_blank" data-t="privacyLink">Privacyverklaring</a>
+        </footer>
       </section>
     </main>
-
-    <footer>
-      <a href="privacy.html" target="_blank" data-t="privacyLink">Privacyverklaring</a>
-    </footer>
   </div>
 
   <!-- Bibliotheken: kaart en database -->
@@ -553,6 +576,7 @@
   <script src="vrienden.js"></script>
   <script src="chat.js"></script>
   <script src="import.js"></script>
+  <script src="scherm.js"></script>
   <script src="pwa.js"></script>
 
   <!-- Balkje onderaan op de gsm: Waypour als app installeren (pwa.js) -->

@@ -127,6 +127,9 @@ const teksten = {
     nieuwLabel: "Nieuw",
     beheer: "⚙️ Beheer",
     openTot: "Open tot {uur}",
+    aantalBars: "{n} koffiebars", eenBar: "1 koffiebar", dichtstbijEerst: "dichtstbij eerst", dichtbijJou: "Dichtbij jou",
+    alleBars: "Alle koffiebars", favoriet: "Bewaar als favoriet", toonLocatie: "Toon mijn locatie", reviewsTitel: "Reviews", routeKort: "Route",
+    ritKort: "Rit plannen", lijstGreep: "Lijst groter of kleiner maken", koffiebarsTitel: "Koffiebars",
     dichtOpent: "Gesloten · opent {uur}",
     toonAantal: "Toon {n} koffiebars",
     toonEen: "Toon 1 koffiebar",
@@ -227,7 +230,7 @@ const teksten = {
     toevoegen: "Toevoegen",
     stops: "stops",
     // Route plannen
-    routePlannen: "🚴 Route plannen",
+    routePlannen: "Route plannen",
     jouwRoute: "Jouw route",
     routeUitleg: "Klik op de kaart om punten toe te voegen, en op een bar (of ➕ in de lijst) om ze mee te nemen. Of laad je eigen GPX in.",
     rondrit: "Rondrit: terug naar de start",
@@ -517,6 +520,9 @@ const teksten = {
     nieuwLabel: "Nouveau",
     beheer: "⚙️ Gestion",
     openTot: "Ouvert jusqu'à {uur}",
+    aantalBars: "{n} cafés", eenBar: "1 café", dichtstbijEerst: "le plus proche d'abord", dichtbijJou: "Près de toi",
+    alleBars: "Tous les cafés", favoriet: "Ajouter aux favoris", toonLocatie: "Afficher ma position", reviewsTitel: "Avis", routeKort: "Itinéraire",
+    ritKort: "Planifier une sortie", lijstGreep: "Agrandir ou réduire la liste", koffiebarsTitel: "Cafés",
     dichtOpent: "Fermé · ouvre {uur}",
     toonAantal: "Voir {n} bars à café",
     toonEen: "Voir 1 bar à café",
@@ -617,7 +623,7 @@ const teksten = {
     toevoegen: "Ajouter",
     stops: "arrêts",
     // Route plannen
-    routePlannen: "🚴 Planifier un parcours",
+    routePlannen: "Planifier un parcours",
     jouwRoute: "Ton parcours",
     routeUitleg: "Clique sur la carte pour ajouter des points, et sur un bar (ou ➕ dans la liste) pour l'inclure. Ou importe ton propre GPX.",
     rondrit: "Boucle : retour au départ",
@@ -883,6 +889,9 @@ const teksten = {
     nieuwLabel: "New",
     beheer: "⚙️ Manage",
     openTot: "Open until {uur}",
+    aantalBars: "{n} coffee bars", eenBar: "1 coffee bar", dichtstbijEerst: "nearest first", dichtbijJou: "Near you",
+    alleBars: "All coffee bars", favoriet: "Save as favourite", toonLocatie: "Show my location", reviewsTitel: "Reviews", routeKort: "Directions",
+    ritKort: "Plan a ride", lijstGreep: "Make the list bigger or smaller", koffiebarsTitel: "Coffee bars",
     dichtOpent: "Closed · opens {uur}",
     toonAantal: "Show {n} coffee bars",
     toonEen: "Show 1 coffee bar",
@@ -983,7 +992,7 @@ const teksten = {
     toevoegen: "Add",
     stops: "stops",
     // Route plannen
-    routePlannen: "🚴 Plan a route",
+    routePlannen: "Plan a route",
     jouwRoute: "Your route",
     routeUitleg: "Click the map to add points, and click a bar (or ➕ in the list) to include it. Or import your own GPX.",
     rondrit: "Loop: back to the start",
@@ -1142,6 +1151,11 @@ function vertaalPagina() {
   // Elementen met data-t="..." krijgen de vertaalde tekst
   document.querySelectorAll("[data-t]").forEach(el => {
     el.textContent = t(el.dataset.t);
+  });
+
+  // Knoppen met alleen een icoon: data-t-label="..." wordt de uitleg voor schermlezers
+  document.querySelectorAll("[data-t-label]").forEach(el => {
+    el.setAttribute("aria-label", t(el.dataset.tLabel));
   });
 
   // Invulvakken met data-t-placeholder="..." krijgen een vertaalde voorbeeldtekst

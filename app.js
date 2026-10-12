@@ -131,8 +131,7 @@ function tekenKaart(stops) {
     stip.on("click", () => {
       // Route plannen staat aan? Dan gaat de bar in (of uit) je route
       if (typeof routeKlikOpBar === "function" && routeKlikOpBar(stop)) return;
-      kies(stop.id);
-      toonKaartje(stop);              // op een gsm: een kaartje onderaan de kaart
+      kies(stop.id, "kaart");
     });
     stip.addTo(stippen);
   }
@@ -169,7 +168,13 @@ function kortRegel(stop) {
 }
 
 function tekenLijst(stops) {
-  document.getElementById("teller").textContent = stops.length + " " + t("stops");
+  // Kopje boven de lijst: "Dichtbij jou" of de regio, en het aantal bars
+  const aantal = stops.length === 1 ? t("eenBar") : t("aantalBars").replace("{n}", stops.length);
+  document.getElementById("teller").textContent = aantal + (mijnPlek ? " · " + t("dichtstbijEerst") : "");
+  document.getElementById("lijstTitel").textContent = mijnPlek ? t("dichtbijJou")
+    : gekozenStad !== "alles" ? groepNaam(gekozenStad)
+    : gekozenLand !== "alles" ? landNaam(gekozenLand)
+    : t("koffiebarsTitel");
 
   const lijst = document.getElementById("lijst");
   lijst.innerHTML = "";
@@ -190,46 +195,67 @@ function tekenLijst(stops) {
     const route = "https://www.google.com/maps/search/?api=1&query=" +
                   encodeURIComponent(stop.naam + " " + (stop.adres || ""));
 
+    // Open of dicht, als eerste label
+    const status = typeof openStatus === "function" ? openStatus(stop) : null;
+    const statusLabel = status === null ? ""
+      : status.open ? `<span class="label open">${esc(t("openTot").replace("{uur}", status.tot))}</span>`
+      : `<span class="label dicht">${esc(status.opent ? t("dichtOpent").replace("{uur}", status.opent) : t("gesloten"))}</span>`;
+
     li.innerHTML = `
       ${stop.foto ? `<img class="foto" src="${esc(stop.foto)}" alt="">` : ""}
-      <button class="ster">${isFavoriet ? "★" : "☆"}</button>
+      <button type="button" class="ster" aria-label="${esc(t("favoriet"))}">${isFavoriet ? "★" : "☆"}</button>
       <h3></h3>
       <small></small>
       ${mijnPlek ? `<span class="afstand">${afstandTekst(stop)}</span>` : ""}
       <div class="kort">${kortRegel(stop)}</div>
       <div class="detail">
-      <p></p>
-      ${openingsurenHTML(stop)}
-      <div class="labels">
-        ${isNieuw(stop) ? `<span class="label nieuwLabel">✨ ${t("nieuwLabel")}</span>` : ""}
-        ${stop.zichtbaar === false ? `<span class="label verborgenLabel">🙈 ${t("verborgen")}</span>` : ""}
-        ${stop.type !== "coffee" ? `<span class="label" title="${esc(t("wielerUitleg"))}">🚴 ${t("wieler")}</span>` : ""}
-        ${kenmerkenVan(stop).filter(k => KENMERKEN[k])
-            .map(k => `<span class="label">${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</span>`).join("")}
-      </div>
-      ${bewerkKenmerkenVan === stop.id ? `<div class="kenmerkBewerken">
-        <label class="vinkje"><input type="checkbox" class="soortWieler"
-            ${stop.type !== "coffee" ? "checked" : ""}> 🚴 ${t("wieler")}</label>
-        ${Object.keys(KENMERKEN).map(k => `<label class="vinkje"><input type="checkbox" class="kenmerk" value="${k}"
-            ${kenmerkenVan(stop).includes(k) ? "checked" : ""}> ${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</label>`).join("")}
-        ${urenBewerkenHTML(stop)}
-      </div>` : ""}
-      <div class="acties">
+        <div class="labels">
+          ${statusLabel}
+          ${isNieuw(stop) ? `<span class="label nieuwLabel">✨ ${t("nieuwLabel")}</span>` : ""}
+          ${stop.zichtbaar === false ? `<span class="label verborgenLabel">🙈 ${t("verborgen")}</span>` : ""}
+          ${stop.type !== "coffee" ? `<span class="label" title="${esc(t("wielerUitleg"))}">${t("wieler")}</span>` : ""}
+          ${kenmerkenVan(stop).filter(k => KENMERKEN[k])
+              .map(k => `<span class="label">${t("kenmerk_" + k)}</span>`).join("")}
+        </div>
+        <p class="info"></p>
+        <!-- Twee hoofdknoppen: route en samen gaan -->
+        <div class="hoofdActies">
+          <a class="knopHoofd" href="${route}" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8z"></path></svg>
+            <span>${esc(t("routeKort"))}</span>
+          </a>
+          ${gebruiker ? `<button type="button" class="uitnodigKnop knopTwee">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><path d="M19 8v6M16 11h6"></path></svg>
+            <span>${esc(t("ritKort"))}</span>
+          </button>` : ""}
+        </div>
         ${typeof routeKnopHTML === "function" ? routeKnopHTML(stop) : ""}
-        <a href="${route}" target="_blank">${t("route")}</a>
-        <button class="reviewKnop">${reviewKnopTekst(stop)}</button>
-        ${gebruiker && typeof uitnodigKnopHTML === "function" ? uitnodigKnopHTML(stop) : ""}
-        ${inBeheer() ? `<button class="kenmerkKnop">${t("kenmerkenBewerken")}</button>` : ""}
-        ${inBeheer() ? `<button class="fotoKnop">${t("foto")}</button>` : ""}
-        ${inBeheer() ? `<button class="zichtKnop">${stop.zichtbaar === false ? t("tonen") : t("verbergen")}</button>` : ""}
-        ${inBeheer() ? `<button class="wis">${t("verwijder")}</button>` : ""}
-      </div>
-      ${reviewsBlokHTML(stop)}
+        <!-- Rustige rijen met meer info -->
+        <div class="rijen">
+          ${openingsurenHTML(stop)}
+          <button type="button" class="reviewKnop rij"><span>${esc(t("reviewsTitel"))}</span><span class="waarde">${reviewKnopTekst(stop)} ›</span></button>
+          ${reviewsBlokHTML(stop)}
+        </div>
+        ${bewerkKenmerkenVan === stop.id ? `<div class="kenmerkBewerken">
+          <label class="vinkje"><input type="checkbox" class="soortWieler"
+              ${stop.type !== "coffee" ? "checked" : ""}> 🚴 ${t("wieler")}</label>
+          ${Object.keys(KENMERKEN).map(k => `<label class="vinkje"><input type="checkbox" class="kenmerk" value="${k}"
+              ${kenmerkenVan(stop).includes(k) ? "checked" : ""}> ${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</label>`).join("")}
+          ${urenBewerkenHTML(stop)}
+        </div>` : ""}
+        ${inBeheer() ? `<div class="beheerActies">
+          <button type="button" class="kenmerkKnop">${t("kenmerkenBewerken")}</button>
+          <button type="button" class="fotoKnop">${t("foto")}</button>
+          <button type="button" class="zichtKnop">${stop.zichtbaar === false ? t("tonen") : t("verbergen")}</button>
+          <button type="button" class="wis">${t("verwijder")}</button>
+        </div>` : ""}
       </div>`;
 
     li.querySelector("h3").textContent = stop.naam;
     li.querySelector("small").textContent = stop.adres || "";
-    li.querySelector("p").textContent = stop["info_" + taal] || stop.info || "";
+    const info = li.querySelector(".info");
+    info.textContent = stop["info_" + taal] || stop.info || "";
+    info.hidden = !info.textContent;
 
     // Vrienden uitnodigen om samen naar deze bar te rijden (vrienden.js)
     const uitnodigKnop = li.querySelector(".uitnodigKnop");
@@ -353,17 +379,23 @@ function tekenLijst(stops) {
     // "➕ In route" (alleen als Route plannen aanstaat)
     if (typeof koppelRouteKnop === "function") koppelRouteKnop(li, stop);
 
-    li.onclick = () => kies(stop.id);
+    // Klik op een bar: het bar-scherm openen (staat hij al open, dan niets doen)
+    li.onclick = () => { if (stop.id !== gekozenStop) kies(stop.id, "lijst"); };
     lijst.appendChild(li);
   }
+  if (typeof zetBarScherm === "function") zetBarScherm();
 }
 
 // ---------- 5. Een stop kiezen ----------
-function kies(id) {
+// bron: "lijst" (klik in de lijst) of "kaart" (klik op een stip)
+function kies(id, bron = "lijst") {
   gekozenStop = id;
   const stop = alleStops.find(s => s.id === id);
-  kaart.setView([stop.lat, stop.lng], 15);
+  if (!stop) return;
+  if (typeof centreerOp === "function") centreerOp([stop.lat, stop.lng], 15);
+  else kaart.setView([stop.lat, stop.lng], 15);
   teken();
+  if (typeof barGeopend === "function") barGeopend(bron);
 }
 
 // ---------- 6. Reageren op wat de gebruiker doet ----------
@@ -1348,61 +1380,4 @@ async function start() {
 
 start();
 
-
-// =====================================================
-//  GSM: kaartje op de kaart en een knop "Lijst / Kaart"
-// =====================================================
-const opGsm = window.matchMedia("(max-width: 560px)");
-
-// Klik je op een stip, dan zie je op een gsm meteen een kaartje onderaan de kaart
-const kaartje = document.createElement("div");
-kaartje.id = "kaartje";
-kaartje.hidden = true;
-document.getElementById("kaart").appendChild(kaartje);
-L.DomEvent.disableClickPropagation(kaartje);
-L.DomEvent.disableScrollPropagation(kaartje);
-
-function toonKaartje(stop) {
-  if (!opGsm.matches) return;
-  kaartje.innerHTML = `
-    ${stop.foto ? `<img src="${esc(stop.foto)}" alt="">` : ""}
-    <div class="tekst">${isNieuw(stop) ? `<span class="nieuwLabel">✨ ${t("nieuwLabel")}</span>` : ""}<b></b><small></small><p></p></div>
-    <button type="button" class="sluiten" aria-label="Sluiten">✕</button>
-    <button type="button" class="meer">${t("meerInfo")}</button>`;
-  kaartje.querySelector("b").textContent = stop.naam;
-  kaartje.querySelector("small").textContent = stop.adres || "";
-  kaartje.querySelector("p").textContent = stop["info_" + taal] || stop.info || "";
-  kaartje.hidden = false;
-  kaartje.querySelector(".sluiten").onclick = () => { kaartje.hidden = true; };
-  kaartje.querySelector(".meer").onclick = () => {
-    kaartje.hidden = true;
-    const li = document.querySelector("#lijst > li.gekozen");
-    if (li) li.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-}
-kaart.on("click", () => { kaartje.hidden = true; });
-
-// Een zwevende knop onderaan: van de kaart naar de lijst, en terug
-const wisselKnop = document.createElement("button");
-wisselKnop.id = "kaartLijstKnop";
-wisselKnop.type = "button";
-document.getElementById("app").appendChild(wisselKnop);
-let kaartInBeeld = true;
-
-function tekenWisselKnop() {
-  const aantal = document.querySelectorAll("#lijst > li").length;
-  wisselKnop.textContent = kaartInBeeld ? t("naarLijst") + " · " + aantal : t("naarKaart");
-}
-if ("IntersectionObserver" in window) {
-  new IntersectionObserver((items) => {
-    kaartInBeeld = items[0].isIntersecting;
-    tekenWisselKnop();
-  }, { threshold: 0.35 }).observe(document.getElementById("kaart"));
-}
-wisselKnop.onclick = () => {
-  if (kaartInBeeld) document.getElementById("teller").scrollIntoView({ behavior: "smooth", block: "start" });
-  else document.getElementById("steden").scrollIntoView({ behavior: "smooth", block: "start" });
-};
-// De lijst verandert (filter, zoeken, taal): het aantal op de knop mee aanpassen
-new MutationObserver(tekenWisselKnop).observe(document.getElementById("lijst"), { childList: true });
-tekenWisselKnop();
+// Het schuifpaneel, het bar-scherm en de knoppen op de kaart staan in scherm.js

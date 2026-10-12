@@ -48,7 +48,7 @@ document.getElementById("routeKnop").onclick = () => {
   document.getElementById("routePaneel").hidden = !routeModus;
   document.body.classList.toggle("routeAan", routeModus);       // op een gsm blijft de kaart dan bovenaan staan
   setTimeout(() => kaart.invalidateSize(), 50);
-  if (routeModus) document.getElementById("routePaneel").scrollIntoView({ behavior: "smooth", block: "start" });
+  if (routeModus && typeof naarRoutePaneel === "function") naarRoutePaneel();   // scherm.js
   tekenStijlKnoppen();
   tekenRoutePaneel();
   tekenRouteOpKaart();
