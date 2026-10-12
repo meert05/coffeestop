@@ -1837,3 +1837,16 @@ body.barOpen #lijst { border-top: none; }
 .aanvraag .mail { display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border: 1px solid var(--lijn); border-radius: 10px; font-size: 13px; text-decoration: none; }
 .aanvraag .klaar { height: 34px; padding: 0 12px; }
 #lijstVak > footer { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+
+/* Oproep voor koffiebars: onderaan de lijst en op het welkomstscherm */
+.barOproep {
+  display: flex; align-items: center; gap: 14px; margin: 24px 0 0; padding: 18px 18px 18px 20px;
+  border-radius: 16px; background: var(--vlak); border: 1px solid var(--lijn); color: var(--tekst); text-decoration: none;
+}
+.barOproep:hover { border-color: var(--grijs); color: var(--tekst); }
+.barOproep .tekst { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.barOproep b { font-family: var(--kop); font-size: 17px; font-weight: 700; }
+.barOproep .tekst span { font-size: 14px; color: #BDBCB7; line-height: 1.45; }
+.barOproep .pijl { flex: none; font-size: 26px; line-height: 1; color: var(--grijs); }
+#welkom .barOproep { margin-top: 32px; }
+body.barOpen #lijstVak > .barOproep { display: none; }
