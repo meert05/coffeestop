@@ -195,6 +195,7 @@
         <button type="button" data-tab="ritten"><span data-t="tabRitten">Ritten</span> <span class="teller" hidden></span></button>
         <button type="button" data-tab="berichten"><span data-t="tabBerichten">Berichten</span> <span class="teller" hidden></span></button>
         <button type="button" data-tab="vrienden"><span data-t="tabVrienden">Vrienden</span> <span class="teller" hidden></span></button>
+        <button type="button" data-tab="groepen"><span data-t="tabGroepen">Groepen</span> <span class="teller" hidden></span></button>
       </nav>
       <section data-tabblad="ritten">
         <h3 data-t="rittenKop">Geplande ritten</h3>
@@ -236,6 +237,68 @@
         <ul id="vriendenLijst"></ul>
         <p class="uitleg ruimte" data-t="vriendenUitleg">Of deel je vriendenlink: wie erop klikt en inlogt, wordt meteen je vriend. Vrienden zien alleen je voornaam, gebruikersnaam en profielfoto.</p>
         <button id="deelVriendenlink" type="button" data-t="deelVriendenlink">🔗 Deel mijn vriendenlink</button>
+      </section>
+      <!-- Groepen: zoals clubs op Strava (groepen.js) -->
+      <section data-tabblad="groepen" hidden>
+        <!-- Overzicht: mijn groepen, een groep maken, groepen zoeken -->
+        <div id="groepenOverzicht">
+          <h3 data-t="mijnGroepen">Mijn groepen</h3>
+          <ul id="mijnGroepenLijst" class="groepLijst"></ul>
+
+          <h3 data-t="groepZoeken">Groepen zoeken</h3>
+          <form id="groepZoekFormulier" class="rijFormulier">
+            <label class="veld"><span class="srAlleen" data-t="groepZoeken">Groepen zoeken</span>
+              <input id="groepZoek" type="search" maxlength="60" placeholder="Naam of regio, bv. Gent" data-t-placeholder="groepZoekVoorbeeld"></label>
+            <button type="submit" data-t="zoeken">Zoeken</button>
+          </form>
+          <ul id="groepZoekResultaten" class="groepLijst"></ul>
+
+          <details id="groepMakenBlok">
+            <summary data-t="groepMaken">+ Een groep maken</summary>
+            <form id="groepMakenFormulier" class="groepFormulier">
+              <label class="veld"><span data-t="groepNaam">Naam van de groep</span>
+                <input id="groepNaam" required minlength="3" maxlength="60" placeholder="Bv. Gentse Koffierijders" data-t-placeholder="groepNaamVoorbeeld"></label>
+              <label class="veld"><span data-t="groepRegio">Regio (mag leeg)</span>
+                <input id="groepRegio" maxlength="60" placeholder="Bv. Gent" data-t-placeholder="groepRegioVoorbeeld"></label>
+              <label class="veld"><span data-t="groepBeschrijving">Beschrijving (mag leeg)</span>
+                <textarea id="groepBeschrijving" maxlength="500" rows="2" placeholder="Bv. Elke zondag om 9 uur, ± 80 km aan 28 km/u, altijd met een koffiestop." data-t-placeholder="groepBeschrijvingVoorbeeld"></textarea></label>
+              <label class="vinkje"><input id="groepOpenbaar" type="checkbox" checked> <span data-t="groepOpenbaar">Openbaar: iedereen kan de groep vinden en lid worden</span></label>
+              <small id="groepMakenMelding" class="melding"></small>
+              <button type="submit" data-t="groepMakenKnop">Groep maken</button>
+            </form>
+          </details>
+        </div>
+
+        <!-- Eén groep: leden en groepsritten -->
+        <div id="groepDetail" hidden>
+          <button id="groepTerug" type="button" class="terugKnop">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+            <span data-t="alleGroepen">Alle groepen</span>
+          </button>
+          <div id="groepKop"></div>
+          <div id="groepKnoppen" class="groepKnoppen"></div>
+          <form id="groepBewerken" class="groepFormulier" hidden></form>
+
+          <h3 data-t="groepsritten">Groepsritten</h3>
+          <div id="groepRittenLijst"></div>
+          <details id="groepsritBlok">
+            <summary data-t="groepsritPlannen">+ Groepsrit plannen</summary>
+            <form id="groepsritFormulier" class="groepFormulier">
+              <label class="veld"><span data-t="groepsritBar">Naar welke koffiebar?</span>
+                <select id="groepsritBar" required></select></label>
+              <label class="veld"><span data-t="wanneer">Wanneer?</span>
+                <input id="groepsritWanneer" type="datetime-local" required></label>
+              <label class="veld"><span data-t="bericht">Bericht (optioneel)</span>
+                <textarea id="groepsritBericht" maxlength="200" rows="2" placeholder="Zin in een ritje? Koffie op de terugweg ☕" data-t-placeholder="berichtVoorbeeld"></textarea></label>
+              <small id="groepsritMelding" class="melding"></small>
+              <button type="submit" data-t="groepsritKnop">Rit plannen →</button>
+              <p class="uitleg" data-t="groepsritRouteUitleg">Liever een eigen route? Plan ze bij Route plannen en kies daar 👥 Uitnodigen → deze groep.</p>
+            </form>
+          </details>
+
+          <h3 data-t="groepLeden">Leden</h3>
+          <ul id="groepLedenLijst" class="groepLeden"></ul>
+        </div>
       </section>
     </dialog>
 
@@ -281,7 +344,10 @@
           <input id="nodigUitWanneer" type="datetime-local" required></label>
         <label class="veld"><span data-t="bericht">Bericht (optioneel)</span>
           <textarea id="nodigUitBericht" maxlength="200" rows="2" placeholder="Zin in een ritje? Koffie op de terugweg ☕" data-t-placeholder="berichtVoorbeeld"></textarea></label>
-        <h3 data-t="kiesVrienden">Wie nodig je uit?</h3>
+        <!-- Voor vrienden, of als groepsrit voor een van je groepen (groepen.js) -->
+        <label class="veld" id="nodigUitVoorBlok" hidden><span data-t="nodigUitVoor">Voor wie?</span>
+          <select id="nodigUitVoor"></select></label>
+        <h3 id="nodigUitVriendenKop" data-t="kiesVrienden">Wie nodig je uit?</h3>
         <div id="nodigUitVrienden"></div>
         <small id="nodigUitMelding"></small>
         <button id="nodigUitStuur" type="submit" data-t="uitnodigingSturen">Uitnodiging sturen →</button>
@@ -611,6 +677,7 @@
   <script src="profiel.js"></script>
   <script src="vrienden.js"></script>
   <script src="chat.js"></script>
+  <script src="groepen.js"></script>
   <script src="import.js"></script>
   <script src="scherm.js"></script>
   <script src="cijfers.js"></script>

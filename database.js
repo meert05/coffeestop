@@ -489,3 +489,71 @@ async function verwijderAanvraagFoto(pad) {
   const { error } = await db.storage.from("aanvraag-fotos").remove([pad]);
   if (error) throw error;
 }
+
+// ---------- Groepen (groepen.sql) ----------
+async function haalMijnGroepenOp() {
+  const { data, error } = await db.rpc("mijn_groepen");
+  if (error) throw error;
+  return data || [];
+}
+async function zoekGroepen(zoek) {
+  const { data, error } = await db.rpc("groepen_zoeken", { zoek: zoek || "" });
+  if (error) throw error;
+  return data || [];
+}
+async function maakGroep(naam, beschrijving, regio, openbaar) {
+  const { data, error } = await db.rpc("maak_groep", { naam, beschrijving, regio, openbaar });
+  if (error) throw error;
+  return data;   // de id van de nieuwe groep
+}
+async function werkGroepBij(id, velden) {
+  const { error } = await db.from("groepen").update(velden).eq("id", id);
+  if (error) throw error;
+}
+async function verwijderGroep(id) {
+  const { error } = await db.from("groepen").delete().eq("id", id);
+  if (error) throw error;
+}
+async function wordGroepslid(id) {
+  const { data, error } = await db.rpc("word_groepslid", { g: id });
+  if (error) throw error;
+  return data;   // "ok" | "besloten" | "onbekend" | "vol"
+}
+async function wordGroepslidMetCode(code) {
+  const { data, error } = await db.rpc("word_groepslid_met_code", { c: code });
+  if (error) throw error;
+  return data;   // de id van de groep, of null
+}
+async function verlaatGroep(id, wie = gebruiker.id) {
+  const { error } = await db.from("groep_leden").delete().eq("groep", id).eq("gebruiker", wie);
+  if (error) throw error;
+}
+async function haalGroepLedenOp(id) {
+  const { data, error } = await db.rpc("groep_leden_lijst", { g: id });
+  if (error) throw error;
+  return data || [];
+}
+async function haalGroepRittenOp(id) {
+  const vanaf = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();   // ook een rit die net begon
+  const { data, error } = await db.from("groep_ritten").select("*").eq("groep", id).gte("wanneer", vanaf).order("wanneer");
+  if (error) throw error;
+  const ritten = data || [];
+  if (!ritten.length) return [];
+  const mee = await db.from("groep_rit_mee").select("*").in("rit", ritten.map(r => r.id));
+  if (mee.error) throw mee.error;
+  return ritten.map(r => ({ ...r, mee: (mee.data || []).filter(m => m.rit === r.id) }));
+}
+async function maakGroepsrit(rit) {
+  const { error } = await db.from("groep_ritten").insert(rit);
+  if (error) throw error;
+}
+async function verwijderGroepsrit(id) {
+  const { error } = await db.from("groep_ritten").delete().eq("id", id);
+  if (error) throw error;
+}
+async function rijMeeMetGroep(ritId, naam, aan) {
+  const { error } = aan
+    ? await db.from("groep_rit_mee").insert({ rit: ritId, naam: (naam || "").slice(0, 40) || null })
+    : await db.from("groep_rit_mee").delete().eq("rit", ritId).eq("gebruiker", gebruiker.id);
+  if (error) throw error;
+}

@@ -81,6 +81,7 @@ async function vriendenNaInloggen() {
     if (typeof chatNaInloggen === "function") chatNaInloggen();   // live verbinding stoppen
     knop.hidden = true;
     document.getElementById("inboxKnop").hidden = true;
+    if (typeof groepenNaInloggen === "function") groepenNaInloggen();
     // Kwam je via een vriendenlink? Zeg dan dat je eerst moet inloggen.
     if (lokaal("vriendWachtend")) {
       const bericht = document.getElementById("loginBericht");
@@ -117,8 +118,9 @@ async function vriendenNaInloggen() {
   await laadVerzoeken();
   await laadRitten();
 
-  // Berichten en live meldingen (chat.js)
+  // Berichten en live meldingen (chat.js), en je groepen (groepen.js)
   if (typeof chatNaInloggen === "function") chatNaInloggen();
+  if (typeof groepenNaInloggen === "function") groepenNaInloggen();
 
   // Kwam je binnen via de mail over een rit? Dan het venster meteen openen.
   if (lokaal("ritOpenen")) {
@@ -195,6 +197,7 @@ function toonTabblad(tab) {
   document.querySelectorAll("#samenTabs button").forEach(k => k.classList.toggle("actief", k.dataset.tab === tab));
   document.querySelectorAll("#ritten [data-tabblad]").forEach(s => { s.hidden = s.dataset.tabblad !== tab; });
   if (tab === "berichten" && typeof tekenGesprekken === "function") tekenGesprekken();
+  if (tab === "groepen" && typeof tekenGroepen === "function") tekenGroepen();
   // Wat je in het tabblad Ritten ziet, telt als gezien
   if (tab === "ritten" && mijnRitten.some(r => r.genodigden.some(g => g.gebruiker === gebruiker.id && !g.gezien))) {
     markeerRittenGezien().catch(console.error);
@@ -561,12 +564,16 @@ function openUitnodiging(wat) {
     vak.appendChild(label);
   }
   document.getElementById("nodigUitStuur").disabled = !mijnVrienden.length;
+  if (typeof vulGroepKeuze === "function") vulGroepKeuze();   // ook een groep kunnen kiezen (groepen.js)
   if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
 }
 document.getElementById("nodigUitSluiten").onclick = () => document.getElementById("nodigUit").close();
 
 document.getElementById("nodigUitFormulier").onsubmit = async (event) => {
   event.preventDefault();
+  // Een groep gekozen? Dan wordt het een groepsrit (groepen.js)
+  const voorGroep = document.getElementById("nodigUitVoor").value;
+  if (voorGroep && typeof stuurGroepsrit === "function") { await stuurGroepsrit(voorGroep, uitnodigingVoor); return; }
   const melding = document.getElementById("nodigUitMelding");
   const gekozen = [...document.querySelectorAll("#nodigUitVrienden input:checked")]
     .map(v => mijnVrienden.find(x => x.id === v.value)).filter(Boolean);

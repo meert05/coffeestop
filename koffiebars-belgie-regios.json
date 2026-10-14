@@ -177,26 +177,9 @@
       "https://wanderlog.com/place/details/1414651/we-are-coffee-makers",
       "https://tablejourney.com/belgium/bruges/coffee-roasters/cafune-espresso-roastery/"
     ],
-    "opmerking": "Voorheen Cafuné; Visit Bruges vermeldt nog oudere uren (ma, do-zo)."
-  },
-  {
-    "naam": "Café Boutique",
-    "adres": "Polenlaan 4, 8956 Heuvelland",
-    "plaats": "Heuvelland",
-    "land": "België",
-    "landcode": "BE",
-    "type": "both",
-    "info": "Volks wielercafé aan de voet van de Kemmelberg dat ademt van koersgeschiedenis. Dé plek om na de kasseien van de Kemmelberg op adem te komen.",
-    "info_fr": "Café cycliste populaire au pied du Kemmelberg, imprégné d'histoire du cyclisme. L'endroit idéal pour souffler après les pavés du Kemmelberg.",
-    "info_en": "Down-to-earth cycling café at the foot of the Kemmelberg, steeped in racing history. The place to catch your breath after the Kemmelberg cobbles.",
-    "kenmerken": [],
-    "openingsuren": null,
-    "zeker": false,
-    "bronnen": [
-      "https://sporza.be/nl/2025/09/25/met-passage-over-de-kemmelberg-en-plugstreets-ontdek-de-onverhard-route-in-het-heuvelland-77-km~1758804967421/",
-      "https://www.vintagefiets.be/en/wp-json/wp/v2/posts/4687"
-    ],
-    "opmerking": "Een openingsurengids vermeldt 'Interbellum' op hetzelfde adres; naam/status en uren nakijken. Geen specialty koffie."
+    "opmerking": "Voorheen Cafuné; Visit Bruges vermeldt nog oudere uren (ma, do-zo).",
+    "instagram": "wearecoffeemakers.be",
+    "website": "https://wearecoffeemakers.be/"
   },
   {
     "naam": "Kaffee André",
@@ -251,7 +234,9 @@
       "https://wanderlog.com/place/details/2868153/kaffee-renée",
       "https://wanderlog.com/list/geoCategory/283909"
     ],
-    "opmerking": "Geen echte specialty bar (lokale branderij); uren uit één bron."
+    "opmerking": "Geen echte specialty bar (lokale branderij); uren uit één bron.",
+    "instagram": "kaffeerenee",
+    "website": "https://www.kaffeerenee.com/"
   },
   {
     "naam": "ONJA",
@@ -310,26 +295,6 @@
     "opmerking": "Gebruikte branderij niet vermeld.",
     "instagram": "wilmandascoffee",
     "website": "https://www.wilmandascoffee.com/"
-  },
-  {
-    "naam": "De Familie Jansen",
-    "adres": "Kapucijnenstraat 2, 8400 Oostende",
-    "plaats": "Oostende",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Knusse kaffiebar die ooit 'Beste koffiebar van het land' werd. Bestel de cappuccino of het signatuurdrankje 'kokoslimoentje' met kokosmelk, limoen en cacao.",
-    "info_fr": "Petit café chaleureux, jadis élu « meilleur coffee bar du pays ». Prenez le cappuccino ou la boisson maison « kokoslimoentje » (coco, citron vert, cacao).",
-    "info_en": "Cosy coffee bar once named the country's best coffee bar. Order the cappuccino or the signature 'kokoslimoentje' with coconut milk, lime and cocoa.",
-    "kenmerken": [],
-    "openingsuren": null,
-    "zeker": false,
-    "bronnen": [
-      "https://wanderlog.com/list/geoCategory/17534/cafes",
-      "https://www.travelvalley.nl/stedentrips/winters-uitwaaien-in-oostende",
-      "https://theculturetrip.com/articles/the-best-coffee-bars-at-the-belgian-coast"
-    ],
-    "opmerking": "Prijs dateert van 2014; actuele openingsuren en status 2026 niet bevestigd."
   },
   {
     "naam": "Meerman Specialty Coffee",
@@ -417,27 +382,8 @@
       "https://europeancoffeetrip.com/cafe/oosterbrood-ostend/"
     ],
     "opmerking": "European Coffee Trip toont alle dagen gesloten (mogelijk verouderd); Visit Oostende geeft wel uren.",
-    "instagram": "oosterbrood"
-  },
-  {
-    "naam": "Donko's Koffie",
-    "adres": "Hendrik Consciencestraat 58-60, 8800 Roeselare",
-    "plaats": "Roeselare",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Ambachtelijke familiebranderij (3e generatie) van Louis Donck, Belgisch baristakampioen 2013. Single origins, blends en losse thee om mee te nemen.",
-    "info_fr": "Torréfaction artisanale familiale (3e génération) de Louis Donck, champion belge barista 2013. Single origins, mélanges et thés en vrac à emporter.",
-    "info_en": "Third-generation family roastery of Louis Donck, 2013 Belgian Barista Champion. Single origins, blends and loose tea to take away.",
-    "kenmerken": [],
-    "openingsuren": null,
-    "zeker": false,
-    "bronnen": [
-      "https://magazine.coffee/blog/1/278/the-best-coffee-in-belgium",
-      "https://bestfoodimporters.com/company/donck-louis-roeselare/",
-      "https://www.openingsurengids.be/koffiebranderij-grymonprez/roeselare/1"
-    ],
-    "opmerking": "Vooral branderij/winkel; onduidelijk of er een zitbar is. Uren niet gevonden."
+    "instagram": "oosterbrood",
+    "website": "https://shop.bakkerijdecock.be/home"
   },
   {
     "naam": "Koffie 't Molentje",
@@ -463,56 +409,9 @@
     "bronnen": [
       "https://cdn.uc.assets.prezly.com/aabdf667-0d28-42a6-8a3e-759592d9ed37/-/inline/no/persbericht-koffie-t-molentje.pdf"
     ],
-    "opmerking": "Proefwinkel, geen klassieke koffiebar; info uit persbericht van 2020, status 2026 niet bevestigd."
-  },
-  {
-    "naam": "In De Vrede",
-    "adres": "Donkerstraat 13, 8640 Vleteren",
-    "plaats": "Vleteren",
-    "land": "België",
-    "landcode": "BE",
-    "type": "both",
-    "info": "Bezoekerscafé recht tegenover de abdij Sint-Sixtus van Westvleteren; klassieke rustpost voor fietsers in de Westhoek. Koffie of een Westvleteren met abdijkaas.",
-    "info_fr": "Café des visiteurs face à l'abbaye Saint-Sixte de Westvleteren ; halte classique des cyclistes dans le Westhoek. Café ou Westvleteren avec fromage de l'abbaye.",
-    "info_en": "Visitor café opposite Saint-Sixtus Abbey in Westvleteren; a classic rest stop for cyclists in the Westhoek. Coffee or a Westvleteren with abbey cheese.",
-    "kenmerken": [],
-    "openingsuren": null,
-    "zeker": false,
-    "bronnen": [
-      "https://www.komoot.com/tour/87693084"
-    ],
-    "opmerking": "Adres uit eigen kennis, niet bevestigd via bron; uren niet gevonden. Geen specialty koffie, wel populaire fietsstop."
-  },
-  {
-    "naam": "Café Coureur Borgloon",
-    "adres": "Oorsprongstraat 5, 3840 Borgloon",
-    "plaats": "Borgloon",
-    "land": "België",
-    "landcode": "BE",
-    "type": "both",
-    "info": "Wielercafé en fietshotel in heuvelachtig Haspengouw, met panoramaterras, fietswasplaats, herstelatelier en Bioracer-shop. Ideale uitvalsbasis richting Voeren.",
-    "info_fr": "Café et hôtel vélo dans la Hesbaye vallonnée, avec terrasse panoramique, station de lavage, atelier et boutique Bioracer. Base idéale vers les Fourons.",
-    "info_en": "Cycling café and bike hotel in hilly Haspengouw, with panoramic terrace, bike wash, repair shop and Bioracer store. Ideal base towards Voeren.",
-    "kenmerken": [],
-    "openingsuren": {
-      "ma": "",
-      "di": "",
-      "wo": "",
-      "do": "18:00-22:00",
-      "vr": "10:00-22:00",
-      "za": "08:00-22:00",
-      "zo": "08:00-22:00"
-    },
-    "zeker": true,
-    "bronnen": [
-      "https://www.cafecoureur.cc/locations/borgloon",
-      "https://www.cafecoureur.cc/openingsuren",
-      "https://wielercafes.nl/cafe-coureur/",
-      "https://www.cyclis.be/inspiratie/de-7-leukste-fietscafes-op-een-rij/"
-    ],
-    "opmerking": "Sluituur donderdag niet vermeld (enkel 'vanaf 18u'). Borgloon valt sinds 2025 onder fusiegemeente Tongeren-Borgloon.",
-    "instagram": "cafecoureur",
-    "website": "https://www.cafecoureur.cc/locations/borgloon"
+    "opmerking": "Proefwinkel, geen klassieke koffiebar; info uit persbericht van 2020, status 2026 niet bevestigd.",
+    "instagram": "koffietmolentje",
+    "website": "https://www.koffiemakers.be/winkel-koffiebar-roeselare"
   },
   {
     "naam": "De Baron",
@@ -538,7 +437,9 @@
     "bronnen": [
       "https://www.de-baron.be/nl/toerisme"
     ],
-    "opmerking": "Enkel eigen site als bron; geen specialty coffee. Site vermeldt adres als '3840 Tongeren-Borgloon'."
+    "opmerking": "Enkel eigen site als bron; geen specialty coffee. Site vermeldt adres als '3840 Tongeren-Borgloon'.",
+    "instagram": "brasseriedebaron",
+    "website": "https://www.de-baron.be/"
   },
   {
     "naam": "Bunker",
@@ -627,7 +528,9 @@
       "https://visit.hasselt.be/nl/blog/de-lekkerste-koffiebars-in-hasselt",
       "https://www.openingsuren.com/nl/winkel/hasselt/koffiehuis?rows=10&page=1"
     ],
-    "opmerking": "Brander onbekend; eigen site (baronbonbon.be) niet bereikbaar."
+    "opmerking": "Brander onbekend; eigen site (baronbonbon.be) niet bereikbaar.",
+    "instagram": "baron.bon.bon",
+    "website": "https://baronbonbon.be/"
   },
   {
     "naam": "Fietsbar",
@@ -656,7 +559,9 @@
       "https://visit.hasselt.be/nl/blog/de-lekkerste-koffiebars-in-hasselt",
       "https://cosh.eco/en/stores/hasselt/fietsbar"
     ],
-    "opmerking": "Eigen site noemt 'Het Dorp 35A'; oudere gidsen vermelden Minderbroedersstraat 54 (vermoedelijk vorige locatie)."
+    "opmerking": "Eigen site noemt 'Het Dorp 35A'; oudere gidsen vermelden Minderbroedersstraat 54 (vermoedelijk vorige locatie).",
+    "instagram": "fietsbar",
+    "website": "http://www.fietsbar.com/"
   },
   {
     "naam": "King Kong Coffee",
@@ -855,24 +760,6 @@
     "website": "https://www.twentytwocoffee22.be/"
   },
   {
-    "naam": "Koffiebar Shuga",
-    "adres": "Eeuwfeestwal 28, 3700 Tongeren",
-    "plaats": "Tongeren",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Kleine koffiebar aan de ring (sinds 2023) met speciale koffies, bubble tea, gebak en saucijzenbroodjes. Ook om mee te nemen.",
-    "info_fr": "Petit bar à café sur le boulevard (depuis 2023) avec cafés spéciaux, bubble tea, pâtisseries et friands. Aussi à emporter.",
-    "info_en": "Small coffee bar on the ring road (since 2023) with special coffees, bubble tea, pastries and sausage rolls. Takeaway too.",
-    "kenmerken": [],
-    "openingsuren": null,
-    "zeker": false,
-    "bronnen": [
-      "https://www.shopintongeren.be/nieuwe-starter-koffiebar-shuga/"
-    ],
-    "opmerking": "Enige bron is starterbericht 2023; niet bevestigd dat het in 2026 nog open is. Geen specialty-brander bekend. Fietscafé 't Velohofke (Tongeren) staat al in de app."
-  },
-  {
     "naam": "Édouard Garden Café",
     "adres": "Rue des Récollectines 7, 6940 Durbuy",
     "plaats": "Durbuy",
@@ -932,7 +819,9 @@
       "https://www.komoot.com/highlight/4738184",
       "https://www.laterooms.com/hotel/houffalize/cafe-coureur-houffalize"
     ],
-    "opmerking": "Geen specialty koffie bevestigd; vooral fietscafé/hotel. Seizoensgebonden terrasuren, adres via boekingssite."
+    "opmerking": "Geen specialty koffie bevestigd; vooral fietscafé/hotel. Seizoensgebonden terrasuren, adres via boekingssite.",
+    "instagram": "cafecoureur",
+    "website": "https://www.cafecoureur.cc/locations/houffalize"
   },
   {
     "naam": "Cafés Ubuntu",
@@ -961,7 +850,9 @@
       "https://caffeatlas.com/ubuntu-liege",
       "https://www.elle.be/fr/?p=158789"
     ],
-    "opmerking": "Organiseert ook de WeRun Club (lopen), geen fietsclub."
+    "opmerking": "Organiseert ook de WeRun Club (lopen), geen fietsclub.",
+    "instagram": "cafesubuntu",
+    "website": "https://www.cafes-ubuntu.com/"
   },
   {
     "naam": "Constantin Café",
@@ -1105,25 +996,6 @@
     "website": "https://www.utamu.be/"
   },
   {
-    "naam": "Cafés Delahaut",
-    "adres": "Rue Marie Curie 1, 5020 Suarlée",
-    "plaats": "Namen",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Namense familiebranderij sinds 1864 met 17 meter lange koffiebar, restaurant met zicht op de branderij en winkel; rondleidingen mogelijk.",
-    "info_fr": "Torréfaction familiale namuroise depuis 1864 avec bar à café de 17 mètres, restaurant avec vue sur la torréfaction et boutique ; visites possibles.",
-    "info_en": "Namur family roastery since 1864 with a 17-metre coffee bar, restaurant overlooking the roaster and a shop; tours available.",
-    "kenmerken": [],
-    "openingsuren": null,
-    "zeker": false,
-    "bronnen": [
-      "https://www.parismatch.be/lifestyle/food/2021/10/28/restaurant-cafes-delahaut-des-parfums-de-lhistoire-et-une-ambiance-industrielle-7UW7PNQ4BZGKXIN3ZAOBWUHDMI/",
-      "https://www.parismatch.be/i-like-belgium/2021/11/23/excellence-belge-delahaut-la-creme-des-cafes-A7VOMQSW6BFPXHXQQO3VI4R35A/"
-    ],
-    "opmerking": "Industriezone Suarlée (buiten centrum); eerder traditionele dan specialty branderij; bronnen uit 2021, uren (toen ma-vr overdag) niet recent bevestigd."
-  },
-  {
     "naam": "Cool Riders",
     "adres": "Rue des Brasseurs 94, 5000 Namur",
     "plaats": "Namen",
@@ -1213,7 +1085,8 @@
       "https://www.dhnet.be/regions/luxembourg/2026/05/27/arnaud-bergmann-lance-la-cabane-un-coffee-shop-en-plein-coeur-de-saint-hubert-YBCMNI42D5D6HL7733SKJ2HMOQ/"
     ],
     "opmerking": "Opening voorzien eind juni 2026, niet bevestigd; buiten de gevraagde Ardennensteden maar in de Ardennen. Instagram @lacabane.barista.",
-    "instagram": "lacabane.barista"
+    "instagram": "lacabane.barista",
+    "website": "https://www.lacabanebarista.be/"
   },
   {
     "naam": "Le Coffee Ride",
@@ -1238,199 +1111,6 @@
     "opmerking": "Gelegen in Petit-Coo (Stavelot). Enkel weekendopening: do-zo of vr-zo volgens bron; Eddy Merckx-artikel vermeldt postcode 4960 (Malmedy), 4970 is correct voor Stavelot.",
     "instagram": "le_coffee_ride",
     "website": "https://www.lecoffeeride.cc/"
-  },
-  {
-    "naam": "Békane",
-    "adres": "Rue des Juifs 5, 7000 Mons",
-    "plaats": "Bergen",
-    "land": "België",
-    "landcode": "BE",
-    "type": "both",
-    "info": "Eerste fietscafé van Bergen: fietsenwinkel en -atelier (koers, gravel) met koffiebar met Jolicoeur-bonen, groepsritten en routetips.",
-    "info_fr": "Premier café-vélo de Mons : magasin et atelier vélo (route, gravel) avec coin café aux grains Jolicoeur, sorties groupées et conseils d'itinéraires.",
-    "info_en": "Mons' first bike café: bike shop and workshop (road, gravel) with a coffee corner pouring Jolicoeur beans, group rides and route tips.",
-    "kenmerken": [],
-    "openingsuren": {
-      "ma": "",
-      "di": "10:00-18:00",
-      "wo": "10:00-18:00",
-      "do": "10:00-18:00",
-      "vr": "10:00-18:00",
-      "za": "10:00-18:00",
-      "zo": ""
-    },
-    "zeker": true,
-    "bronnen": [
-      "https://www.visitmons.be/en/shopping/bkane-848134",
-      "https://telemb.be/article/bekane-le-premier-cafe-velo-de-mons",
-      "https://www.provelo.org/conseils/cafes-velos-en-belgique/"
-    ],
-    "opmerking": "",
-    "instagram": "bekane.cc",
-    "website": "https://www.bekane.cc/"
-  },
-  {
-    "naam": "Jolicoeur Coffee Roasters",
-    "adres": "Rue d'Enghien 3, 7000 Mons",
-    "plaats": "Bergen",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Piepkleine coffeebar (20 m²) van microbrander Ludo Pirrera bij de Grand-Place; espresso, V60 of AeroPress met eigen bonen uit Ghlin.",
-    "info_fr": "Minuscule coffee shop (20 m²) du micro-torréfacteur Ludo Pirrera près de la Grand-Place ; espresso, V60 ou AeroPress, grains torréfiés à Ghlin.",
-    "info_en": "Tiny 20 m² coffee bar by micro-roaster Ludo Pirrera near the Grand-Place; espresso, V60 or AeroPress with beans roasted in Ghlin.",
-    "kenmerken": [],
-    "openingsuren": {
-      "ma": "",
-      "di": "",
-      "wo": "10:00-18:00",
-      "do": "10:00-18:00",
-      "vr": "10:00-18:00",
-      "za": "10:00-18:00",
-      "zo": ""
-    },
-    "zeker": true,
-    "bronnen": [
-      "https://jolicoeurcoffee.be/",
-      "https://lefooding.com/en/shops/jolicoeur-1",
-      "https://www.visitmons.be/en/shopping/jolicoeur-coffee-roasters-162205",
-      "https://europeancoffeetrip.com/roaster/jolicoeurcoffee/"
-    ],
-    "opmerking": "VisitMons/Le Fooding vermelden opening om 08:00 op wo-vr; eigen site zegt 10:00.",
-    "instagram": "jolicoeurcoffee",
-    "website": "https://jolicoeurcoffee.be"
-  },
-  {
-    "naam": "Moon Coffee",
-    "adres": "Grand'Rue 11, 7000 Mons",
-    "plaats": "Bergen",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Ambachtelijke branderij (ook in Binche en Morlanwelz) met fairtrade-bonen, brouwmateriaal en een kleine proefhoek in de voetgangerszone.",
-    "info_fr": "Torréfacteur artisanal (aussi à Binche et Morlanwelz) : cafés équitables, matériel d'extraction et petit espace dégustation dans le piétonnier.",
-    "info_en": "Artisan roaster (also in Binche and Morlanwelz) selling fair-trade beans and brew gear, with a small tasting corner on the pedestrian street.",
-    "kenmerken": [],
-    "openingsuren": {
-      "ma": "",
-      "di": "10:00-18:00",
-      "wo": "10:00-18:00",
-      "do": "10:00-18:00",
-      "vr": "10:00-18:00",
-      "za": "10:00-18:00",
-      "zo": ""
-    },
-    "zeker": false,
-    "bronnen": [
-      "https://www.monscentreville.be/commerces/moon-coffee/",
-      "https://www.dhnet.be/regions/centre/2023/09/25/apres-binche-et-morlanwelz-moon-coffee-sinstalle-dans-le-pietonnier-a-mons-je-ne-propose-que-des-produits-issus-du-commerce-equitable-GF6XNYWCFBDPRMJ5CMGBFMTQYI/"
-    ],
-    "opmerking": "Vooral winkel/branderij; beperkte zitplaatsen, niet zeker dat het als volwaardige koffiebar werkt.",
-    "instagram": "mooncoffee_store",
-    "website": "https://www.mooncoffee.be/accueil"
-  },
-  {
-    "naam": "Cafés Van Hove",
-    "adres": "Rue de Montigny 2, 6000 Charleroi",
-    "plaats": "Charleroi",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Familiebranderij sinds 1954 in het centrum; koop versgebrande bonen of drink ter plaatse een kop met speculoos.",
-    "info_fr": "Torréfacteur familial depuis 1954 en centre-ville ; achetez des grains fraîchement torréfiés ou buvez une tasse sur place avec un spéculoos.",
-    "info_en": "Family-run roastery since 1954 in the centre; buy freshly roasted beans or have a cup on site with a speculoos biscuit.",
-    "kenmerken": [],
-    "openingsuren": null,
-    "zeker": false,
-    "bronnen": [
-      "https://cafes-vanhove.be/en/",
-      "https://www.elle.be/fr/?p=26046",
-      "https://www.openingsurengids.be/van-hove-cafes/charleroi/1"
-    ],
-    "opmerking": "Eerder klassieke branderij/winkel dan third-wave bar; consumptie ter plaatse bevestigd in oudere bron (2014). Uren niet gevonden."
-  },
-  {
-    "naam": "Le Chien Vert",
-    "adres": "Avenue des Alliés 28, 6000 Charleroi",
-    "plaats": "Charleroi",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Vintage koffiebar met vinyl en een Victoria Arduino; specialty koffie van Parlor (Brussel), V60 pour-over en 's avonds craft beer.",
-    "info_fr": "Bar à café vintage avec vinyles et Victoria Arduino ; café de spécialité Parlor (Bruxelles), V60 et bières craft le soir.",
-    "info_en": "Vintage coffee bar with vinyl and a Victoria Arduino; specialty coffee from Parlor (Brussels), V60 pour-over and craft beer in the evening.",
-    "kenmerken": [],
-    "openingsuren": {
-      "ma": "",
-      "di": "",
-      "wo": "08:00-17:00",
-      "do": "08:00-20:00",
-      "vr": "08:00-20:00",
-      "za": "10:00-17:00",
-      "zo": "10:00-17:00"
-    },
-    "zeker": true,
-    "bronnen": [
-      "https://lefooding.com/en/shops/le-chien-vert",
-      "https://mycharleroi.be/cafe-a-charleroi-le-chien-vert/"
-    ],
-    "opmerking": "Openingsuren verschillen tussen bronnen (MyCharleroi jan 2025: di-wo 9-17, do-vr 9-20); Le Fooding-versie gebruikt."
-  },
-  {
-    "naam": "Yuna Coffee",
-    "adres": "Boulevard Joseph Tirou 47, 6000 Charleroi",
-    "plaats": "Charleroi",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Specialty coffeebar in hartje Charleroi met bonen van Boo Coffee Roasters; bestel een flat white met de huisgemaakte fluffy pancakes.",
-    "info_fr": "Coffee shop de spécialité au cœur de Charleroi, grains de Boo Coffee Roasters ; prenez un flat white avec les fluffy pancakes maison.",
-    "info_en": "Specialty coffee bar in central Charleroi using Boo Coffee Roasters beans; order a flat white with the homemade fluffy pancakes.",
-    "kenmerken": [
-      "laptop"
-    ],
-    "openingsuren": {
-      "ma": "",
-      "di": "09:00-17:00",
-      "wo": "09:00-17:00",
-      "do": "09:00-17:00",
-      "vr": "09:00-17:00",
-      "za": "09:00-17:00",
-      "zo": "09:00-17:00"
-    },
-    "zeker": true,
-    "bronnen": [
-      "https://yunacoffee.be/",
-      "https://europeancoffeetrip.com/cafe/yunacoffee-charleroi/"
-    ],
-    "opmerking": "Branderij volgens ECT (Boo Coffee); eigen site noemt geen branderij.",
-    "instagram": "yunacoffee_"
-  },
-  {
-    "naam": "Barista",
-    "adres": "Rue Saint-Brice 5, 7500 Tournai",
-    "plaats": "Doornik",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Kleine espressobar in de wijk Saint-Brice op de rechteroever van de Schelde; espresso, koffievarianten, gebak en een terras. Ook open op maandag.",
-    "info_fr": "Petit bar à espresso dans le quartier Saint-Brice, rive droite de l'Escaut ; espresso, cafés gourmands, pâtisseries et terrasse. Ouvert le lundi.",
-    "info_en": "Small espresso bar in the Saint-Brice quarter on the Scheldt's right bank; espresso, coffee variations, pastries and a terrace. Open on Mondays.",
-    "kenmerken": [],
-    "openingsuren": {
-      "ma": "08:00-18:00",
-      "di": "08:00-18:00",
-      "wo": "08:00-18:00",
-      "do": "08:00-18:00",
-      "vr": "08:00-18:00",
-      "za": "09:00-17:00",
-      "zo": ""
-    },
-    "zeker": false,
-    "bronnen": [
-      "https://www.schlouk-map.com/fr/places/barista"
-    ],
-    "opmerking": "Specialty-niveau en branderij niet bevestigd; enige bron is Schlouk Map."
   },
   {
     "naam": "Elephant Coffee",
@@ -1494,73 +1174,6 @@
     "instagram": "highfivespecialtycoffee"
   },
   {
-    "naam": "Kahwatea",
-    "adres": "Passage de l'Ergot 34, 1348 Louvain-la-Neuve",
-    "plaats": "Louvain-la-Neuve",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Artistiek koffiehuis met wisselende exposities en werkplekken; specialty lattes (o.a. tiramisu, pistache) en weekendbrunch met huisgemaakte msemen.",
-    "info_fr": "Café artistique avec expositions mensuelles et espaces de travail ; lattes de spécialité (tiramisu, pistache) et brunch du week-end avec msemen maison.",
-    "info_en": "Arty coffee house with rotating exhibitions and workspace; specialty lattes (tiramisu, pistachio) and weekend brunch with homemade msemen.",
-    "kenmerken": [
-      "laptop"
-    ],
-    "openingsuren": null,
-    "zeker": false,
-    "bronnen": [
-      "https://kahwatea.be/"
-    ],
-    "opmerking": "Meer latte/brunchconcept dan third-wave; branderij onbekend. Uren niet gevonden."
-  },
-  {
-    "naam": "Alma Café",
-    "adres": "Rue Louis Braille 10, 1400 Nivelles",
-    "plaats": "Nijvel",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Specialty microbranderij met atelier en coffeebar; proef hun versgebrande filter of espresso, koop bonen of volg een koffieworkshop.",
-    "info_fr": "Micro-torréfacteur de spécialité avec atelier et coffee bar ; goûtez leurs cafés filtre ou espresso, achetez des grains ou suivez un workshop.",
-    "info_en": "Specialty micro-roastery with workshop and coffee bar; taste their freshly roasted filter or espresso, buy beans or join a coffee workshop.",
-    "kenmerken": [],
-    "openingsuren": {
-      "ma": "",
-      "di": "",
-      "wo": "10:00-18:00",
-      "do": "10:00-18:00",
-      "vr": "10:00-18:00",
-      "za": "10:00-16:00",
-      "zo": ""
-    },
-    "zeker": false,
-    "bronnen": [
-      "https://almacafe.be/en",
-      "https://almacafe.be/en/pages/points"
-    ],
-    "opmerking": "Uren van 'atelier/café' op eigen site; onduidelijk hoeveel zitplaatsen. Alma wordt ook geschonken bij Poppy Café d'Artistes (Rue de Namur 57, Nijvel)."
-  },
-  {
-    "naam": "Fahrbar Atelier Cycles",
-    "adres": "Chemin du Griffon 1, 1340 Ottignies-Louvain-la-Neuve",
-    "plaats": "Ottignies-Louvain-la-Neuve",
-    "land": "België",
-    "landcode": "BE",
-    "type": "both",
-    "info": "Fietsatelier-café: herstellingen, events en routetips, besproken bij een kop koffie of thee. Fijne stop voor fietsers rond Ottignies en LLN.",
-    "info_fr": "Atelier vélo-café : réparations, événements et conseils d'itinéraires autour d'un café ou d'un thé. Halte sympa pour cyclistes autour d'Ottignies et LLN.",
-    "info_en": "Bike workshop-café: repairs, events and route advice over a coffee or tea. A friendly stop for cyclists around Ottignies and Louvain-la-Neuve.",
-    "kenmerken": [],
-    "openingsuren": null,
-    "zeker": false,
-    "bronnen": [
-      "https://www.provelo.org/conseils/cafes-velos-en-belgique/",
-      "https://velo-belgique.com/cafes-velos-en-belgique-institutions-incontournables/",
-      "https://www.companyweb.be/en/0762433757/fahrbar"
-    ],
-    "opmerking": "Adres = maatschappelijke zetel (KBO), niet zeker de werkplaats. Koffie is bijzaak, geen specialty bevestigd. Uren niet gevonden."
-  },
-  {
     "naam": "Cali",
     "adres": "Chaussée de Bruxelles 161, 1410 Waterloo",
     "plaats": "Waterloo",
@@ -1588,33 +1201,8 @@
       "https://www.waterlooplaza.be/waterloo/1365/cali",
       "https://www.rtbf.be/article/de-l-art-du-bon-cafe-les-adresses-bouillonnantes-du-moment-10984353"
     ],
-    "opmerking": "Waterlooplaza vermeldt maandag gesloten; ECT-uren gebruikt."
-  },
-  {
-    "naam": "Seventeen",
-    "adres": "Rue du Pont du Christ 4, 1300 Wavre",
-    "plaats": "Waver",
-    "land": "België",
-    "landcode": "BE",
-    "type": "coffee",
-    "info": "Moderne, gezellige specialty coffee- en brunchbar in het centrum van Waver; latte met een scone met room of een bagel met zalm en avocado.",
-    "info_fr": "Bar à café de spécialité et brunch moderne et cosy au centre de Wavre ; latte avec scone à la crème ou bagel saumon-avocat.",
-    "info_en": "Modern, cosy specialty coffee and brunch bar in central Wavre; a latte with a scone and cream or a salmon-avocado bagel.",
-    "kenmerken": [],
-    "openingsuren": {
-      "ma": "09:00-17:00",
-      "di": "09:00-17:00",
-      "wo": "09:00-17:00",
-      "do": "09:00-17:00",
-      "vr": "09:00-17:00",
-      "za": "09:00-17:00",
-      "zo": "10:00-17:00"
-    },
-    "zeker": false,
-    "bronnen": [
-      "https://www.instagram.com/seventeen.wavre/",
-      "https://rankeat.fr/restaurants/seventeen"
-    ],
-    "opmerking": "Branderij onbekend; uren enkel uit aggregator (Rankeat)."
+    "opmerking": "Waterlooplaza vermeldt maandag gesloten; ECT-uren gebruikt.",
+    "instagram": "cali_brunch",
+    "website": "https://www.conceptcali.be/"
   }
 ]
