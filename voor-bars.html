@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Voor koffiebars – Waypour</title>
-  <meta name="description" content="Waypour brengt fietsers en koffieliefhebbers naar de beste specialty koffiebars van België. Gratis vermelding voor geselecteerde bars.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://ydowujqenhmppwgsapyi.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="description" content="Waypour brengt fietsers en koffieliefhebbers naar de beste specialty koffiebars van België. Stel je bar gratis voor.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://ydowujqenhmppwgsapyi.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="theme-color" content="#0B0B0B">
   <link rel="icon" href="iconen/icoon-192.png">
@@ -65,21 +65,11 @@
     .beloftes li span { color: var(--zacht); font-size: 15px; }
     .beloftes .vink { flex: none; width: 26px; height: 26px; border-radius: 50%; background: #1E2A22; color: var(--groen); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; margin-top: 1px; }
 
-    /* Aanbod */
-    .aanbod { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    .pakket { display: flex; flex-direction: column; padding: 28px; border-radius: 20px; border: 1px solid var(--lijn); }
-    .pakket.uitgelicht { background: var(--vlak); border-color: var(--vlak); }
-    .pakket .naam { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
-    .pakket h3 { margin: 0; font-family: var(--kop); font-size: 22px; font-weight: 700; }
-    .pil { padding: 4px 10px; border-radius: 999px; background: var(--vlak2); color: #DCDBD6; font-size: 12px; font-weight: 500; white-space: nowrap; }
-    .pakket.uitgelicht .pil { background: var(--tekst); color: var(--achtergrond); }
-    .prijs { margin: 6px 0 18px; font-family: var(--kop); font-size: 36px; font-weight: 800; letter-spacing: -.02em; }
-    .prijs small { font-family: var(--lettertype); font-size: 15px; font-weight: 400; color: var(--grijs); letter-spacing: 0; }
-    .pakket ul { list-style: none; margin: 0 0 22px; padding: 0; flex: 1; }
-    .pakket li { position: relative; padding: 9px 0 9px 26px; border-top: 1px solid var(--lijn); font-size: 15px; color: var(--zacht); }
-    .pakket li::before { content: "✓"; position: absolute; left: 0; top: 9px; color: var(--groen); font-weight: 600; }
-    .pakket .voet { margin: 0; font-size: 13px; color: var(--grijs); }
-    .noot { margin: 18px 0 0; font-size: 14px; color: var(--grijs); }
+    /* Wat krijg je */
+    .voordelen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .voordeel { display: flex; flex-direction: column; gap: 8px; padding: 22px; border-radius: 18px; background: var(--vlak); }
+    .voordeel b { font-family: var(--kop); font-size: 18px; font-weight: 700; }
+    .voordeel span { color: var(--zacht); font-size: 15px; }
 
     /* Cycling-friendly */
     .twee { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
@@ -101,6 +91,33 @@
     .keuzes label { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid var(--lijn); cursor: pointer; font-size: 14px; }
     .keuzes input { width: 18px; height: 18px; margin: 0; padding: 0; accent-color: var(--tekst); }
     .keuzes label:has(input:checked) { border-color: var(--tekst); background: var(--vlak); }
+    .formDeel { grid-column: 1 / -1; margin: 18px 0 0; font-family: var(--kop); font-size: 18px; font-weight: 700; }
+    .formDeel:first-child { margin-top: 0; }
+    .vol { grid-column: 1 / -1; }
+    select { width: 100%; font: inherit; font-size: 16px; color: var(--tekst); background: var(--vlak); border: 1px solid var(--lijn); border-radius: 12px; padding: 13px 14px; }
+    textarea.kort { min-height: 96px; }
+    .teller { align-self: flex-end; font-size: 12px; color: var(--grijs); }
+    .uren { display: flex; flex-direction: column; gap: 6px; }
+    .dag { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+    .dag input[type="time"] { padding: 10px; min-width: 0; color-scheme: dark; }
+    .dag .tot { color: var(--grijs); }
+    .dag .dicht { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--grijs); white-space: nowrap; }
+    .dag .dicht input { width: 18px; height: 18px; accent-color: var(--tekst); }
+    .dag.gesloten input[type="time"] { opacity: .3; }
+    .uren .link { align-self: flex-start; margin-top: 6px; padding: 0; border: none; background: none; color: var(--tekst); font: 500 14px var(--lettertype); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .uren small, .fotoVak small { font-size: 13px; color: var(--grijs); }
+    .kenmerken { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .kenmerk { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid var(--lijn); border-radius: 14px; cursor: pointer; }
+    .kenmerk input { flex: none; width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--tekst); }
+    .kenmerk > span { display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 400; color: var(--tekst); }
+    .kenmerk b { font-weight: 600; }
+    .kenmerk small { color: var(--grijs); font-size: 13px; }
+    .kenmerk:has(input:checked) { border-color: var(--tekst); background: var(--vlak); }
+    .kenmerk.rit { margin-top: 4px; }
+    .fotoVak { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .fotoKnop { position: relative; display: inline-flex; align-items: center; height: 48px; padding: 0 18px; border: 1px dashed #3A3A38; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 500; }
+    .fotoKnop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    #fotoVoorbeeld { width: min(360px, 100%); aspect-ratio: 3 / 2; object-fit: cover; border-radius: 14px; }
     .valstrik { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
     .verstuur { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 6px; }
     .verstuur p { margin: 0; flex: 1; min-width: 220px; font-size: 13px; color: var(--grijs); }
@@ -114,8 +131,23 @@
     footer .breedte { display: flex; flex-wrap: wrap; gap: 8px 20px; }
     footer a { color: var(--grijs); }
 
+    @media (max-width: 1000px) and (min-width: 761px) { .voordelen { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 760px) {
-      .drie, .aanbod, .twee, .beloftes, form { grid-template-columns: 1fr; }
+      .drie, .voordelen, .twee, .beloftes, form, .kenmerken { grid-template-columns: 1fr; }
+      /* Openingsuren op de gsm: dag en "Gesloten" bovenaan, de uren eronder */
+      .uren { gap: 0; }
+      .dag {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        grid-template-areas: "naam naam dicht" "van streep tot";
+        gap: 6px 8px; padding: 10px 0; border-bottom: 1px solid var(--lijn);
+      }
+      .dag .dagNaam { grid-area: naam; font-weight: 500; }
+      .dag .dicht { grid-area: dicht; justify-self: end; }
+      .dag input[name^="van_"] { grid-area: van; }
+      .dag .tot { grid-area: streep; }
+      .dag input[name^="tot_"] { grid-area: tot; }
+      .dag.gesloten input[type="time"], .dag.gesloten .tot { display: none; }
+      .uren .link { margin-top: 12px; }
       .twee { gap: 20px; }
       .merk small { display: none; }
       .opening .knoppen .knop { flex: 1 1 auto; }
@@ -144,7 +176,7 @@
         <h1 data-k="titel">Fietsers en koffieliefhebbers vinden jouw bar.</h1>
         <p class="intro" data-k="intro">Waypour is een kaart met de beste specialty koffiebars van België, voor wie fietst, werkt of gewoon goede koffie zoekt. Fietsers plannen er hun rit langs een koffiestop en spreken af met vrienden. Een plek op de kaart is gratis, en nooit te koop.</p>
         <div class="knoppen">
-          <a class="knop hoofd" href="#aanmelden" data-k="knopAanmelden">Meld je bar aan – gratis</a>
+          <a class="knop hoofd" href="#aanmelden" data-k="knopAanmelden">Stel je bar voor – gratis</a>
           <a class="knop" href="./" data-k="knopApp">Bekijk de app</a>
         </div>
       </div>
@@ -180,8 +212,8 @@
         <p class="uitleg" data-k="kiesUitleg">Waypour is alleen iets waard als de lijst klopt. Daarom gelden deze regels, voor iedereen.</p>
         <ul class="beloftes">
           <li><span class="vink">✓</span><div><b data-k="b1Titel">We kiezen zelf, op de koffie</b><span data-k="b1">Specialty koffie, met zorg gezet. We gaan zelf langs of vertrouwen op mensen die we kennen.</span></div></li>
-          <li><span class="vink">✓</span><div><b data-k="b2Titel">Een plek is nooit te koop</b><span data-k="b2">Betalen geeft geen betere plaats in de lijst of op de kaart. Ook niet als partner.</span></div></li>
-          <li><span class="vink">✓</span><div><b data-k="b3Titel">Kwaliteit telt, altijd</b><span data-k="b3">Gaat de koffie erop achteruit, dan verdwijnt een bar van de kaart. Ook als hij betaalt.</span></div></li>
+          <li><span class="vink">✓</span><div><b data-k="b2Titel">Een plek is nooit te koop</b><span data-k="b2">Je kan niet betalen voor een plaats of een betere plek in de lijst. Elke bar staat er om de koffie.</span></div></li>
+          <li><span class="vink">✓</span><div><b data-k="b3Titel">Kwaliteit telt, altijd</b><span data-k="b3">Gaat de koffie erop achteruit, dan verdwijnt een bar van de kaart.</span></div></li>
           <li><span class="vink">✓</span><div><b data-k="b4Titel">Geen advertenties, geen data verkopen</b><span data-k="b4">Gebruikers zien geen banners, en we verkopen nooit gegevens. Alles wat betaald is, staat duidelijk zo vermeld.</span></div></li>
         </ul>
       </div>
@@ -189,33 +221,14 @@
 
     <section class="blok">
       <div class="breedte">
-        <h2 data-k="aanbodTitel">Wat krijg je?</h2>
-        <p class="uitleg" data-k="aanbodUitleg">Sta je op de kaart, dan is dat gratis. Wil je meer, dan komt er een klein pakket voor geselecteerde bars.</p>
-        <div class="aanbod">
-          <div class="pakket">
-            <div class="naam"><h3 data-k="gratisTitel">Gratis</h3><span class="pil" data-k="gratisPil">Voor elke geselecteerde bar</span></div>
-            <p class="prijs">€0</p>
-            <ul>
-              <li data-k="g1">Je staat op de kaart en in de lijst, met foto, openingsuren en een korte tekst</li>
-              <li data-k="g2">Elke maand je cijfers per mail: hoe vaak je bar bekeken werd, hoe vaak iemand de route vroeg en hoe vaak je in een fietsroute of groepsrit zat</li>
-              <li data-k="g3">Je info klopt: stuur ons nieuwe foto's, uren of een tekst, wij passen het aan</li>
-            </ul>
-            <p class="voet" data-k="gratisVoet">Geen contract, geen kosten.</p>
-          </div>
-          <div class="pakket uitgelicht">
-            <div class="naam"><h3 data-k="pakketTitel">Bar-pakket</h3><span class="pil" data-k="pakketPil">Binnenkort</span></div>
-            <p class="prijs">± €7 <small data-k="perMaand">per maand</small></p>
-            <ul>
-              <li data-k="p1">Alles van gratis</li>
-              <li data-k="p2">Uitgebreidere cijfers, met de evolutie van maand tot maand</li>
-              <li data-k="p3">Je events in de app: een coffee ride vanuit je bar, nieuwe bonen, een latte-art-avond</li>
-              <li data-k="p4">Later zelf je foto's, uren en tekst aanpassen</li>
-              <li data-k="p5">Een sticker "Te vinden op Waypour" voor je raam</li>
-            </ul>
-            <p class="voet" data-k="pakketVoet">Alleen voor bars die al geselecteerd zijn. Maandelijks opzegbaar.</p>
-          </div>
+        <h2 data-k="aanbodTitel">Wat krijg je? Alles gratis.</h2>
+        <p class="uitleg" data-k="aanbodUitleg">Een plek op Waypour kost niets en blijft niets kosten. Er is geen betaalde versie: elke geselecteerde bar krijgt hetzelfde.</p>
+        <div class="voordelen">
+          <div class="voordeel"><b data-k="v1Titel">Op de kaart</b><span data-k="v1">Met foto, openingsuren, een korte tekst en labels zoals cycling-friendly.</span></div>
+          <div class="voordeel"><b data-k="v2Titel">Je cijfers, elke maand</b><span data-k="v2">Hoe vaak je bar bekeken werd, hoe vaak iemand de route vroeg en hoe vaak je in een fietsroute of groepsrit zat. Anoniem en gratis.</span></div>
+          <div class="voordeel"><b data-k="v3Titel">Samen een coffee ride</b><span data-k="v3">Zin om een rit te laten vertrekken of eindigen bij jou? We organiseren ze samen en zetten ze in de app.</span></div>
+          <div class="voordeel"><b data-k="v4Titel">Je info klopt</b><span data-k="v4">Nieuwe uren, een nieuwe foto of andere bonen? Laat het weten en we passen het aan.</span></div>
         </div>
-        <p class="noot" data-k="aanbodNoot">Het bar-pakket geeft nooit een betere plaats in de lijst. Dat blijft zo.</p>
       </div>
     </section>
 
@@ -236,29 +249,110 @@
 
     <section class="blok" id="aanmelden">
       <div class="breedte">
-        <h2 data-k="formTitel">Meld je bar aan</h2>
-        <p class="uitleg" data-k="formUitleg">Laat je gegevens achter, dan neem ik binnen een paar dagen contact op. Sta je al op de kaart? Dan kan je hier ook je cijfers of het bar-pakket aanvragen.</p>
+        <h2 data-k="formTitel">Stel je bar voor</h2>
+        <p class="uitleg" data-k="formUitleg">Vul alles in zoals het op de kaart moet komen. Ik kijk je bar na en zet ze er meestal binnen een week op. Sta je al op de kaart? Gebruik dit formulier dan om je gegevens aan te passen.</p>
 
         <form id="aanvraag" novalidate>
-          <label class="veld"><span data-k="vBar">Naam van de bar *</span><input name="bar" required maxlength="100" autocomplete="organization"></label>
+          <h3 class="formDeel" data-k="deelBar">1. Je bar</h3>
+          <label class="veld vol"><span data-k="vBar">Naam van de bar *</span><input name="bar" required maxlength="100" autocomplete="organization"></label>
+          <label class="veld vol"><span data-k="vStraat">Straat en nummer *</span><input name="straat" required maxlength="150" autocomplete="address-line1"></label>
+          <label class="veld"><span data-k="vPostcode">Postcode *</span><input name="postcode" required maxlength="12" autocomplete="postal-code" inputmode="numeric"></label>
           <label class="veld"><span data-k="vGemeente">Gemeente *</span><input name="gemeente" required maxlength="100" autocomplete="address-level2"></label>
+          <label class="veld"><span data-k="vLand">Land</span>
+            <select name="landcode">
+              <option value="BE" data-k="landBE">België</option>
+              <option value="NL" data-k="landNL">Nederland</option>
+              <option value="FR" data-k="landFR">Frankrijk</option>
+              <option value="LU" data-k="landLU">Luxemburg</option>
+              <option value="DE" data-k="landDE">Duitsland</option>
+            </select>
+          </label>
+          <label class="veld"><span data-k="vInstagram">Instagram (mag leeg)</span><input name="instagram" maxlength="100" placeholder="@jouwbar"></label>
+          <label class="veld vol"><span data-k="vWebsite">Website (mag leeg)</span><input name="website" type="url" maxlength="200" placeholder="https://"></label>
+          <label class="veld vol"><span data-k="vInfo">Korte beschrijving *</span><textarea name="info" required maxlength="400" class="kort" data-k-placeholder="vInfoVoorbeeld" placeholder="Bv. Eigen branderij, filterkoffie van wisselende bonen, groot terras en een fietsenrek in het zicht."></textarea><small class="teller" id="infoTeller">0 / 400</small></label>
+
+          <h3 class="formDeel" data-k="deelUren">2. Openingsuren</h3>
+          <div class="uren vol">
+            <div class="dag" data-dag="ma">
+              <span class="dagNaam" data-k="dag_ma">Maandag</span>
+              <input type="time" name="van_ma" aria-label="Maandag van" value="08:00">
+              <span class="tot">–</span>
+              <input type="time" name="tot_ma" aria-label="Maandag tot" value="17:00">
+              <label class="dicht"><input type="checkbox" name="dicht_ma"> <span data-k="gesloten">Gesloten</span></label>
+            </div>
+            <div class="dag" data-dag="di">
+              <span class="dagNaam" data-k="dag_di">Dinsdag</span>
+              <input type="time" name="van_di" aria-label="Dinsdag van" value="08:00">
+              <span class="tot">–</span>
+              <input type="time" name="tot_di" aria-label="Dinsdag tot" value="17:00">
+              <label class="dicht"><input type="checkbox" name="dicht_di"> <span data-k="gesloten">Gesloten</span></label>
+            </div>
+            <div class="dag" data-dag="wo">
+              <span class="dagNaam" data-k="dag_wo">Woensdag</span>
+              <input type="time" name="van_wo" aria-label="Woensdag van" value="08:00">
+              <span class="tot">–</span>
+              <input type="time" name="tot_wo" aria-label="Woensdag tot" value="17:00">
+              <label class="dicht"><input type="checkbox" name="dicht_wo"> <span data-k="gesloten">Gesloten</span></label>
+            </div>
+            <div class="dag" data-dag="do">
+              <span class="dagNaam" data-k="dag_do">Donderdag</span>
+              <input type="time" name="van_do" aria-label="Donderdag van" value="08:00">
+              <span class="tot">–</span>
+              <input type="time" name="tot_do" aria-label="Donderdag tot" value="17:00">
+              <label class="dicht"><input type="checkbox" name="dicht_do"> <span data-k="gesloten">Gesloten</span></label>
+            </div>
+            <div class="dag" data-dag="vr">
+              <span class="dagNaam" data-k="dag_vr">Vrijdag</span>
+              <input type="time" name="van_vr" aria-label="Vrijdag van" value="08:00">
+              <span class="tot">–</span>
+              <input type="time" name="tot_vr" aria-label="Vrijdag tot" value="17:00">
+              <label class="dicht"><input type="checkbox" name="dicht_vr"> <span data-k="gesloten">Gesloten</span></label>
+            </div>
+            <div class="dag" data-dag="za">
+              <span class="dagNaam" data-k="dag_za">Zaterdag</span>
+              <input type="time" name="van_za" aria-label="Zaterdag van" value="08:00">
+              <span class="tot">–</span>
+              <input type="time" name="tot_za" aria-label="Zaterdag tot" value="17:00">
+              <label class="dicht"><input type="checkbox" name="dicht_za"> <span data-k="gesloten">Gesloten</span></label>
+            </div>
+            <div class="dag" data-dag="zo">
+              <span class="dagNaam" data-k="dag_zo">Zondag</span>
+              <input type="time" name="van_zo" aria-label="Zondag van" value="">
+              <span class="tot">–</span>
+              <input type="time" name="tot_zo" aria-label="Zondag tot" value="">
+              <label class="dicht"><input type="checkbox" name="dicht_zo" checked> <span data-k="gesloten">Gesloten</span></label>
+            </div>
+            <button type="button" class="link" id="zelfdeUren" data-k="zelfdeUren">Uren van maandag overal overnemen</button>
+            <small data-k="urenUitleg">Middagpauze of iets speciaals? Zet het onderaan bij je bericht.</small>
+          </div>
+
+          <h3 class="formDeel" data-k="deelKenmerken">3. Wat mogen mensen verwachten?</h3>
+          <div class="kenmerken vol">
+            <label class="kenmerk"><input type="checkbox" name="wieler"> <span><b data-k="kWieler">Cycling-friendly</b><small data-k="kWielerUitleg">Fiets veilig (in het zicht), koersplunje en klikschoenen welkom, drinkbus bijvullen.</small></span></label>
+            <label class="kenmerk"><input type="checkbox" name="laptop"> <span><b data-k="kLaptop">PC-friendly</b><small data-k="kLaptopUitleg">Wifi, stopcontacten en je mag er even werken.</small></span></label>
+          </div>
+
+          <h3 class="formDeel" data-k="deelFoto">4. Een foto</h3>
+          <div class="fotoVak vol">
+            <label class="fotoKnop">
+              <input type="file" name="foto" accept="image/*" id="fotoInvoer">
+              <span data-k="fotoKiezen">Kies een foto</span>
+            </label>
+            <img id="fotoVoorbeeld" alt="" hidden>
+            <small data-k="fotoUitleg">Liefst liggend, van je bar of je koffie. Het mag ook later.</small>
+          </div>
+
+          <h3 class="formDeel" data-k="deelContact">5. Contact</h3>
           <label class="veld"><span data-k="vNaam">Jouw naam *</span><input name="naam" required maxlength="80" autocomplete="name"></label>
           <label class="veld"><span data-k="vEmail">E-mailadres *</span><input name="email" type="email" required maxlength="200" autocomplete="email"></label>
           <label class="veld"><span data-k="vTelefoon">Telefoon (mag leeg)</span><input name="telefoon" type="tel" maxlength="40" autocomplete="tel"></label>
-          <fieldset>
-            <legend data-k="vWaarvoor">Waarvoor?</legend>
-            <div class="keuzes">
-              <label><input type="radio" name="interesse" value="gratis" checked> <span data-k="kGratis">Gratis vermelding</span></label>
-              <label><input type="radio" name="interesse" value="pakket"> <span data-k="kPakket">Interesse in het bar-pakket</span></label>
-              <label><input type="radio" name="interesse" value="vraag"> <span data-k="kVraag">Ik heb een vraag</span></label>
-            </div>
-          </fieldset>
+          <label class="kenmerk vol rit"><input type="checkbox" name="rit"> <span><b data-k="kRit">Ik wil samen een coffee ride organiseren</b></span></label>
           <label class="veld vol"><span data-k="vBericht">Bericht (mag leeg)</span><textarea name="bericht" maxlength="1000"></textarea></label>
           <!-- Valstrik voor spamrobots: mensen zien dit vakje niet -->
-          <label class="valstrik" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off"></label>
+          <label class="valstrik" aria-hidden="true">Website <input name="website2" tabindex="-1" autocomplete="off"></label>
           <div class="verstuur">
-            <button class="knop hoofd" type="submit" data-k="versturen">Versturen</button>
-            <p><span data-k="privacyZin">We gebruiken je gegevens alleen om je te contacteren over Waypour.</span> <a href="privacy.html" data-k="privacyLink">Privacyverklaring</a></p>
+            <button class="knop hoofd" type="submit" data-k="versturen">Bar voorstellen</button>
+            <p><span data-k="privacyZin">We gebruiken je gegevens alleen om je bar op de kaart te zetten en je te contacteren over Waypour.</span> <a href="privacy.html" data-k="privacyLink">Privacyverklaring</a></p>
           </div>
           <p class="formMelding" id="formMelding" role="status" aria-live="polite"></p>
         </form>

@@ -465,3 +465,27 @@ async function verwijderBarAanvraag(id) {
   const { error } = await db.from("bar_aanvragen").delete().eq("id", id);
   if (error) throw error;
 }
+
+// Foto's die een bar meestuurt (map "aanvraag-fotos", niet openbaar)
+async function uploadAanvraagFoto(blob) {
+  const willekeurig = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2, 10));
+  const pad = "nieuw/" + willekeurig.toLowerCase() + ".jpg";
+  const { error } = await db.storage.from("aanvraag-fotos").upload(pad, blob, { contentType: "image/jpeg" });
+  if (error) throw error;
+  return pad;
+}
+// Alleen voor de beheerder: een tijdelijke link om de foto te bekijken, of de foto zelf
+async function aanvraagFotoLink(pad) {
+  const { data, error } = await db.storage.from("aanvraag-fotos").createSignedUrl(pad, 3600);
+  if (error) throw error;
+  return data.signedUrl;
+}
+async function haalAanvraagFotoOp(pad) {
+  const { data, error } = await db.storage.from("aanvraag-fotos").download(pad);
+  if (error) throw error;
+  return data;
+}
+async function verwijderAanvraagFoto(pad) {
+  const { error } = await db.storage.from("aanvraag-fotos").remove([pad]);
+  if (error) throw error;
+}

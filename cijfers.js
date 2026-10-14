@@ -148,7 +148,59 @@ function openCijfers() {
 }
 
 // ---------- Aanvragen van bars (pagina voor-bars.html) ----------
-const INTERESSE = { gratis: "Gratis vermelding", pakket: "Bar-pakket", vraag: "Vraag" };
+const INTERESSE = { aanmelden: "Bar voorstellen", rit: "Bar + coffee ride", vraag: "Vraag", gratis: "Gratis vermelding", pakket: "Bar-pakket" };
+const DAGKORT = { ma: "ma", di: "di", wo: "wo", do: "do", vr: "vr", za: "za", zo: "zo" };
+
+// "ma–vr 08:00-17:00 · za 09:00-16:00 · zo gesloten"
+function urenKort(uren) {
+  if (!uren) return "";
+  const dagen = Object.keys(DAGKORT);
+  const groepen = [];
+  for (const dag of dagen) {
+    const waarde = uren[dag] || "gesloten";
+    const laatste = groepen[groepen.length - 1];
+    if (laatste && laatste.waarde === waarde) laatste.tot = dag;
+    else groepen.push({ van: dag, tot: dag, waarde });
+  }
+  return groepen.map(g => (g.van === g.tot ? g.van : g.van + "–" + g.tot) + " " + g.waarde).join(" · ");
+}
+
+// Dezelfde naam (zonder hoofdletters en leestekens) en dezelfde gemeente of regio
+function bestaandeBarVoor(a) {
+  const sleutel = (tekst) => String(tekst || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "");
+  const kandidaten = alleStops.filter(s => sleutel(s.naam) === sleutel(a.bar));
+  return kandidaten.find(s => [s.plaats, s.stad, s.adres].some(x => sleutel(x).includes(sleutel(a.gemeente)))) || kandidaten[0] || null;
+}
+
+// Uren, tekst, kenmerken en foto van een aanvraag overnemen bij een bar die al op de kaart staat
+async function werkBarBijUitAanvraag(stop, a, knop) {
+  const wat = ["openingsuren", "beschrijving", "cycling-/PC-friendly", a.foto ? "foto" : ""].filter(Boolean).join(", ");
+  if (!confirm(`${stop.naam} bijwerken met de gegevens uit deze aanvraag (${wat})?`)) return;
+  knop.disabled = true;
+  try {
+    const velden = {};
+    if (a.openingsuren) velden.openingsuren = a.openingsuren;
+    if (a.info) velden[a.taal === "fr" ? "info_fr" : "info"] = a.info;
+    if (a.wieler && stop.type === "coffee") velden.type = "both";
+    const kenmerken = new Set(kenmerkenVan(stop));
+    if (a.laptop) kenmerken.add("laptop");
+    velden.kenmerken = [...kenmerken];
+    await werkStopBij(stop.id, velden);
+    Object.assign(stop, velden);
+    if (a.foto) {
+      const blob = await haalAanvraagFotoOp(a.foto);
+      const url = await uploadFoto(blob, stop.id);
+      await zetFotoVanStop(stop.id, url);
+      stop.foto = url;
+    }
+    knop.textContent = "✓ Bijgewerkt";
+    teken();
+  } catch (fout) {
+    knop.disabled = false;
+    alert("Bijwerken lukte niet: " + fout.message);
+  }
+}
+
 async function tekenAanvragen() {
   const vak = document.getElementById("aanvragenLijst");
   vak.textContent = "Laden…";
@@ -162,21 +214,67 @@ async function tekenAanvragen() {
     div.className = "aanvraag";
     const datum = new Date(a.gemaakt).toLocaleDateString("nl-BE", { day: "numeric", month: "short", year: "numeric" });
     div.innerHTML = `<div class="kop"><b></b><span class="pil"></span></div>
+      <img class="aanvraagFoto" alt="" hidden>
+      <small class="adres"></small>
+      <p class="info"></p>
+      <small class="urenKort"></small>
+      <small class="kenmerkRij"></small>
+      <small class="links"></small>
       <small class="wie"></small>
       <p class="tekst"></p>
-      <div class="knoppen"><a class="mail">✉️ Mailen</a><button type="button" class="klaar">✓ Afgehandeld</button></div>`;
-    div.querySelector("b").textContent = a.bar + " · " + a.gemeente;
-    div.querySelector(".pil").textContent = INTERESSE[a.interesse] || a.interesse;
-    div.querySelector(".wie").textContent = [a.naam, a.email, a.telefoon, datum, (a.taal || "nl").toUpperCase()].filter(Boolean).join(" · ");
-    const tekstVak = div.querySelector(".tekst");
-    tekstVak.textContent = a.bericht || "";
-    tekstVak.hidden = !a.bericht;
+      <div class="knoppen">
+        <button type="button" class="opKaart">➕ Op de kaart zetten</button>
+        <button type="button" class="bijwerken" hidden></button>
+        <a class="mail">✉️ Mailen</a>
+        <button type="button" class="klaar">✓ Afgehandeld</button>
+      </div>`;
+    const zet = (sel, tekst) => { const el = div.querySelector(sel); el.textContent = tekst || ""; el.hidden = !tekst; };
+    zet("b", a.bar + " · " + a.gemeente);
+    zet(".pil", INTERESSE[a.interesse] || a.interesse);
+    zet(".adres", a.straat ? "📍 " + a.straat + ", " + [a.postcode, a.gemeente].filter(Boolean).join(" ") + " (" + (a.landcode || "BE") + ")" : "");
+    zet(".info", a.info);
+    zet(".urenKort", a.openingsuren ? "🕐 " + urenKort(a.openingsuren) : "");
+    zet(".kenmerkRij", [a.wieler ? "🚴 Cycling-friendly" : "", a.laptop ? "💻 PC-friendly" : ""].filter(Boolean).join(" · "));
+    zet(".links", [a.instagram, a.website].filter(Boolean).join(" · "));
+    zet(".wie", [a.naam, a.email, a.telefoon, datum, (a.taal || "nl").toUpperCase()].filter(Boolean).join(" · "));
+    zet(".tekst", a.bericht);
+
+    // De foto (tijdelijke link, want de map is niet openbaar)
+    if (a.foto) {
+      aanvraagFotoLink(a.foto).then(url => {
+        const img = div.querySelector(".aanvraagFoto");
+        img.src = url;
+        img.hidden = false;
+      }).catch(fout => console.warn("Foto niet geladen:", fout.message));
+    }
+
+    // Staat deze bar al op de kaart? Dan de gegevens bijwerken in plaats van een nieuwe bar
+    const bestaand = bestaandeBarVoor(a);
+    const bijwerken = div.querySelector(".bijwerken");
+    if (bestaand) {
+      bijwerken.hidden = false;
+      bijwerken.textContent = "✏️ " + bestaand.naam + " bijwerken";
+      bijwerken.onclick = () => werkBarBijUitAanvraag(bestaand, a, bijwerken);
+    }
+
+    // Oude aanvragen (zonder adres) kunnen niet rechtstreeks op de kaart
+    const opKaart = div.querySelector(".opKaart");
+    opKaart.hidden = !a.straat || Boolean(bestaand);
+    opKaart.onclick = () => {
+      document.getElementById("cijfersVenster").close();
+      importeerAanvraag(a);
+    };
+
     div.querySelector(".mail").href = "mailto:" + encodeURIComponent(a.email) +
-      "?subject=" + encodeURIComponent(a.taal === "fr" ? "Waypour – " + a.bar : "Waypour – " + a.bar);
+      "?subject=" + encodeURIComponent("Waypour – " + a.bar);
     div.querySelector(".klaar").onclick = async () => {
       if (!confirm("Deze aanvraag wissen? (Bewaar eerst wat je nodig hebt.)")) return;
-      try { await verwijderBarAanvraag(a.id); div.remove(); }
-      catch (fout) { alert("Wissen lukte niet: " + fout.message); }
+      try {
+        if (a.foto) await verwijderAanvraagFoto(a.foto).catch(fout => console.warn(fout.message));
+        await verwijderBarAanvraag(a.id);
+        div.remove();
+        if (!vak.children.length) vak.innerHTML = `<p class="uitleg">Nog geen aanvragen.</p>`;
+      } catch (fout) { alert("Wissen lukte niet: " + fout.message); }
     };
     vak.appendChild(div);
   }

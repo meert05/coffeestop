@@ -42,13 +42,41 @@ document.getElementById("importBestand").onchange = async (event) => {
     return;
   }
 
+  await startImport(rijen);
+};
+
+// De rijen inlezen en de adressen opzoeken (ook gebruikt voor aanvragen van bars, cijfers.js)
+async function startImport(rijen) {
   importRijen = rijen
     .filter(r => r && r.naam && r.adres)
     .map(r => ({ ...r, status: "wachten", aan: false, gevonden: null }));
   if (importRijen.length === 0) { importMelding.textContent = t("importFout"); return; }
-
   await zoekAlleAdressen();
-};
+}
+
+// Een aanvraag van een bar (pagina "Voor koffiebars") klaarzetten om toe te voegen
+const LANDNAMEN = { BE: "België", NL: "Nederland", FR: "Frankrijk", LU: "Luxemburg", DE: "Duitsland" };
+async function importeerAanvraag(a) {
+  if (importBezig) { alert("Even geduld: de vorige lijst wordt nog opgezocht."); return; }
+  if (typeof sluitBar === "function") sluitBar();
+  const landcode = (a.landcode || "BE").toUpperCase();
+  const rij = {
+    naam: a.bar,
+    adres: [a.straat, [a.postcode, a.gemeente].filter(Boolean).join(" ")].filter(Boolean).join(", "),
+    plaats: a.gemeente,
+    land: LANDNAMEN[landcode] || landcode,
+    landcode: landcode,
+    type: a.wieler ? "both" : "coffee",
+    info: a.info || "",
+    ...(a.taal === "fr" && a.info ? { info_fr: a.info } : {}),
+    ...(a.openingsuren ? { openingsuren: a.openingsuren } : {}),
+    kenmerken: a.laptop ? ["laptop"] : [],
+    aanvraagFoto: a.foto || null
+  };
+  importBlok.hidden = false;
+  importBlok.scrollIntoView({ behavior: "smooth", block: "start" });
+  await startImport([rij]);
+}
 
 // Een eenvoudige CSV: eerste regel = kolomnamen, gescheiden door komma's of puntkomma's
 function leesCsv(tekst) {
@@ -237,6 +265,17 @@ document.getElementById("importToevoegen").onclick = async () => {
       await voegStopToeInDatabase(stop);
       stop.nieuw_sinds = new Date().toISOString();   // de database zet dezelfde datum
       alleStops.push(stop);
+      // Kwam deze bar uit een aanvraag met een foto? Die foto meteen bij de bar zetten
+      if (r.aanvraagFoto) {
+        try {
+          const blob = await haalAanvraagFotoOp(r.aanvraagFoto);
+          const url = await uploadFoto(blob, stop.id);
+          await zetFotoVanStop(stop.id, url);
+          stop.foto = url;
+        } catch (fout) {
+          console.error("Foto overnemen mislukt:", fout);
+        }
+      }
       r.status = "toegevoegd";
       r.aan = false;
       gelukt++;
