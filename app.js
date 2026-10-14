@@ -153,6 +153,33 @@ function tekenKaart(stops) {
   }
 }
 
+// ---------- Instagram en website ----------
+// "@barbidon", "barbidon" of "https://instagram.com/barbidon/" → "barbidon"
+function instagramNaam(waarde) {
+  const m = String(waarde || "").trim()
+    .match(/^(?:https?:\/\/)?(?:www\.)?(?:instagram\.com\/)?@?([A-Za-z0-9._]{1,30})\/?(?:\?.*)?$/i);
+  return m ? m[1] : null;
+}
+// "barbidon.be" → "https://barbidon.be/"; alleen gewone webadressen
+function websiteLink(waarde) {
+  let w = String(waarde || "").trim();
+  if (!w) return null;
+  if (!/^https?:\/\//i.test(w)) w = "https://" + w;
+  try {
+    const url = new URL(w);
+    return (url.protocol === "https:" || url.protocol === "http:") && url.hostname.includes(".") ? url.href.slice(0, 200) : null;
+  } catch { return null; }
+}
+function websiteKort(link) {
+  try { return new URL(link).hostname.replace(/^www\./, ""); } catch { return link; }
+}
+function linkRijenHTML(stop) {
+  const ig = instagramNaam(stop.instagram);
+  const web = websiteLink(stop.website);
+  return (ig ? `<a class="rij linkRij igLink" href="https://www.instagram.com/${esc(ig)}/" target="_blank" rel="noopener"><span>Instagram</span><span class="waarde">@${esc(ig)} ›</span></a>` : "")
+       + (web ? `<a class="rij linkRij webLink" href="${esc(web)}" target="_blank" rel="noopener"><span>${esc(t("websiteTitel"))}</span><span class="waarde">${esc(websiteKort(web))} ›</span></a>` : "");
+}
+
 // De korte regel onder de naam: open of dicht, en hooguit 2 kenmerken
 function kortRegel(stop) {
   const delen = [];
@@ -236,6 +263,7 @@ function tekenLijst(stops) {
           ${openingsurenHTML(stop)}
           <button type="button" class="reviewKnop rij"><span>${esc(t("reviewsTitel"))}</span><span class="waarde">${reviewKnopTekst(stop)} ›</span></button>
           ${reviewsBlokHTML(stop)}
+          ${linkRijenHTML(stop)}
         </div>
         ${bewerkKenmerkenVan === stop.id ? `<div class="kenmerkBewerken">
           <label class="vinkje"><input type="checkbox" class="soortWieler"
@@ -243,6 +271,13 @@ function tekenLijst(stops) {
           ${Object.keys(KENMERKEN).map(k => `<label class="vinkje"><input type="checkbox" class="kenmerk" value="${k}"
               ${kenmerkenVan(stop).includes(k) ? "checked" : ""}> ${KENMERKEN[k].icoon} ${t("kenmerk_" + k)}</label>`).join("")}
           ${urenBewerkenHTML(stop)}
+          <div class="linksBewerken">
+            <strong>🔗 Instagram en website</strong>
+            <label>Instagram <input class="igVeld" maxlength="100" placeholder="@jouwbar" value="${esc(stop.instagram ? "@" + stop.instagram : "")}"></label>
+            <label>${esc(t("websiteTitel"))} <input class="webVeld" maxlength="200" placeholder="https://" value="${esc(stop.website || "")}"></label>
+            <small class="linksMelding"></small>
+            <button type="button" class="bewaarLinks">${esc(t("linksBewaren"))}</button>
+          </div>
         </div>` : ""}
         ${typeof barCijfersHTML === "function" ? barCijfersHTML(stop) : ""}
         ${inBeheer() ? `<div class="beheerActies">
@@ -378,6 +413,29 @@ function tekenLijst(stops) {
           teken();
         } catch (fout) {
           alert(t("opslaanMislukt") + " " + fout.message);
+        }
+      };
+    }
+
+    // Instagram en website bewaren (alleen de beheerder)
+    const linksBlok = li.querySelector(".linksBewerken");
+    if (linksBlok) {
+      linksBlok.onclick = (event) => event.stopPropagation();
+      linksBlok.querySelector(".bewaarLinks").onclick = async () => {
+        const melding = linksBlok.querySelector(".linksMelding");
+        const igTekst = linksBlok.querySelector(".igVeld").value.trim();
+        const webTekst = linksBlok.querySelector(".webVeld").value.trim();
+        const instagram = igTekst ? instagramNaam(igTekst) : null;
+        const website = webTekst ? websiteLink(webTekst) : null;
+        if (igTekst && !instagram) { melding.textContent = t("igFout"); return; }
+        if (webTekst && !website) { melding.textContent = t("webFout"); return; }
+        try {
+          await werkStopBij(stop.id, { instagram, website });
+          stop.instagram = instagram;
+          stop.website = website;
+          teken();
+        } catch (fout) {
+          melding.textContent = t("opslaanMislukt") + " " + fout.message;
         }
       };
     }

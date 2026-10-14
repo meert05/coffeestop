@@ -174,7 +174,7 @@ function bestaandeBarVoor(a) {
 
 // Uren, tekst, kenmerken en foto van een aanvraag overnemen bij een bar die al op de kaart staat
 async function werkBarBijUitAanvraag(stop, a, knop) {
-  const wat = ["openingsuren", "beschrijving", "cycling-/PC-friendly", a.foto ? "foto" : ""].filter(Boolean).join(", ");
+  const wat = ["openingsuren", "beschrijving", "cycling-/PC-friendly", a.instagram || a.website ? "Instagram/website" : "", a.foto ? "foto" : ""].filter(Boolean).join(", ");
   if (!confirm(`${stop.naam} bijwerken met de gegevens uit deze aanvraag (${wat})?`)) return;
   knop.disabled = true;
   try {
@@ -182,6 +182,8 @@ async function werkBarBijUitAanvraag(stop, a, knop) {
     if (a.openingsuren) velden.openingsuren = a.openingsuren;
     if (a.info) velden[a.taal === "fr" ? "info_fr" : "info"] = a.info;
     if (a.wieler && stop.type === "coffee") velden.type = "both";
+    if (instagramNaam(a.instagram)) velden.instagram = instagramNaam(a.instagram);
+    if (websiteLink(a.website)) velden.website = websiteLink(a.website);
     const kenmerken = new Set(kenmerkenVan(stop));
     if (a.laptop) kenmerken.add("laptop");
     velden.kenmerken = [...kenmerken];

@@ -71,6 +71,8 @@ async function importeerAanvraag(a) {
     ...(a.taal === "fr" && a.info ? { info_fr: a.info } : {}),
     ...(a.openingsuren ? { openingsuren: a.openingsuren } : {}),
     kenmerken: a.laptop ? ["laptop"] : [],
+    instagram: a.instagram || "",
+    website: a.website || "",
     aanvraagFoto: a.foto || null
   };
   importBlok.hidden = false;
@@ -259,7 +261,10 @@ document.getElementById("importToevoegen").onclick = async () => {
       // Openingsuren, als de lijst ze heeft ({ "ma": "08:00-17:00", ..., "zo": "" })
       ...(r.openingsuren && typeof r.openingsuren === "object" ? { openingsuren: r.openingsuren } : {}),
       provincie: r.provincie || g.provincie || null,
-      kenmerken: leesKenmerken(r)
+      kenmerken: leesKenmerken(r),
+      // Instagram en website, als de lijst of de aanvraag ze heeft (links.sql)
+      ...(instagramNaam(r.instagram) ? { instagram: instagramNaam(r.instagram) } : {}),
+      ...(websiteLink(r.website) ? { website: websiteLink(r.website) } : {})
     };
     try {
       await voegStopToeInDatabase(stop);
