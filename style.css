@@ -1927,3 +1927,16 @@ body.barOpen #lijstVak > .barOproep { display: none; }
 .aanvraag .opKaart { height: 34px; padding: 0 12px; background: var(--tekst); border-color: var(--tekst); color: var(--achtergrond); }
 .aanvraag .opKaart:hover { background: var(--tekst); color: var(--achtergrond); opacity: .9; }
 .aanvraag .bijwerken { height: 34px; padding: 0 12px; background: var(--tekst); border-color: var(--tekst); color: var(--achtergrond); }
+
+/* Instagram en website in het bar-scherm */
+a.rij { text-decoration: none; color: var(--tekst); border-bottom: 1px solid #222220; }
+a.rij:hover { color: var(--tekst); }
+a.rij .waarde { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+/* Beheerder: links aanpassen */
+.linksBewerken { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--lijn); }
+.linksBewerken strong { font-size: 13px; font-weight: 600; color: var(--grijs); }
+.linksBewerken label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--grijs); }
+.linksBewerken input { color: var(--tekst); }
+.linksBewerken button { align-self: flex-start; height: 36px; padding: 0 14px; }
+.linksMelding { font-size: 12px; color: #E07A6F; }
+.linksMelding:empty { display: none; }
