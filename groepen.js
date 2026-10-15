@@ -16,6 +16,8 @@ let groepLeden = [];
 let groepRitten = [];
 let groepBerichten = [];
 let groepRoutes = [];
+let groepBerichtRoutes = [];  // GPX-bestanden uit de berichten
+let groepBijlage = null;      // het GPX-bestand dat je bij je volgende bericht stuurt
 let groepTab = "ritten";
 let groepUitnodiging = null;  // de groep uit een link, die nog op een antwoord wacht
 
@@ -225,6 +227,8 @@ async function openGroep(id) {
   document.getElementById("groepBerichten").innerHTML = "";
   groepBerichten = [];
   groepRoutes = [];
+  groepBerichtRoutes = [];
+  zetBijlage(null);
   toonGroepTab("ritten");
   pasPostenToe();
   await laadGroep();
@@ -242,18 +246,22 @@ async function laadGroep() {
   const id = openGroepId;
   if (!id) return;
   try {
-    const [leden, ritten, routes] = await Promise.all([
-      haalGroepLedenOp(id), haalGroepRittenOp(id), haalGroepRoutesOp(id).catch(fout => { console.error(fout); return []; })
+    const [leden, ritten, routes, berichtRoutes] = await Promise.all([
+      haalGroepLedenOp(id), haalGroepRittenOp(id),
+      haalGroepRoutesOp(id).catch(fout => { console.error(fout); return []; }),
+      haalGroepBerichtRoutesOp(id).catch(fout => { console.error(fout); return []; })
     ]);
     if (id !== openGroepId) return;   // intussen een andere groep geopend
     groepLeden = leden;
     groepRitten = ritten;
     groepRoutes = routes;
+    groepBerichtRoutes = berichtRoutes;
   } catch (fout) {
     console.error(fout);
     groepLeden = [];
     groepRitten = [];
     groepRoutes = [];
+    groepBerichtRoutes = [];
   }
   tekenGroepRitten();
   tekenGroepLeden();
@@ -594,14 +602,18 @@ function tekenGroepBerichten() {
     const mijn = b.van === gebruiker.id;
     const div = document.createElement("div");
     div.className = "bericht " + (mijn ? "mijn" : "hun");
-    div.innerHTML = `${mijn ? "" : `<b class="van"></b>`}<p></p><small><span class="tijd"></span>${mijn || beheer ? ` · <button type="button" class="link wis">${esc(t("wissen"))}</button>` : ""}</small>`;
+    div.innerHTML = `${mijn ? "" : `<b class="van"></b>`}${b.route ? `<div class="berichtRoute"><span class="titel"></span><button type="button" class="toon">${esc(t("toonRoute"))}</button></div>` : ""}${b.tekst ? "<p></p>" : ""}<small><span class="tijd"></span>${mijn || beheer ? ` · <button type="button" class="link wis">${esc(t("wissen"))}</button>` : ""}</small>`;
     if (!mijn) div.querySelector(".van").textContent = b.naam || "?";
-    div.querySelector("p").textContent = b.tekst;
+    if (b.tekst) div.querySelector("p").textContent = b.tekst;
+    if (b.route) {
+      div.querySelector(".berichtRoute .titel").textContent = routeKort(b.route);
+      div.querySelector(".berichtRoute .toon").onclick = () => toonGroepsroute(b.route);
+    }
     div.querySelector(".tijd").textContent = korteTijd(b.verzonden);
     const wis = div.querySelector(".wis");
     if (wis) wis.onclick = async () => {
       if (!confirm(t("zekerBerichtWissen"))) return;
-      try { await verwijderGroepsbericht(b.id); await laadGroepBerichten(); }
+      try { await verwijderGroepsbericht(b.id); await laadGroepBerichten(); if (b.route) laadGroep(); }
       catch (fout) { alert(t("opslaanMislukt") + " " + fout.message); }
     };
     vak.appendChild(div);
@@ -613,14 +625,17 @@ document.getElementById("groepBerichtFormulier").onsubmit = async (event) => {
   event.preventDefault();
   const vak = document.getElementById("groepBerichtTekst");
   const tekst = vak.value.trim().slice(0, 1000);
-  if (!tekst || !openGroepId) return;
+  if ((!tekst && !groepBijlage) || !openGroepId) return;
   const knop = event.target.querySelector('button[type="submit"]');
   knop.disabled = true;
   try {
-    await stuurGroepsbericht(openGroepId, mijnVoornaam, tekst);
+    const metRoute = Boolean(groepBijlage);
+    await stuurGroepsbericht(openGroepId, mijnVoornaam, tekst, groepBijlage);
     vak.value = "";
     vak.style.height = "";
+    zetBijlage(null);
     await laadGroepBerichten();
+    if (metRoute) laadGroep();   // ook in het tabblad Routes
   } catch (fout) {
     alert(String(fout.message || "").includes("Te veel") ? t("teVeelBerichten") : t("opslaanMislukt") + " " + fout.message);
   } finally {
@@ -653,6 +668,7 @@ function tekenGroepRoutes() {
   const beheer = benBeheerder();
   const items = [
     ...groepRoutes.map(r => ({ route: { ...r.route, naam: r.naam }, wie: r.door_naam, wanneer: r.gedeeld, eigen: r.door === gebruiker.id, id: r.id })),
+    ...groepBerichtRoutes.map(b => ({ route: b.route, wie: b.naam, wanneer: b.verzonden, eigen: b.van === gebruiker.id, berichtId: b.id })),
     ...groepRitten.filter(r => r.route).map(r => ({ route: r.route, wie: r.maker_naam, rit: r }))
   ];
   if (!items.length) {
@@ -667,21 +683,21 @@ function tekenGroepRoutes() {
       <p class="ritVan"></p>
       <div class="acties">
         <button type="button" class="toon">${esc(t("toonRoute"))}</button>
-        ${item.id && (item.eigen || beheer) ? `<button type="button" class="link wis">${esc(t("wissen"))}</button>` : ""}
+        ${(item.id || item.berichtId) && (item.eigen || beheer) ? `<button type="button" class="link wis">${esc(t("wissen"))}</button>` : ""}
       </div>`;
     art.querySelector("h4").textContent = routeTitel(item.route) +
       (Number(item.route.hoogtemeters) ? " · ↗ " + Math.round(Number(item.route.hoogtemeters)) + " hm" : "");
     art.querySelector(".ritVan").textContent = item.rit
       ? t("routeVanGroepsrit").replace("{wanneer}", ritDatum(item.rit.wanneer))
-      : t("gedeeldDoor").replace("{naam}", item.eigen ? t("jij") : (item.wie || "?")) + " · " + korteTijd(item.wanneer);
-    art.querySelector(".toon").onclick = () => {
-      document.getElementById("ritten").close();
-      if (typeof openBewaardeRoute === "function") openBewaardeRoute({ ...item.route, id: null, publiek: false });
-    };
+      : t(item.berichtId ? "gestuurdDoor" : "gedeeldDoor").replace("{naam}", item.eigen ? t("jij") : (item.wie || "?")) + " · " + korteTijd(item.wanneer);
+    art.querySelector(".toon").onclick = () => toonGroepsroute(item.route);
     const wis = art.querySelector(".wis");
     if (wis) wis.onclick = async () => {
       if (!confirm(t("zekerGroepsrouteWissen"))) return;
-      try { await verwijderGroepsroute(item.id); await laadGroep(); }
+      try {
+        if (item.berichtId) await verwijderGroepsbericht(item.berichtId); else await verwijderGroepsroute(item.id);
+        await laadGroep();
+      }
       catch (fout) { alert(t("opslaanMislukt") + " " + fout.message); }
     };
     lijst.appendChild(art);
@@ -727,5 +743,57 @@ document.getElementById("naarGroepFormulier").onsubmit = async (event) => {
     document.getElementById("naarGroepMelding").textContent = t("opslaanMislukt") + " " + fout.message;
   } finally {
     knop.disabled = false;
+  }
+};
+
+// ---------- 📎 Een GPX-bestand bij je groepsbericht ----------
+function routeKort(route) {
+  return routeTitel(route) + (Number(route.hoogtemeters) ? " · ↗ " + Math.round(Number(route.hoogtemeters)) + " hm" : "");
+}
+
+function toonGroepsroute(route) {
+  document.getElementById("ritten").close();
+  if (typeof openBewaardeRoute === "function") openBewaardeRoute({ ...route, id: null, publiek: false });
+}
+
+// GPX → dezelfde vorm als een ingeladen route in het routepaneel
+function gpxNaarRoute(tekst, bestandsnaam) {
+  const { naam, spoor } = leesGpx(tekst, bestandsnaam);
+  let km = 0, hoogtemeters = 0;
+  for (let i = 1; i < spoor.length; i++) {
+    km += afstandKm(spoor[i - 1], spoor[i]);
+    const vorige = spoor[i - 1][2], nu = spoor[i][2];
+    if (Number.isFinite(vorige) && Number.isFinite(nu) && nu > vorige) hoogtemeters += nu - vorige;
+  }
+  return {
+    soort: "import", naam,
+    punten: { naam, spoor, omwegen: [] },
+    km: Number(km.toFixed(1)), hoogtemeters: Math.round(hoogtemeters)
+  };
+}
+
+function zetBijlage(route) {
+  groepBijlage = route;
+  const vak = document.getElementById("groepBijlage");
+  if (!vak) return;
+  vak.hidden = !route;
+  vak.innerHTML = "";
+  if (!route) return;
+  vak.innerHTML = `<span class="titel"></span><button type="button" class="link weg" aria-label="${esc(t("bijlageWeg"))}">✕</button>`;
+  vak.querySelector(".titel").textContent = "📎 " + routeKort(route);
+  vak.querySelector(".weg").onclick = () => zetBijlage(null);
+}
+
+document.getElementById("groepGpx").onchange = async (event) => {
+  const bestand = event.target.files[0];
+  event.target.value = "";                         // zelfde bestand later opnieuw kunnen kiezen
+  if (!bestand) return;
+  if (bestand.size > 15 * 1024 * 1024) { alert(t("gpxTeGroot")); return; }
+  try {
+    zetBijlage(gpxNaarRoute(await bestand.text(), bestand.name));
+    document.getElementById("groepBerichtTekst").focus();
+  } catch (fout) {
+    console.error(fout);
+    alert(t("gpxFout"));
   }
 };

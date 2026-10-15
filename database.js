@@ -574,8 +574,10 @@ async function haalGroepBerichtenOp(id) {
   if (error) throw error;
   return (data || []).reverse();   // oudste eerst
 }
-async function stuurGroepsbericht(groep, naam, tekst) {
-  const { error } = await db.from("groep_berichten").insert({ groep, naam: (naam || "").slice(0, 40) || null, tekst });
+async function stuurGroepsbericht(groep, naam, tekst, route = null) {
+  const rij = { groep, naam: (naam || "").slice(0, 40) || null, tekst: tekst || "" };
+  if (route) rij.route = route;   // een GPX-bestand bij het bericht (groepen-3.sql)
+  const { error } = await db.from("groep_berichten").insert(rij);
   if (error) throw error;
 }
 async function verwijderGroepsbericht(id) {
@@ -586,6 +588,13 @@ async function haalGroepRoutesOp(id) {
   const { data, error } = await db.from("groep_routes").select("*").eq("groep", id).order("gedeeld", { ascending: false });
   if (error) throw error;
   return data || [];
+}
+// GPX-bestanden die in de groepsberichten gestuurd zijn
+async function haalGroepBerichtRoutesOp(id) {
+  const { data, error } = await db.from("groep_berichten").select("id, van, naam, route, verzonden")
+    .eq("groep", id).not("route", "is", null).order("verzonden", { ascending: false }).limit(100);
+  if (error) throw error;
+  return (data || []).filter(b => b.route);
 }
 async function deelRouteInGroep(groep, naam, route, doorNaam) {
   const { error } = await db.from("groep_routes").insert({ groep, naam: naam.slice(0, 80), route, door_naam: (doorNaam || "").slice(0, 40) || null });

@@ -2023,3 +2023,16 @@ button.groepRij:hover { background: none; border-color: var(--lijn); }
 .groepUitnodigingInhoud .knopHoofd { height: 46px; }
 .groepUitnodigingInhoud .link { border: none; background: none; color: var(--grijs); height: 38px; }
 #naarGroepFormulier { border-bottom: none; }
+
+/* Groepen, deel 3: GPX bij een bericht */
+.gpxKnop { flex: none; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--lijn); border-radius: 50%; cursor: pointer; font-size: 17px; }
+.gpxKnop:hover { border-color: var(--grijs); }
+.gpxKnop input { display: none; }
+.groepBijlage { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 9px 12px; border: 1px solid var(--lijn); border-radius: 12px; font-size: 13px; }
+.groepBijlage .titel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.groepBijlage .weg { border: none; background: none; color: var(--grijs); padding: 0 4px; height: auto; }
+.berichtRoute { display: flex; flex-direction: column; gap: 8px; padding: 11px 13px; border: 1px solid var(--lijn); border-radius: 14px; background: var(--vlak); font-size: 14px; font-weight: 600; min-width: 200px; }
+.bericht.mijn .berichtRoute { border-color: var(--tekst); }
+.berichtRoute .toon { align-self: flex-start; height: 32px; padding: 0 12px; font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.bericht.mijn .berichtRoute + p { margin-top: 4px; }
+.bericht.hun .berichtRoute + p { margin-top: 4px; }

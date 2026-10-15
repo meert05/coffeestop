@@ -307,7 +307,9 @@
 
           <div data-groepvak="berichten" hidden>
             <div id="groepBerichten" role="log" aria-live="polite"></div>
+            <div id="groepBijlage" class="groepBijlage" hidden></div>
             <form id="groepBerichtFormulier" class="groepBerichtFormulier alleenPosters">
+              <label class="gpxKnop" data-t-label="gpxToevoegen" aria-label="GPX toevoegen" title="GPX toevoegen">📎<input id="groepGpx" type="file" accept=".gpx,application/gpx+xml"></label>
               <textarea id="groepBerichtTekst" rows="1" maxlength="1000" placeholder="Bericht aan de groep…" data-t-placeholder="groepBerichtVoorbeeld"></textarea>
               <button type="submit" data-t-label="sturen" aria-label="Sturen">➤</button>
             </form>

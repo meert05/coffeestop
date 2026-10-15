@@ -5,7 +5,7 @@
 // Alleen zonder internet vallen we terug op de laatst bewaarde bestanden.
 // Gegevens van de database, kaarten en routes gaan altijd rechtstreeks naar het internet.
 
-const CACHE = "waypour-v7";
+const CACHE = "waypour-v8";
 const BASIS = [
   "./", "index.html", "style.css", "manifest.webmanifest",
   "database.js", "captcha.js", "vertalingen.js", "locatie.js", "openingsuren.js", "reviews.js",
