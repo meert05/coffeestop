@@ -551,9 +551,47 @@ async function verwijderGroepsrit(id) {
   const { error } = await db.from("groep_ritten").delete().eq("id", id);
   if (error) throw error;
 }
-async function rijMeeMetGroep(ritId, naam, aan) {
-  const { error } = aan
-    ? await db.from("groep_rit_mee").insert({ rit: ritId, naam: (naam || "").slice(0, 40) || null })
-    : await db.from("groep_rit_mee").delete().eq("rit", ritId).eq("gebruiker", gebruiker.id);
+// antwoord: "ja" (ik rij mee), "nee" (kan niet) of null (geen antwoord meer)
+async function rijMeeMetGroep(ritId, naam, antwoord, alGeantwoord) {
+  const kortNaam = (naam || "").slice(0, 40) || null;
+  let uitkomst;
+  if (!antwoord) uitkomst = await db.from("groep_rit_mee").delete().eq("rit", ritId).eq("gebruiker", gebruiker.id);
+  else if (alGeantwoord) uitkomst = await db.from("groep_rit_mee").update({ antwoord, naam: kortNaam }).eq("rit", ritId).eq("gebruiker", gebruiker.id);
+  else uitkomst = await db.from("groep_rit_mee").insert({ rit: ritId, naam: kortNaam, antwoord });
+  if (uitkomst.error) throw uitkomst.error;
+}
+
+// ---------- Groepen, deel 2 (groepen-2.sql) ----------
+// Een groep bekijken via de link, zonder al lid te worden
+async function groepVoorvertoning(code) {
+  const { data, error } = await db.rpc("groep_voorvertoning", { c: code });
+  if (error) throw error;
+  return (data || [])[0] || null;
+}
+async function haalGroepBerichtenOp(id) {
+  const { data, error } = await db.from("groep_berichten").select("*").eq("groep", id)
+    .order("verzonden", { ascending: false }).limit(100);
+  if (error) throw error;
+  return (data || []).reverse();   // oudste eerst
+}
+async function stuurGroepsbericht(groep, naam, tekst) {
+  const { error } = await db.from("groep_berichten").insert({ groep, naam: (naam || "").slice(0, 40) || null, tekst });
+  if (error) throw error;
+}
+async function verwijderGroepsbericht(id) {
+  const { error } = await db.from("groep_berichten").delete().eq("id", id);
+  if (error) throw error;
+}
+async function haalGroepRoutesOp(id) {
+  const { data, error } = await db.from("groep_routes").select("*").eq("groep", id).order("gedeeld", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+async function deelRouteInGroep(groep, naam, route, doorNaam) {
+  const { error } = await db.from("groep_routes").insert({ groep, naam: naam.slice(0, 80), route, door_naam: (doorNaam || "").slice(0, 40) || null });
+  if (error) throw error;
+}
+async function verwijderGroepsroute(id) {
+  const { error } = await db.from("groep_routes").delete().eq("id", id);
   if (error) throw error;
 }

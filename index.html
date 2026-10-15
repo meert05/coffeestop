@@ -279,27 +279,79 @@
           <div id="groepKnoppen" class="groepKnoppen"></div>
           <form id="groepBewerken" class="groepFormulier" hidden></form>
 
-          <h3 data-t="groepsritten">Groepsritten</h3>
-          <div id="groepRittenLijst"></div>
-          <details id="groepsritBlok">
-            <summary data-t="groepsritPlannen">+ Groepsrit plannen</summary>
-            <form id="groepsritFormulier" class="groepFormulier">
-              <label class="veld"><span data-t="groepsritBar">Naar welke koffiebar?</span>
-                <select id="groepsritBar" required></select></label>
-              <label class="veld"><span data-t="wanneer">Wanneer?</span>
-                <input id="groepsritWanneer" type="datetime-local" required></label>
-              <label class="veld"><span data-t="bericht">Bericht (optioneel)</span>
-                <textarea id="groepsritBericht" maxlength="200" rows="2" placeholder="Zin in een ritje? Koffie op de terugweg ☕" data-t-placeholder="berichtVoorbeeld"></textarea></label>
-              <small id="groepsritMelding" class="melding"></small>
-              <button type="submit" data-t="groepsritKnop">Rit plannen →</button>
-              <p class="uitleg" data-t="groepsritRouteUitleg">Liever een eigen route? Plan ze bij Route plannen en kies daar 👥 Uitnodigen → deze groep.</p>
-            </form>
-          </details>
+          <nav id="groepTabs" class="tabbladen groepTabs">
+            <button type="button" data-groeptab="ritten" class="actief" data-t="groepTabRitten">Ritten</button>
+            <button type="button" data-groeptab="berichten" data-t="tabBerichten">Berichten</button>
+            <button type="button" data-groeptab="routes" data-t="groepRoutes">Routes</button>
+            <button type="button" data-groeptab="leden" data-t="groepLeden">Leden</button>
+          </nav>
+          <p id="groepAlleenBeheerders" class="uitleg groepNotitie" hidden data-t="alleenBeheerdersUitleg">📢 In deze groep sturen alleen de beheerders berichten, plannen ze de ritten en delen ze routes. Jij antwoordt of je meerijdt.</p>
 
-          <h3 data-t="groepLeden">Leden</h3>
-          <ul id="groepLedenLijst" class="groepLeden"></ul>
+          <div data-groepvak="ritten">
+            <div id="groepRittenLijst"></div>
+            <details id="groepsritBlok" class="alleenPosters">
+              <summary data-t="groepsritPlannen">+ Groepsrit plannen</summary>
+              <form id="groepsritFormulier" class="groepFormulier">
+                <label class="veld"><span data-t="groepsritBar">Naar welke koffiebar?</span>
+                  <select id="groepsritBar" required></select></label>
+                <label class="veld"><span data-t="wanneer">Wanneer?</span>
+                  <input id="groepsritWanneer" type="datetime-local" required></label>
+                <label class="veld"><span data-t="bericht">Bericht (optioneel)</span>
+                  <textarea id="groepsritBericht" maxlength="200" rows="2" placeholder="Zin in een ritje? Koffie op de terugweg ☕" data-t-placeholder="berichtVoorbeeld"></textarea></label>
+                <small id="groepsritMelding" class="melding"></small>
+                <button type="submit" data-t="groepsritKnop">Rit plannen →</button>
+                <p class="uitleg" data-t="groepsritRouteUitleg">Liever een eigen route? Plan ze bij Route plannen en kies daar 👥 Uitnodigen → deze groep.</p>
+              </form>
+            </details>
+          </div>
+
+          <div data-groepvak="berichten" hidden>
+            <div id="groepBerichten" role="log" aria-live="polite"></div>
+            <form id="groepBerichtFormulier" class="groepBerichtFormulier alleenPosters">
+              <textarea id="groepBerichtTekst" rows="1" maxlength="1000" placeholder="Bericht aan de groep…" data-t-placeholder="groepBerichtVoorbeeld"></textarea>
+              <button type="submit" data-t-label="sturen" aria-label="Sturen">➤</button>
+            </form>
+          </div>
+
+          <div data-groepvak="routes" hidden>
+            <div id="groepRoutesLijst"></div>
+            <p class="uitleg alleenPosters" data-t="groepRouteUitleg">Een route delen? Plan of open ze bij Route plannen en kies daar 📌 Naar groep.</p>
+          </div>
+
+          <div data-groepvak="leden" hidden>
+            <ul id="groepLedenLijst" class="groepLeden"></ul>
+          </div>
         </div>
       </section>
+    </dialog>
+
+    <!-- ===== UITNODIGING VOOR EEN GROEP (zoals WhatsApp: eerst kijken, dan kiezen) ===== -->
+    <dialog id="groepUitnodiging" class="venster klein">
+      <div class="groepUitnodigingInhoud">
+        <span class="groepLogo groot" id="gUitLogo"></span>
+        <small class="uitleg" data-t="jeBentUitgenodigd">Je bent uitgenodigd voor de groep</small>
+        <h2 id="gUitNaam"></h2>
+        <small id="gUitRegel" class="uitleg"></small>
+        <p id="gUitBeschr" class="groepBeschr"></p>
+        <div class="rij">
+          <button id="gUitJa" type="button" class="knopHoofd" data-t="lidWorden">Lid worden</button>
+          <button id="gUitNee" type="button" class="link" data-t="nietNu">Niet nu</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- ===== ROUTE DELEN IN EEN GROEP ===== -->
+    <dialog id="naarGroepVenster" class="venster klein">
+      <div class="profielKop">
+        <h2 data-t="routeInGroepDelen">Route delen in een groep</h2>
+        <button id="naarGroepSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+      <form id="naarGroepFormulier" class="groepFormulier">
+        <label class="veld"><span data-t="welkeGroep">Welke groep?</span><select id="naarGroepKeuze" required></select></label>
+        <label class="veld"><span data-t="routeNaam">Naam van de route</span><input id="naarGroepNaam" required maxlength="80"></label>
+        <small id="naarGroepMelding" class="melding"></small>
+        <button type="submit" data-t="delen">Delen</button>
+      </form>
     </dialog>
 
     <!-- ===== CHAT met een vriend ===== -->
@@ -574,6 +626,7 @@
             <button id="routeGoogle" type="button" data-t="googleMaps">Google Maps</button>
             <button id="routeDelen" type="button" data-t="routeDelen">🔗 Delen</button>
             <button id="routeUitnodigen" type="button" data-t="uitnodigen">👥 Uitnodigen</button>
+            <button id="routeNaarGroep" type="button" data-t="naarGroep" hidden>📌 Naar groep</button>
             <button id="routeBewaar" type="button" data-t="routeBewaren">💾 Bewaren</button>
             <button id="routeWissen" type="button" class="link" data-t="routeWissen">Wissen</button>
           </div>

@@ -3,13 +3,21 @@
 // =====================================================
 // * Tabblad "Groepen" in Samen rijden: je groepen, groepen zoeken, een groep maken.
 // * Een groep: leden, groepsritten (meerijden aan/uit), uitnodigingslink, bewerken of verlaten.
-// * Een uitnodigingslink ?groep=<code> maakt je lid (ook van een besloten groep).
+// * Een uitnodigingslink ?groep=<code> toont eerst de groep; jij kiest of je lid wordt (zoals WhatsApp).
+// * In een groep: tabbladen Ritten (ik rij mee / kan niet), Berichten, Routes en Leden.
+// * Instelling "alleen beheerders": dan sturen alleen beheerders berichten, plannen ze ritten en
+//   delen ze routes; de andere leden antwoorden alleen of ze meerijden.
 // * In "Vrienden uitnodigen" (bar of route) kan je ook een groep kiezen: dan wordt het een groepsrit.
+// * In het routepaneel: 📌 Naar groep, om een route in een groep te delen.
 
 let mijnGroepen = [];        // [{ id, naam, beschrijving, regio, openbaar, code, rol, leden, volgende_rit }]
 let openGroepId = null;      // de groep die je nu bekijkt
 let groepLeden = [];
 let groepRitten = [];
+let groepBerichten = [];
+let groepRoutes = [];
+let groepTab = "ritten";
+let groepUitnodiging = null;  // de groep uit een link, die nog op een antwoord wacht
 
 // ---------- Komt iemand binnen via een groepslink? ----------
 (function leesGroepslink() {
@@ -31,33 +39,62 @@ async function groepenNaInloggen() {
   if (!gebruiker) {
     mijnGroepen = [];
     openGroepId = null;
+    tekenNaarGroepKnop();
     if (lokaal("groepWachtend")) {
       const bericht = document.getElementById("loginBericht");
       if (bericht && !bericht.textContent) bericht.textContent = t("groepNaLogin");
     }
     return;
   }
-  // Een groepslink die nog wachtte
+  await laadGroepen();
+  // Een groepslink die nog wachtte: eerst de groep tonen, jij kiest
   const code = lokaal("groepWachtend");
   if (code) {
     lokaalWeg("groepWachtend");
-    try {
-      const id = await wordGroepslidMetCode(code);
-      await laadGroepen();
-      const groep = mijnGroepen.find(g => g.id === id);
-      if (groep) {
-        toonMelding(t("nuGroepslid").replace("{naam}", groep.naam));
-        openGroep(groep.id);
-        return;
-      }
-      toonMelding(t("onbekendeGroepslink"));
-    } catch (fout) {
-      console.error(fout);
-      toonMelding(t("onbekendeGroepslink"));
-    }
+    await toonGroepUitnodiging(code);
   }
-  await laadGroepen();
 }
+
+async function toonGroepUitnodiging(code) {
+  let g;
+  try { g = await groepVoorvertoning(code); }
+  catch (fout) { console.error(fout); g = null; }
+  if (!g) { toonMelding(t("onbekendeGroepslink")); return; }
+  if (g.lid) { openGroep(g.id); return; }   // al lid: gewoon openen
+  groepUitnodiging = { ...g, code };
+  const venster = document.getElementById("groepUitnodiging");
+  document.getElementById("gUitLogo").textContent = (g.naam || "?").trim().charAt(0).toUpperCase();
+  document.getElementById("gUitNaam").textContent = g.naam;
+  document.getElementById("gUitRegel").textContent = groepRegel(g);
+  const beschr = document.getElementById("gUitBeschr");
+  beschr.textContent = g.beschrijving || "";
+  beschr.hidden = !g.beschrijving;
+  document.getElementById("gUitJa").disabled = false;
+  if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
+}
+
+document.getElementById("gUitNee").onclick = () => {
+  groepUitnodiging = null;
+  document.getElementById("groepUitnodiging").close();
+};
+document.getElementById("gUitJa").onclick = async () => {
+  const g = groepUitnodiging;
+  if (!g) return;
+  const knop = document.getElementById("gUitJa");
+  knop.disabled = true;
+  try {
+    const id = await wordGroepslidMetCode(g.code);
+    document.getElementById("groepUitnodiging").close();
+    groepUitnodiging = null;
+    await laadGroepen();
+    if (!id || !mijnGroepen.some(x => x.id === id)) { toonMelding(t("onbekendeGroepslink")); return; }
+    toonMelding(t("nuGroepslid").replace("{naam}", g.naam));
+    openGroep(id);
+  } catch (fout) {
+    knop.disabled = false;
+    alert(String(fout.message || "").includes("vol") ? t("groepNietGelukt_vol") : t("opslaanMislukt") + " " + fout.message);
+  }
+};
 
 async function laadGroepen() {
   try { mijnGroepen = await haalMijnGroepenOp(); }
@@ -94,6 +131,12 @@ function tekenGroepen() {
     lijst.appendChild(li);
   }
   if (openGroepId && !mijnGroepen.some(g => g.id === openGroepId)) sluitGroep();
+  tekenNaarGroepKnop();
+}
+
+// Mag je in deze groep berichten sturen, ritten plannen en routes delen?
+function magPostenIn(g) {
+  return Boolean(g && (!g.alleen_beheerders || g.rol === "beheerder"));
 }
 
 // Groepen zoeken
@@ -178,6 +221,12 @@ async function openGroep(id) {
   document.getElementById("groepsritWanneer").value = typeof volgendeZondag === "function" ? volgendeZondag() : "";
   document.getElementById("groepRittenLijst").innerHTML = `<p class="uitleg">${esc(t("laden"))}</p>`;
   document.getElementById("groepLedenLijst").innerHTML = "";
+  document.getElementById("groepRoutesLijst").innerHTML = "";
+  document.getElementById("groepBerichten").innerHTML = "";
+  groepBerichten = [];
+  groepRoutes = [];
+  toonGroepTab("ritten");
+  pasPostenToe();
   await laadGroep();
 }
 
@@ -193,17 +242,40 @@ async function laadGroep() {
   const id = openGroepId;
   if (!id) return;
   try {
-    const [leden, ritten] = await Promise.all([haalGroepLedenOp(id), haalGroepRittenOp(id)]);
+    const [leden, ritten, routes] = await Promise.all([
+      haalGroepLedenOp(id), haalGroepRittenOp(id), haalGroepRoutesOp(id).catch(fout => { console.error(fout); return []; })
+    ]);
     if (id !== openGroepId) return;   // intussen een andere groep geopend
     groepLeden = leden;
     groepRitten = ritten;
+    groepRoutes = routes;
   } catch (fout) {
     console.error(fout);
     groepLeden = [];
     groepRitten = [];
+    groepRoutes = [];
   }
   tekenGroepRitten();
   tekenGroepLeden();
+  tekenGroepRoutes();
+  if (groepTab === "berichten") laadGroepBerichten();
+}
+
+// ---------- Tabbladen in een groep ----------
+function toonGroepTab(tab) {
+  groepTab = tab;
+  document.querySelectorAll("#groepTabs button").forEach(k => k.classList.toggle("actief", k.dataset.groeptab === tab));
+  document.querySelectorAll("#groepDetail [data-groepvak]").forEach(v => { v.hidden = v.dataset.groepvak !== tab; });
+  if (tab === "berichten") laadGroepBerichten();
+}
+document.querySelectorAll("#groepTabs button").forEach(k => { k.onclick = () => toonGroepTab(k.dataset.groeptab); });
+
+// Wat je niet mag (bij "alleen beheerders"), zie je ook niet
+function pasPostenToe() {
+  const g = huidigeGroep();
+  const mag = magPostenIn(g);
+  document.querySelectorAll("#groepDetail .alleenPosters").forEach(el => { el.hidden = !mag; });
+  document.getElementById("groepAlleenBeheerders").hidden = !(g && g.alleen_beheerders && !mag);
 }
 
 function huidigeGroep() {
@@ -242,6 +314,7 @@ function tekenGroepKop() {
   };
   const bewerk = knoppen.querySelector(".bewerk");
   if (bewerk) bewerk.onclick = () => toonGroepBewerken(g);
+  pasPostenToe();
 }
 
 async function deelGroepslink(g) {
@@ -268,6 +341,7 @@ function toonGroepBewerken(g) {
     <label class="veld"><span>${esc(t("groepRegio"))}</span><input class="bRegio" maxlength="60"></label>
     <label class="veld"><span>${esc(t("groepBeschrijving"))}</span><textarea class="bBeschr" maxlength="500" rows="2"></textarea></label>
     <label class="vinkje"><input class="bOpen" type="checkbox"> <span>${esc(t("groepOpenbaar"))}</span></label>
+    <label class="vinkje"><input class="bAlleen" type="checkbox"> <span>${esc(t("alleenBeheerdersInstelling"))}</span></label>
     <small class="melding"></small>
     <div class="rij">
       <button type="submit">${esc(t("bewaren"))}</button>
@@ -277,6 +351,7 @@ function toonGroepBewerken(g) {
   vorm.querySelector(".bRegio").value = g.regio || "";
   vorm.querySelector(".bBeschr").value = g.beschrijving || "";
   vorm.querySelector(".bOpen").checked = g.openbaar !== false;
+  vorm.querySelector(".bAlleen").checked = Boolean(g.alleen_beheerders);
   vorm.onsubmit = async (event) => {
     event.preventDefault();
     const naam = vorm.querySelector(".bNaam").value.trim();
@@ -286,7 +361,8 @@ function toonGroepBewerken(g) {
         naam,
         regio: vorm.querySelector(".bRegio").value.trim() || null,
         beschrijving: vorm.querySelector(".bBeschr").value.trim() || null,
-        openbaar: vorm.querySelector(".bOpen").checked
+        openbaar: vorm.querySelector(".bOpen").checked,
+        alleen_beheerders: vorm.querySelector(".bAlleen").checked
       });
       await laadGroepen();
       vorm.hidden = true;
@@ -314,9 +390,11 @@ function tekenGroepRitten() {
   for (const rit of groepRitten) {
     const stop = rit.stop_id ? alleStops.find(s => s.id === rit.stop_id) : null;
     const wat = rit.route ? routeTitel(rit.route) : "☕ " + (stop ? stop.naam : t("barNietGevonden"));
-    const ikRijMee = rit.mee.some(m => m.gebruiker === gebruiker.id);
+    const mijnAntwoord = (rit.mee.find(m => m.gebruiker === gebruiker.id) || {}).antwoord || null;
     const ikMaak = rit.maker === gebruiker.id;
-    const namen = rit.mee.map(m => m.gebruiker === gebruiker.id ? t("jij") : (m.naam || "?"));
+    const naamVan = m => m.gebruiker === gebruiker.id ? t("jij") : (m.naam || "?");
+    const namen = rit.mee.filter(m => (m.antwoord || "ja") === "ja").map(naamVan);
+    const nietMee = rit.mee.filter(m => m.antwoord === "nee").map(naamVan);
 
     const art = document.createElement("article");
     art.className = "rit";
@@ -325,9 +403,10 @@ function tekenGroepRitten() {
       <h4></h4>
       <p class="ritVan"></p>
       ${rit.bericht ? `<p class="ritBericht"></p>` : ""}
-      <div class="ritWie"><span class="meeTekst"></span></div>
+      <div class="ritWie"><span class="meeTekst"></span><span class="nietTekst"></span></div>
       <div class="acties">
-        <button type="button" class="mee ${ikRijMee ? "actief" : ""}">${esc(ikRijMee ? "✓ " + t("ikRijMee") : t("ikRijMee"))}</button>
+        <button type="button" class="mee ${mijnAntwoord === "ja" ? "actief" : ""}">${esc("✓ " + t("ikRijMee"))}</button>
+        <button type="button" class="niet ${mijnAntwoord === "nee" ? "actief" : ""}">${esc(t("kanNiet"))}</button>
         ${rit.route || stop ? `<button type="button" class="toon">${esc(rit.route ? t("toonRoute") : t("toonBar"))}</button>` : ""}
         ${ikMaak || benBeheerder() ? `<button type="button" class="link wis">${esc(t("ritWissen"))}</button>` : ""}
       </div>`;
@@ -338,13 +417,19 @@ function tekenGroepRitten() {
     art.querySelector(".meeTekst").textContent = namen.length
       ? "🚴 " + (namen.length === 1 ? t("eenRijdtMee") : t("aantalRijdenMee").replace("{n}", namen.length)) + ": " + namen.join(", ")
       : t("nogNiemandMee");
+    const niet = art.querySelector(".nietTekst");
+    niet.textContent = nietMee.length ? (nietMee.length === 1 ? t("eenKanNiet") : t("kunnenNiet").replace("{n}", nietMee.length)) + ": " + nietMee.join(", ") : "";
+    niet.hidden = !nietMee.length;
 
-    art.querySelector(".mee").onclick = async () => {
+    // Nog eens op je antwoord tikken = antwoord weghalen
+    const antwoord = async (wat) => {
       try {
-        await rijMeeMetGroep(rit.id, mijnVoornaam, !ikRijMee);
+        await rijMeeMetGroep(rit.id, mijnVoornaam, mijnAntwoord === wat ? null : wat, Boolean(mijnAntwoord));
         await laadGroep();
       } catch (fout) { alert(t("opslaanMislukt") + " " + fout.message); }
     };
+    art.querySelector(".mee").onclick = () => antwoord("ja");
+    art.querySelector(".niet").onclick = () => antwoord("nee");
     const toon = art.querySelector(".toon");
     if (toon) toon.onclick = () => {
       document.getElementById("ritten").close();
@@ -431,10 +516,11 @@ function tekenGroepLeden() {
 function vulGroepKeuze() {
   const blok = document.getElementById("nodigUitVoorBlok");
   const keuze = document.getElementById("nodigUitVoor");
-  blok.hidden = !mijnGroepen.length;
+  const groepen = mijnGroepen.filter(magPostenIn);
+  blok.hidden = !groepen.length;
   keuze.innerHTML = `<option value="">${esc(t("mijnVrienden"))}</option>` +
-    mijnGroepen.map(g => `<option value="${esc(g.id)}">👥 ${esc(g.naam)}</option>`).join("");
-  keuze.value = openGroepId && mijnGroepen.some(g => g.id === openGroepId) ? openGroepId : "";
+    groepen.map(g => `<option value="${esc(g.id)}">👥 ${esc(g.naam)}</option>`).join("");
+  keuze.value = openGroepId && groepen.some(g => g.id === openGroepId) ? openGroepId : "";
   keuze.onchange = tekenUitnodigVoor;
   tekenUitnodigVoor();
 }
@@ -472,3 +558,174 @@ async function stuurGroepsrit(groepId, voor) {
     knop.disabled = false;
   }
 }
+
+// ---------- Berichten in de groep ----------
+function korteTijd(iso) {
+  const locale = taal === "fr" ? "fr-BE" : taal === "en" ? "en-GB" : "nl-BE";
+  const d = new Date(iso);
+  const vandaag = new Date().toDateString() === d.toDateString();
+  return vandaag
+    ? d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
+    : d.toLocaleString(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+async function laadGroepBerichten() {
+  const id = openGroepId;
+  if (!id) return;
+  let berichten;
+  try { berichten = await haalGroepBerichtenOp(id); }
+  catch (fout) { console.error(fout); return; }
+  if (id !== openGroepId) return;
+  const nieuw = berichten.length !== groepBerichten.length ||
+    (berichten.length && berichten[berichten.length - 1].id !== groepBerichten[groepBerichten.length - 1].id);
+  groepBerichten = berichten;
+  if (nieuw || !document.getElementById("groepBerichten").children.length) tekenGroepBerichten();
+}
+
+function tekenGroepBerichten() {
+  const vak = document.getElementById("groepBerichten");
+  vak.innerHTML = "";
+  if (!groepBerichten.length) {
+    vak.innerHTML = `<p class="uitleg leeg">${esc(t("nogGeenGroepsberichten"))}</p>`;
+    return;
+  }
+  const beheer = benBeheerder();
+  for (const b of groepBerichten) {
+    const mijn = b.van === gebruiker.id;
+    const div = document.createElement("div");
+    div.className = "bericht " + (mijn ? "mijn" : "hun");
+    div.innerHTML = `${mijn ? "" : `<b class="van"></b>`}<p></p><small><span class="tijd"></span>${mijn || beheer ? ` · <button type="button" class="link wis">${esc(t("wissen"))}</button>` : ""}</small>`;
+    if (!mijn) div.querySelector(".van").textContent = b.naam || "?";
+    div.querySelector("p").textContent = b.tekst;
+    div.querySelector(".tijd").textContent = korteTijd(b.verzonden);
+    const wis = div.querySelector(".wis");
+    if (wis) wis.onclick = async () => {
+      if (!confirm(t("zekerBerichtWissen"))) return;
+      try { await verwijderGroepsbericht(b.id); await laadGroepBerichten(); }
+      catch (fout) { alert(t("opslaanMislukt") + " " + fout.message); }
+    };
+    vak.appendChild(div);
+  }
+  vak.scrollTop = vak.scrollHeight;
+}
+
+document.getElementById("groepBerichtFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  const vak = document.getElementById("groepBerichtTekst");
+  const tekst = vak.value.trim().slice(0, 1000);
+  if (!tekst || !openGroepId) return;
+  const knop = event.target.querySelector('button[type="submit"]');
+  knop.disabled = true;
+  try {
+    await stuurGroepsbericht(openGroepId, mijnVoornaam, tekst);
+    vak.value = "";
+    vak.style.height = "";
+    await laadGroepBerichten();
+  } catch (fout) {
+    alert(String(fout.message || "").includes("Te veel") ? t("teVeelBerichten") : t("opslaanMislukt") + " " + fout.message);
+  } finally {
+    knop.disabled = false;
+  }
+};
+// Enter = sturen, Shift+Enter = nieuwe regel; het vak groeit mee
+document.getElementById("groepBerichtTekst").addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    document.getElementById("groepBerichtFormulier").requestSubmit();
+  }
+});
+document.getElementById("groepBerichtTekst").addEventListener("input", (event) => {
+  const vak = event.target;
+  vak.style.height = "";
+  vak.style.height = Math.min(vak.scrollHeight, 140) + "px";
+});
+
+// Nieuwe berichten ophalen zolang je ze bekijkt (elke 15 seconden)
+setInterval(() => {
+  const venster = document.getElementById("ritten");
+  if (openGroepId && groepTab === "berichten" && venster && venster.open && !document.hidden) laadGroepBerichten();
+}, 15000);
+
+// ---------- Routes in de groep ----------
+function tekenGroepRoutes() {
+  const lijst = document.getElementById("groepRoutesLijst");
+  lijst.innerHTML = "";
+  const beheer = benBeheerder();
+  const items = [
+    ...groepRoutes.map(r => ({ route: { ...r.route, naam: r.naam }, wie: r.door_naam, wanneer: r.gedeeld, eigen: r.door === gebruiker.id, id: r.id })),
+    ...groepRitten.filter(r => r.route).map(r => ({ route: r.route, wie: r.maker_naam, rit: r }))
+  ];
+  if (!items.length) {
+    lijst.innerHTML = `<p class="uitleg">${esc(t("nogGeenGroepsroutes"))}</p>`;
+    return;
+  }
+  for (const item of items) {
+    const art = document.createElement("article");
+    art.className = "rit";
+    art.innerHTML = `
+      <h4></h4>
+      <p class="ritVan"></p>
+      <div class="acties">
+        <button type="button" class="toon">${esc(t("toonRoute"))}</button>
+        ${item.id && (item.eigen || beheer) ? `<button type="button" class="link wis">${esc(t("wissen"))}</button>` : ""}
+      </div>`;
+    art.querySelector("h4").textContent = routeTitel(item.route) +
+      (Number(item.route.hoogtemeters) ? " · ↗ " + Math.round(Number(item.route.hoogtemeters)) + " hm" : "");
+    art.querySelector(".ritVan").textContent = item.rit
+      ? t("routeVanGroepsrit").replace("{wanneer}", ritDatum(item.rit.wanneer))
+      : t("gedeeldDoor").replace("{naam}", item.eigen ? t("jij") : (item.wie || "?")) + " · " + korteTijd(item.wanneer);
+    art.querySelector(".toon").onclick = () => {
+      document.getElementById("ritten").close();
+      if (typeof openBewaardeRoute === "function") openBewaardeRoute({ ...item.route, id: null, publiek: false });
+    };
+    const wis = art.querySelector(".wis");
+    if (wis) wis.onclick = async () => {
+      if (!confirm(t("zekerGroepsrouteWissen"))) return;
+      try { await verwijderGroepsroute(item.id); await laadGroep(); }
+      catch (fout) { alert(t("opslaanMislukt") + " " + fout.message); }
+    };
+    lijst.appendChild(art);
+  }
+}
+
+// ---------- 📌 Naar groep (in het routepaneel) ----------
+function tekenNaarGroepKnop() {
+  const knop = document.getElementById("routeNaarGroep");
+  if (knop) knop.hidden = !(gebruiker && mijnGroepen.some(magPostenIn));
+}
+
+document.getElementById("routeNaarGroep").onclick = () => {
+  const route = typeof routeVoorUitnodiging === "function" ? routeVoorUitnodiging() : null;
+  if (!route) { document.getElementById("routeMelding").textContent = t("eerstRoute"); return; }
+  const groepen = mijnGroepen.filter(magPostenIn);
+  if (!groepen.length) return;
+  const keuze = document.getElementById("naarGroepKeuze");
+  keuze.innerHTML = groepen.map(g => `<option value="${esc(g.id)}">👥 ${esc(g.naam)}</option>`).join("");
+  if (openGroepId && groepen.some(g => g.id === openGroepId)) keuze.value = openGroepId;
+  document.getElementById("naarGroepNaam").value = (route.naam || t("routeStandaardNaam")).slice(0, 80);
+  document.getElementById("naarGroepMelding").textContent = "";
+  const venster = document.getElementById("naarGroepVenster");
+  venster._route = route;
+  if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
+};
+document.getElementById("naarGroepSluiten").onclick = () => document.getElementById("naarGroepVenster").close();
+document.getElementById("naarGroepFormulier").onsubmit = async (event) => {
+  event.preventDefault();
+  const venster = document.getElementById("naarGroepVenster");
+  const groep = document.getElementById("naarGroepKeuze").value;
+  const naam = document.getElementById("naarGroepNaam").value.trim();
+  if (!groep || !naam || !venster._route) return;
+  const knop = event.target.querySelector('button[type="submit"]');
+  knop.disabled = true;
+  try {
+    await deelRouteInGroep(groep, naam, { ...venster._route, naam }, mijnVoornaam);
+    venster.close();
+    const g = mijnGroepen.find(x => x.id === groep);
+    toonMelding(t("routeInGroepGedeeld").replace("{naam}", g ? g.naam : ""));
+    if (openGroepId === groep) laadGroep();
+  } catch (fout) {
+    document.getElementById("naarGroepMelding").textContent = t("opslaanMislukt") + " " + fout.message;
+  } finally {
+    knop.disabled = false;
+  }
+};

@@ -1992,3 +1992,34 @@ button.groepRij:hover { background: none; border-color: var(--lijn); }
 .tabbladen button.actief, .tabbladen button.actief:hover { background: none; color: var(--tekst); border-color: transparent; border-bottom-color: var(--tekst); }
 .rit .acties .link { border: none; padding: 0 4px; height: auto; background: none; color: var(--grijs); text-decoration: underline; }
 .rit .acties button { height: 34px; padding: 0 12px; font-size: 13px; letter-spacing: 0; }
+
+/* =====================================================
+   GROEPEN, deel 2: uitnodiging, tabbladen, berichten, routes
+   ===================================================== */
+.groepTabs { position: static; margin: 18px 0 4px; border-bottom: 1px solid var(--lijn); }
+.groepTabs button { padding: 12px 4px; }
+.groepNotitie { margin: 12px 0 0 !important; padding: 10px 12px; border: 1px solid var(--lijn); border-radius: 12px; line-height: 1.45; }
+#groepDetail [data-groepvak] { padding-top: 8px; }
+#groepDetail [hidden] { display: none !important; }
+#groepRittenLijst .rit .niet.actief { background: var(--vlak); color: var(--tekst); border-color: var(--tekst); }
+.rit .ritWie { display: flex; flex-direction: column; gap: 2px; }
+.rit .nietTekst { color: var(--grijs); font-size: 13px; }
+
+#groepBerichten { display: flex; flex-direction: column; gap: 8px; max-height: min(52vh, 460px); min-height: 160px; overflow-y: auto; padding: 6px 0 10px; }
+#groepBerichten .leeg { margin: auto; text-align: center; }
+#groepBerichten .bericht .van { font-size: 12px; font-weight: 600; color: var(--grijs); padding-left: 4px; }
+#groepBerichten .bericht small .link { display: inline; width: auto; min-height: 0; margin: 0; letter-spacing: 0; text-transform: none; border: none; background: none; padding: 0; height: auto; font: inherit; color: var(--grijs); text-decoration: underline; cursor: pointer; }
+.groepBerichtFormulier { display: flex; align-items: flex-end; gap: 8px; padding-top: 8px; border-top: 1px solid var(--lijn); }
+.groepBerichtFormulier textarea { flex: 1; font: inherit; font-size: 16px; color: var(--tekst); background: var(--vlak); border: 1px solid var(--lijn); border-radius: 20px; padding: 9px 14px; resize: none; max-height: 140px; line-height: 1.35; }
+.groepBerichtFormulier button { flex: none; width: 42px; height: 42px; padding: 0; border-radius: 50%; background: var(--tekst); color: var(--achtergrond); font-size: 16px; }
+
+#groepUitnodiging, #naarGroepVenster { width: min(420px, calc(100vw - 32px)); }
+.groepUitnodigingInhoud { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 30px 26px 24px !important; border-bottom: none !important; }
+.groepUitnodigingInhoud .groepLogo { margin-bottom: 8px; }
+.groepUitnodigingInhoud h2 { margin: 0; font-family: var(--kop); font-size: 22px; font-weight: 700; text-transform: none; letter-spacing: -0.01em; }
+.groepUitnodigingInhoud .uitleg { margin: 0 !important; }
+.groepUitnodigingInhoud .groepBeschr { margin: 8px 0 0; }
+.groepUitnodigingInhoud .rij { display: flex; flex-direction: column; align-items: stretch; gap: 4px; width: 100%; margin-top: 18px; padding: 0; border: none; }
+.groepUitnodigingInhoud .knopHoofd { height: 46px; }
+.groepUitnodigingInhoud .link { border: none; background: none; color: var(--grijs); height: 38px; }
+#naarGroepFormulier { border-bottom: none; }
