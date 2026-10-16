@@ -145,6 +145,7 @@ function openCijfers() {
   if (venster.showModal) venster.showModal(); else venster.setAttribute("open", "");
   tekenCijferOverzicht();
   tekenAanvragen();
+  if (typeof tekenFotoKeuring === "function") tekenFotoKeuring();   // 📸 fotos.js
 }
 
 // ---------- Aanvragen van bars (pagina voor-bars.html) ----------

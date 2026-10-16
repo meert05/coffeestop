@@ -66,6 +66,7 @@ function zetBeheerModus() {
   knop.hidden = !isBeheerder();
   knop.classList.toggle("actief", inBeheer());
   document.getElementById("cijfersKnop").hidden = !inBeheer();
+  if (inBeheer() && typeof telTeKeurenFotos === "function") telTeKeurenFotos();   // 📸 foto's om goed te keuren
 }
 document.getElementById("beheerKnop").onclick = () => {
   beheerModus = !beheerModus;
@@ -265,6 +266,7 @@ function tekenLijst(stops) {
           ${reviewsBlokHTML(stop)}
           ${linkRijenHTML(stop)}
         </div>
+        ${typeof barFotosHTML === "function" ? barFotosHTML(stop) : ""}
         ${bewerkKenmerkenVan === stop.id ? `<div class="kenmerkBewerken">
           <label class="vinkje"><input type="checkbox" class="soortWieler"
               ${stop.type !== "coffee" ? "checked" : ""}> 🚴 ${t("wieler")}</label>
@@ -446,6 +448,7 @@ function tekenLijst(stops) {
 
     // Reviews
     koppelReviews(li, stop);
+    if (typeof koppelBarFotos === "function") koppelBarFotos(li, stop);   // 📸 foto's van fietsers
 
     // "➕ In route" (alleen als Route plannen aanstaat)
     if (typeof koppelRouteKnop === "function") koppelRouteKnop(li, stop);
@@ -1264,6 +1267,7 @@ document.getElementById("verwijderAccountKnop").onclick = async () => {
   if (!confirm(t("zekerAccount"))) return;
   try {
     try { await verwijderMijnProfielfotos(); } catch (fout) { console.error(fout); }   // ook je foto wissen
+    try { await verwijderMijnBezoekfotos(); } catch (fout) { console.error(fout); }    // en je foto's bij bars
     await verwijderMijnAccount();
     localStorage.removeItem("favorieten");
     favorieten = [];

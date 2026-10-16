@@ -342,6 +342,50 @@
       </div>
     </dialog>
 
+    <!-- ===== FOTO'S VAN FIETSERS: groot bekijken ===== -->
+    <dialog id="fotoKijker" class="fotoKijker" aria-label="Foto">
+      <div class="kijkerBoven">
+        <span id="kijkerTeller"></span>
+        <span id="kijkerBar"></span>
+        <button id="kijkerSluiten" type="button" class="kijkerRond" aria-label="Sluiten" data-t-label="sluiten">✕</button>
+      </div>
+      <div id="kijkerVak" class="kijkerVak">
+        <img id="kijkerBeeld" alt="">
+        <button id="kijkerVorige" type="button" class="kijkerRond kijkerPijl links" aria-label="Vorige" data-t-label="vorige">‹</button>
+        <button id="kijkerVolgende" type="button" class="kijkerRond kijkerPijl rechts" aria-label="Volgende" data-t-label="volgende">›</button>
+      </div>
+      <div class="kijkerOnder">
+        <p id="kijkerTekst"></p>
+        <small id="kijkerWie"></small>
+        <div class="kijkerActies">
+          <button id="kijkerMeld" type="button" class="link">🚩 Melden</button>
+          <button id="kijkerWis" type="button" class="link" data-t="fotoWissen">🗑️ Wissen</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- ===== FOTO'S VAN FIETSERS: een foto delen ===== -->
+    <input id="bezoekfotoKiezer" type="file" accept="image/*" hidden>
+    <dialog id="fotoDelen" class="venster klein">
+      <div class="profielKop">
+        <h2 data-t="fotoDelenTitel">Foto delen</h2>
+        <button id="fotoDelenSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+      <form id="fotoDelenFormulier" class="groepFormulier fotoDelenFormulier">
+        <div class="fotoDelenBeeld">
+          <img id="fotoDelenVoorbeeld" alt="">
+          <button id="fotoDelenAnders" type="button" class="kijkerRond" data-t="andereFoto">Andere foto</button>
+        </div>
+        <small class="uitleg">☕ <span id="fotoDelenBar"></span></small>
+        <label class="veld"><span data-t="fotoZin">Een zinnetje erbij (mag leeg)</span>
+          <input id="fotoDelenTekst" maxlength="140" placeholder="Flat white na 90 km 👌" data-t-placeholder="fotoZinVoorbeeld"></label>
+        <label class="vinkje"><input id="fotoDelenToestemming" type="checkbox"> <span data-t="fotoToestemming">Ik nam deze foto zelf, en Waypour mag hem tonen bij deze bar.</span></label>
+        <p class="fotoDelenUitleg"><span data-t="fotoLocatieWeg">📍 De locatie uit je foto wordt gewist.</span><br><span data-t="fotoEerstBekeken">👀 We bekijken je foto eerst; daarna ziet iedereen hem.</span></p>
+        <small id="fotoDelenMelding" class="melding"></small>
+        <button type="submit" class="knopHoofd" data-t="fotoDelenKnop">Foto delen</button>
+      </form>
+    </dialog>
+
     <!-- ===== ROUTE DELEN IN EEN GROEP ===== -->
     <dialog id="naarGroepVenster" class="venster klein">
       <div class="profielKop">
@@ -542,6 +586,10 @@
         <h3>📨 Aanvragen van bars <a href="voor-bars.html" target="_blank">(pagina bekijken)</a></h3>
         <div id="aanvragenLijst"></div>
       </section>
+      <section>
+        <h3>📸 Foto's van fietsers</h3>
+        <div id="fotoKeuring"></div>
+      </section>
     </dialog>
 
     <!-- ===== REGIO KIEZEN: land en stad, in een paneel ===== -->
@@ -736,6 +784,7 @@
   <script src="import.js"></script>
   <script src="scherm.js"></script>
   <script src="cijfers.js"></script>
+  <script src="fotos.js"></script>
   <script src="pwa.js"></script>
 
   <!-- Balkje onderaan op de gsm: Waypour als app installeren (pwa.js) -->

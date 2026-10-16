@@ -2036,3 +2036,77 @@ button.groepRij:hover { background: none; border-color: var(--lijn); }
 .berichtRoute .toon { align-self: flex-start; height: 32px; padding: 0 12px; font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; }
 .bericht.mijn .berichtRoute + p { margin-top: 4px; }
 .bericht.hun .berichtRoute + p { margin-top: 4px; }
+
+/* =====================================================
+   FOTO'S VAN FIETSERS (fotos.js)
+   ===================================================== */
+.barFotos { margin: 18px 0 4px; }
+.barFotosKop { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; font-size: 14px; font-weight: 600; }
+.barFotosKop .aantal { font-family: var(--cijfers); font-size: 11px; font-weight: 400; color: var(--grijs); }
+.fotoMozaiek { display: grid; gap: 4px; border-radius: 16px; overflow: hidden; }
+.fotoMozaiek.aantal1 { grid-template-columns: 1fr; aspect-ratio: 16 / 10; }
+.fotoMozaiek.aantal2 { grid-template-columns: 1fr 1fr; aspect-ratio: 2 / 1; }
+.fotoMozaiek.aantal3, .fotoMozaiek.laden { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 3 / 2; }
+.fotoMozaiek.aantal3 .fotoTegel:first-child, .fotoMozaiek.laden span:first-child { grid-row: span 2; }
+.fotoMozaiek.laden span { background: var(--vlak); animation: fotoLaden 1.2s ease-in-out infinite alternate; }
+@keyframes fotoLaden { from { opacity: 0.45; } to { opacity: 1; } }
+.fotoTegel { position: relative; display: block; width: 100%; height: 100%; min-height: 0; padding: 0; margin: 0; border: none; border-radius: 0; background: var(--vlak); overflow: hidden; cursor: zoom-in; }
+.fotoTegel:hover { background: var(--vlak); }
+.fotoTegel img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.fotoTegel:hover img { transform: scale(1.03); }
+.fotoTegel .wacht { position: absolute; left: 8px; bottom: 8px; padding: 4px 8px; border-radius: 999px; background: rgba(10, 10, 10, 0.72); color: #fff; font-size: 11px; letter-spacing: 0; text-transform: none; backdrop-filter: blur(4px); }
+.fotoTegel .meer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10, 10, 10, 0.5); color: #fff; font-family: var(--kop); font-size: 22px; font-weight: 700; }
+.fotoToevoegen { margin-top: 10px; height: 36px; padding: 0 14px; font-size: 13px; letter-spacing: 0; text-transform: none; }
+.fotoLeeg { display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px; border: 1px dashed var(--lijn); border-radius: 16px; background: none; text-align: left; letter-spacing: 0; text-transform: none; height: auto; }
+.fotoLeeg:hover { border-color: var(--grijs); background: none; }
+.fotoLeeg .groot { font-size: 26px; }
+.fotoLeeg b { display: block; font-size: 14px; font-weight: 600; }
+.fotoLeeg small { display: block; color: var(--grijs); font-size: 13px; margin-top: 2px; }
+
+/* Groot bekijken */
+dialog.fotoKijker { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: none; background: #080808; color: #F2F1EC; display: none; flex-direction: column; }
+dialog.fotoKijker[open] { display: flex; }
+dialog.fotoKijker::backdrop { background: #080808; }
+.kijkerBoven { display: flex; align-items: center; gap: 12px; padding: 14px 16px; font-size: 13px; }
+#kijkerTeller { font-family: var(--cijfers); font-size: 11px; color: #9C9B96; }
+#kijkerBar { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.kijkerRond { width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(20, 20, 20, 0.6); color: #F2F1EC; font-size: 16px; display: flex; align-items: center; justify-content: center; letter-spacing: 0; }
+.kijkerRond:hover { background: rgba(40, 40, 40, 0.8); color: #fff; }
+.kijkerVak { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 12px; touch-action: pan-y; user-select: none; }
+#kijkerBeeld { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 10px; }
+.kijkerPijl { position: absolute; top: 50%; transform: translateY(-50%); font-size: 24px; }
+.kijkerPijl.links { left: 16px; }
+.kijkerPijl.rechts { right: 16px; }
+.kijkerPijl[hidden] { display: none; }
+.kijkerOnder { padding: 16px 20px max(18px, env(safe-area-inset-bottom)); max-width: 720px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+#kijkerTekst { margin: 0 0 6px; font-family: var(--kop); font-size: 17px; line-height: 1.4; }
+#kijkerWie { color: #9C9B96; font-size: 12px; }
+.kijkerActies { display: flex; justify-content: flex-start; gap: 18px; margin-top: 10px; }
+.kijkerActies .link { width: auto; flex: none; border: none; background: none; padding: 0; height: auto; color: #9C9B96; font-size: 13px; letter-spacing: 0; text-transform: none; text-decoration: underline; }
+.kijkerActies .link[hidden] { display: none; }
+@media (max-width: 560px) { .kijkerPijl { display: none; } }
+
+/* Een foto delen */
+#fotoDelen { width: min(440px, calc(100vw - 32px)); }
+.fotoDelenFormulier { border-bottom: none; }
+.fotoDelenBeeld { position: relative; border-radius: 14px; overflow: hidden; background: var(--vlak); }
+.fotoDelenBeeld img { display: block; width: 100%; height: min(34vh, 300px); object-fit: cover; }
+.fotoDelenBeeld .kijkerRond { position: absolute; right: 10px; bottom: 10px; width: auto; height: 32px; padding: 0 12px; border-radius: 999px; font-size: 12px; }
+.fotoDelenFormulier .uitleg { margin: 0 !important; }
+.fotoDelenUitleg { margin: 0; font-size: 12px; line-height: 1.6; color: var(--grijs); }
+.fotoDelenFormulier .knopHoofd { height: 46px; align-self: stretch !important; justify-content: center; }
+
+/* Beheerder: goedkeuren */
+#fotoKeuring { display: flex; flex-direction: column; gap: 12px; }
+.keurFoto { display: flex; gap: 14px; padding: 12px; border: 1px solid var(--lijn); border-radius: 14px; }
+.keurFoto .beeld { flex: none; width: 96px; height: 96px; border-radius: 10px; overflow: hidden; background: var(--vlak); }
+.keurFoto .beeld img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.keurFoto .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.keurFoto .wie { color: var(--grijs); }
+.keurFoto .tekst { margin: 2px 0 0; }
+.keurFoto .label { align-self: flex-start; }
+.keurFoto .rij { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 6px; }
+.keurFoto .rij button { height: 34px; padding: 0 12px; font-size: 13px; letter-spacing: 0; text-transform: none; }
+.keurFoto .rij .link { border: none; background: none; color: var(--grijs); text-decoration: underline; padding: 0; }
+.kijkerActies .link, .keurFoto .rij .link { display: inline-block; width: auto; margin: 0; }
+.keurFoto .rij { justify-content: flex-start; border: none; padding-bottom: 0; }

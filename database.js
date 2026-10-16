@@ -604,3 +604,72 @@ async function verwijderGroepsroute(id) {
   const { error } = await db.from("groep_routes").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ---------- Foto's van fietsers bij een bar (bezoekfotos.sql) ----------
+// Goedgekeurde foto's van een bar (en je eigen foto's, ook als ze nog wachten)
+async function haalBarFotosOp(stopId) {
+  const { data, error } = await db.from("bar_fotos").select("*").eq("stop_id", stopId).order("gemaakt", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+function bezoekfotoLink(pad, klein = false) {
+  const bestand = klein ? pad.replace(/\.jpg$/, "-klein.jpg") : pad;
+  return db.storage.from("bezoekfotos").getPublicUrl(bestand).data.publicUrl;
+}
+// Twee versies uploaden (groot en klein), dan de foto aanmelden; hij wacht op goedkeuring
+async function deelBezoekfoto(stopId, groot, klein, tekst, naam) {
+  const willekeurig = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2, 10)).toLowerCase();
+  const pad = gebruiker.id + "/" + willekeurig + ".jpg";
+  const kleinPad = pad.replace(/\.jpg$/, "-klein.jpg");
+  const map = db.storage.from("bezoekfotos");
+  const een = await map.upload(pad, groot, { contentType: "image/jpeg" });
+  if (een.error) throw een.error;
+  const twee = await map.upload(kleinPad, klein, { contentType: "image/jpeg" });
+  if (twee.error) { await map.remove([pad]); throw twee.error; }
+  const { error } = await db.from("bar_fotos").insert({
+    stop_id: stopId, pad, tekst: (tekst || "").slice(0, 140) || null, door_naam: (naam || "").slice(0, 40) || null
+  });
+  if (error) { await map.remove([pad, kleinPad]); throw error; }
+}
+async function verwijderBezoekfoto(foto) {
+  const { error } = await db.from("bar_fotos").delete().eq("id", foto.id);
+  if (error) throw error;
+  await db.storage.from("bezoekfotos").remove([foto.pad, foto.pad.replace(/\.jpg$/, "-klein.jpg")]);
+}
+async function keurBezoekfotoGoed(id) {
+  const { error } = await db.from("bar_fotos").update({ status: "goed" }).eq("id", id);
+  if (error) throw error;
+}
+async function meldBezoekfoto(id) {
+  const { error } = await db.from("bar_foto_meldingen").insert({ foto: id });
+  if (error && error.code !== "23505") throw error;   // al gemeld: ook goed
+}
+// Voor de beheerder: wat nog moet goedgekeurd worden, en wat gemeld werd
+async function haalTeKeurenFotosOp() {
+  const wacht = await db.from("bar_fotos").select("*").eq("status", "wacht").order("gemaakt");
+  if (wacht.error) throw wacht.error;
+  const meld = await db.from("bar_foto_meldingen").select("foto");
+  if (meld.error) throw meld.error;
+  const telling = {};
+  for (const m of meld.data || []) telling[m.foto] = (telling[m.foto] || 0) + 1;
+  let gemeld = [];
+  const ids = Object.keys(telling);
+  if (ids.length) {
+    const g = await db.from("bar_fotos").select("*").in("id", ids);
+    if (g.error) throw g.error;
+    gemeld = (g.data || []).map(f => ({ ...f, meldingen: telling[f.id] })).sort((a, b) => b.meldingen - a.meldingen);
+  }
+  return { wacht: wacht.data || [], gemeld };
+}
+async function wisMeldingenVanFoto(id) {
+  const { error } = await db.from("bar_foto_meldingen").delete().eq("foto", id);
+  if (error) throw error;
+}
+// Bij het wissen van je account: al je foto's uit de map halen
+async function verwijderMijnBezoekfotos() {
+  const map = db.storage.from("bezoekfotos");
+  const { data, error } = await map.list(gebruiker.id, { limit: 1000 });
+  if (error) throw error;
+  const weg = (data || []).map(f => gebruiker.id + "/" + f.name);
+  if (weg.length) await map.remove(weg);
+}
