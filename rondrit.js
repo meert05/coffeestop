@@ -17,6 +17,7 @@ const RICHTINGEN = { verras: null, noord: 0, oost: 90, zuid: 180, west: 270 };
 let rondritKeuze = { start: "mij", km: 60, richting: "verras", terrein: "maaktNiet", stops: 1 };
 let rondritVoorstellen = [];
 let rondritBezig = 0;           // om een oude zoektocht te negeren
+let rondritLaatste = null;      // start en vertrek van de laatste zoektocht (om uit te leggen waarom er niets is)
 
 // ---------- Rekenen op de kaart (genoeg nauwkeurig voor een fietsrit) ----------
 function verplaats(p, koers, km) {
@@ -41,7 +42,11 @@ const km = (a, b) => afstandKm([a.lat, a.lng], [b.lat, b.lng]);
 function openBijAankomst(stop, aankomst) {
   if (typeof openStatus !== "function") return null;
   const status = openStatus(stop, aankomst);
-  return status === null ? null : status.open;
+  if (status === null) {
+    const uur = aankomst.getHours();
+    return uur < 7 || uur >= 19 ? false : null;   // uren onbekend: 's avonds en 's nachts rekenen we op dicht
+  }
+  return status.open;
 }
 function aankomstNa(vertrek, kmTot) {
   return new Date(vertrek.getTime() + (kmTot / (routeSnelheid || 25)) * 3600 * 1000);
@@ -236,9 +241,17 @@ function openRondrit() {
   if (rondritVenster.showModal) rondritVenster.showModal(); else rondritVenster.setAttribute("open", "");
 }
 
+// Standaard vertrek: binnen het kwartier; 's avonds of 's nachts: morgen om 9 uur (dan zijn de bars open)
 function volgendKwartier() {
   const d = new Date(Date.now() + 15 * 60 * 1000);
   d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
+  if (d.getHours() >= 15 || d.getHours() < 7) {
+    if (d.getHours() >= 15) d.setDate(d.getDate() + 1);
+    d.setHours(9, 0, 0, 0);
+  }
+  return datumVeld(d);
+}
+function datumVeld(d) {
   const twee = n => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${twee(d.getMonth() + 1)}-${twee(d.getDate())}T${twee(d.getHours())}:${twee(d.getMinutes())}`;
 }
@@ -321,6 +334,7 @@ document.getElementById("rondritFormulier").onsubmit = async (event) => {
   });
   if (beurt !== rondritBezig || !rondritVenster.open) return;   // intussen gesloten of opnieuw gezocht
   rondritVoorstellen = voorstellen.map(v => ({ ...v, vertrek, start }));
+  rondritLaatste = { start, vertrek };
   tekenRondritVoorstellen();
   toonRondritStap("uitkomst");
 };
@@ -357,7 +371,7 @@ function tekenRondritVoorstellen() {
   const vak = document.getElementById("rondritLijst");
   vak.innerHTML = "";
   if (!rondritVoorstellen.length) {
-    vak.innerHTML = `<p class="rondritNiets">${esc(t("geenRondrit"))}</p>`;
+    tekenWaaromNiets(vak);
     return;
   }
   rondritVoorstellen.forEach((v, i) => {
@@ -415,3 +429,41 @@ rondritKnop.querySelector(".nieuwLabel").hidden = Date.now() > RONDRIT_NIEUW_TOT
     tip.hidden = false;
   }, 2500);
 })();
+
+// ---------- Niets gevonden: zeggen waarom, en meteen een oplossing aanbieden ----------
+function tekenWaaromNiets(vak) {
+  const { start, vertrek } = rondritLaatste || {};
+  const L = rondritKeuze.km / 1.25;
+  const afstanden = start ? kandidaatBars().map(s => km(start, s)) : [];
+  const opAfstand = start ? kandidaatBars().filter(s => { const d = km(start, s); return d >= 0.12 * L && d <= 0.47 * L; }) : [];
+  const knoppen = [];
+  let uitleg;
+  if (opAfstand.length) {
+    // Er zijn bars op de juiste afstand, maar ze zijn dicht als je aankomt
+    uitleg = t("rondritDicht").replace("{uur}", klokje(vertrek));
+    const morgen = new Date(vertrek); morgen.setDate(morgen.getDate() + (vertrek.getHours() >= 12 ? 1 : 0)); morgen.setHours(9, 0, 0, 0);
+    knoppen.push({ tekst: t("rondritProbeerOm").replace("{wanneer}", morgen.toLocaleDateString(taal === "fr" ? "fr-BE" : taal === "en" ? "en-GB" : "nl-BE", { weekday: "long" }) + " 9:00"),
+                   doe: () => { document.getElementById("rondritVertrek").value = datumVeld(morgen); } });
+  } else {
+    // Geen bars op deze afstand: een afstand voorstellen die wel werkt
+    const verder = afstanden.filter(d => d >= 4).sort((a, b) => a - b)[0];
+    uitleg = t("rondritGeenBars");
+    if (verder) {
+      const ruw = Math.round((verder / 0.354) * 1.25 / 5) * 5;
+      const voorstel = Math.max(30, ruw);
+      if (ruw <= 160 && voorstel !== rondritKeuze.km) knoppen.push({ tekst: t("rondritProbeerKm").replace("{km}", voorstel), doe: () => { rondritKeuze.km = voorstel; } });
+    }
+    if (rondritKeuze.richting !== "verras") knoppen.push({ tekst: t("rondritProbeerVerras"), doe: () => { rondritKeuze.richting = "verras"; } });
+  }
+  vak.innerHTML = `<div class="rondritNiets"><p></p><div class="rij"></div></div>`;
+  vak.querySelector("p").textContent = uitleg;
+  const rij = vak.querySelector(".rij");
+  knoppen.forEach((k, i) => {
+    const knop = document.createElement("button");
+    knop.type = "button";
+    knop.className = i === 0 ? "knopHoofd" : "";
+    knop.textContent = k.tekst;
+    knop.onclick = () => { k.doe(); tekenRondritKeuzes(); document.getElementById("rondritFormulier").requestSubmit(); };
+    rij.appendChild(knop);
+  });
+}
