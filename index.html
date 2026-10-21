@@ -342,6 +342,49 @@
       </div>
     </dialog>
 
+    <!-- ===== 🎲 RONDRIT MAKEN (rondrit.js) ===== -->
+    <dialog id="rondritVenster" class="venster paneel">
+      <div class="profielKop">
+        <h2 data-t="rondritTitel">Rondrit maken</h2>
+        <button id="rondritSluiten" type="button" class="sluiten" aria-label="Sluiten">✕</button>
+      </div>
+      <form id="rondritFormulier" class="rondritFormulier">
+        <div id="rondritKeuze">
+          <div class="rondritVeld"><span data-t="rondritVanWaar">Vertrek vanaf</span><div id="rondritStart" class="chips"></div><small id="rondritStartUitleg" class="uitleg"></small></div>
+          <div class="rondritVeld"><span data-t="rondritAfstand">Afstand</span>
+            <div class="rondritSchuif"><input id="rondritKm" type="range" min="30" max="160" step="5" value="60"><b id="rondritKmTekst">60 km</b></div></div>
+          <div class="rondritVeld"><span data-t="rondritRichtingTitel">Richting</span><div id="rondritRichting" class="chips"></div></div>
+          <div class="rondritVeld"><span data-t="rondritTerreinTitel">Terrein</span><div id="rondritTerrein" class="chips"></div></div>
+          <div class="rondritVeld"><span data-t="rondritStopsTitel">Koffiestops</span><div id="rondritStops" class="chips"></div></div>
+          <div class="rondritVeld"><span data-t="rondritStijlTitel">Soort wegen</span><div id="rondritStijl" class="chips"></div></div>
+          <label class="veld"><span data-t="rondritVertrekTitel">Vertrek om</span><input id="rondritVertrek" type="datetime-local"></label>
+          <small id="rondritMelding" class="melding"></small>
+          <button type="submit" class="knopHoofd rondritZoek" data-t="rondrittenZoekKnop">🎲 Zoek rondritten</button>
+        </div>
+        <div id="rondritZoeken" class="rondritZoeken" hidden>
+          <div class="draaiFiets" aria-hidden="true">🚴</div>
+          <p id="rondritZoekTekst"></p>
+          <div class="rondritBalkVak"><div id="rondritBalk"></div></div>
+          <small class="uitleg" data-t="rondritGeduld">Dit duurt 5 à 15 seconden: we rekenen echte fietsroutes uit.</small>
+        </div>
+        <div id="rondritUitkomst" hidden>
+          <div id="rondritLijst"></div>
+          <button id="rondritOpnieuw" type="button" class="link" data-t="rondritAnders">← Andere keuzes</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- ===== ✨ NIEUW: een klein kaartje, één keer ===== -->
+    <div id="nieuwTip" class="nieuwTip" role="status" hidden>
+      <button id="nieuwTipWeg" type="button" class="weg" aria-label="Sluiten">✕</button>
+      <b data-t="nieuwTipTitel">✨ Nieuw: 🎲 Rondrit maken</b>
+      <p data-t="nieuwTipTekst">Kies een afstand, wij zoeken een route langs een open koffiebar.</p>
+      <div class="rij">
+        <button id="nieuwTipJa" type="button" class="knopHoofd" data-t="probeerHet">Probeer het</button>
+        <button id="nieuwTipNee" type="button" class="link" data-t="later">Later</button>
+      </div>
+    </div>
+
     <!-- ===== FOTO'S VAN FIETSERS: groot bekijken ===== -->
     <dialog id="fotoKijker" class="fotoKijker" aria-label="Foto">
       <div class="kijkerBoven">
@@ -655,6 +698,7 @@
         <!-- Route plannen: zichtbaar na een klik op "🚴 Route plannen" -->
         <div id="routePaneel" hidden>
           <strong data-t="jouwRoute">Jouw route</strong>
+          <button id="rondritKnop" type="button" class="rondritKnop"><span class="tekst" data-t="rondritMaken">🎲 Rondrit maken</span><span class="nieuwLabel" data-t="nieuwKort">✨ Nieuw</span><small data-t="rondritKnopUitleg">Kies een afstand, wij zoeken een lus langs een open koffiebar.</small></button>
           <div id="routeStijlen"></div>
           <p id="routeLeeg" data-t="routeUitleg">Klik op de kaart om punten toe te voegen, en op een bar om ze mee te nemen.</p>
           <!-- Eigen GPX inladen (Strava, Garmin, Komoot, …) -->
@@ -777,6 +821,7 @@
   <script src="app.js"></script>
   <script src="route.js"></script>
   <script src="bijvullen.js"></script>
+  <script src="rondrit.js"></script>
   <script src="profiel.js"></script>
   <script src="vrienden.js"></script>
   <script src="chat.js"></script>

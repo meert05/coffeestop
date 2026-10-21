@@ -2110,3 +2110,65 @@ dialog.fotoKijker::backdrop { background: #080808; }
 .keurFoto .rij .link { border: none; background: none; color: var(--grijs); text-decoration: underline; padding: 0; }
 .kijkerActies .link, .keurFoto .rij .link { display: inline-block; width: auto; margin: 0; }
 .keurFoto .rij { justify-content: flex-start; border: none; padding-bottom: 0; }
+
+/* =====================================================
+   🎲 RONDRIT MAKEN (rondrit.js)
+   ===================================================== */
+.rondritKnop { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 10px; width: 100%; height: auto; margin: 12px 0 14px; padding: 14px 16px; text-align: left; border: 1px solid var(--lijn); border-radius: 16px; background: var(--vlak); color: var(--tekst); letter-spacing: 0; text-transform: none; }
+.rondritKnop:hover { border-color: var(--grijs); background: var(--vlak); }
+.rondritKnop .tekst { font-family: var(--kop); font-size: 16px; font-weight: 700; }
+.rondritKnop .nieuwLabel { padding: 3px 9px; border-radius: 999px; background: var(--tekst); color: var(--achtergrond); font-size: 11px; font-weight: 600; }
+.rondritKnop .nieuwLabel[hidden] { display: none; }
+.rondritKnop small { grid-column: 1 / -1; color: var(--grijs); font-size: 12px; font-weight: 400; }
+
+.rondritFormulier { border-bottom: none !important; }
+#rondritKeuze { display: flex; flex-direction: column; gap: 18px; }
+#rondritKeuze[hidden], #rondritZoeken[hidden], #rondritUitkomst[hidden] { display: none; }
+.rondritVeld { display: flex; flex-direction: column; gap: 8px; }
+.rondritVeld > span, #rondritKeuze .veld > span { font-size: 12px; color: var(--grijs); }
+.rondritVeld .uitleg { margin: 0 !important; }
+.rondritSchuif { display: flex; align-items: center; gap: 14px; }
+.rondritSchuif input { flex: 1; accent-color: var(--tekst); }
+.rondritSchuif b { min-width: 68px; text-align: right; font-family: var(--kop); font-size: 20px; }
+#rondritVertrek { color-scheme: dark; }
+.rondritZoek { height: 50px; justify-content: center; font-size: 15px; }
+
+.rondritZoeken { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 34px 0 20px; text-align: center; }
+.draaiFiets { font-size: 34px; animation: fietsHop 0.9s ease-in-out infinite alternate; }
+@keyframes fietsHop { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
+.rondritZoeken p { margin: 0; font-weight: 600; }
+.rondritBalkVak { width: min(280px, 80%); height: 4px; border-radius: 2px; background: var(--lijn); overflow: hidden; }
+#rondritBalk { width: 0; height: 100%; background: var(--tekst); transition: width 0.6s ease; }
+
+#rondritLijst { display: flex; flex-direction: column; gap: 12px; }
+.rondritKaart { display: flex; gap: 14px; padding: 12px; border: 1px solid var(--lijn); border-radius: 16px; }
+.rondritKaart:first-child { border-color: var(--grijs); }
+.rondritKaart .schets { flex: none; width: 96px; height: 96px; border-radius: 12px; background: var(--vlak); }
+.rondritKaart svg { width: 100%; height: 100%; }
+.rondritKaart .lus { fill: none; stroke: var(--tekst); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.rondritKaart .start { fill: var(--achtergrond); stroke: var(--tekst); stroke-width: 2; }
+.rondritKaart .bar { fill: #C8A27A; stroke: var(--achtergrond); stroke-width: 1.5; }
+.rondritKaart .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.rondritKaart .cijfers { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 13px; color: var(--grijs); }
+.rondritKaart .cijfers b { font-family: var(--kop); font-size: 20px; color: var(--tekst); }
+.rondritKaart .bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.rondritKaart .bars li { display: flex; flex-direction: column; font-size: 13px; }
+.rondritKaart .bars .naam { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rondritKaart .bars small { color: var(--grijs); font-size: 12px; }
+.rondritKaart .kies { align-self: flex-start; height: 36px; padding: 0 14px; margin-top: 4px; font-size: 13px; letter-spacing: 0; text-transform: none; }
+.rondritNiets { margin: 10px 0; font-size: 14px; color: var(--grijs); line-height: 1.5; }
+#rondritOpnieuw { display: inline-block; width: auto; margin: 16px 0 0; }
+
+/* ✨ Nieuw-kaartje */
+.nieuwTip { position: fixed; z-index: 1200; left: 50%; bottom: 24px; transform: translateX(-50%); width: min(380px, calc(100vw - 32px)); box-sizing: border-box; padding: 16px 18px; border: 1px solid var(--grijs); border-radius: 18px; background: var(--vlak); color: var(--tekst); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5); animation: tipIn 0.35s ease-out; }
+.nieuwTip[hidden] { display: none; }
+@keyframes tipIn { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.nieuwTip b { display: block; font-family: var(--kop); font-size: 16px; padding-right: 28px; }
+.nieuwTip p { margin: 6px 0 12px; font-size: 13px; color: #CFCEC9; line-height: 1.45; }
+.nieuwTip .rij { display: flex; align-items: center; gap: 14px; }
+.nieuwTip .knopHoofd { height: 38px; padding: 0 16px; font-size: 13px; }
+.nieuwTip .link { display: inline-block; width: auto; margin: 0; }
+.nieuwTip .weg { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; padding: 0; border: none; background: none; color: var(--grijs); }
+@media (max-width: 860px) { .nieuwTip { bottom: calc(110px + env(safe-area-inset-bottom)); } }
+#rondritKeuze .chips { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+.nieuwTip .rij { border: none; padding: 0; margin: 0; }
