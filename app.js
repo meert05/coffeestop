@@ -1451,6 +1451,16 @@ async function start() {
   teken();
   zoomNaarStops();
   if (typeof openGedeeldeRoute === "function") openGedeeldeRoute();
+  openGedeeldeBar();
+}
+
+// Een link met "#bar=<id>" (bv. uit een WhatsApp-uitnodiging) opent meteen die bar
+function openGedeeldeBar() {
+  const m = location.hash.match(/^#bar=(.+)$/);
+  if (!m) return;
+  const id = decodeURIComponent(m[1]);
+  history.replaceState(null, "", location.pathname + location.search);
+  if (alleStops.some(s => s.id === id)) setTimeout(() => kies(id, "link"), 300);
 }
 
 start();

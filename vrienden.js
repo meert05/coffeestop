@@ -569,6 +569,48 @@ function openUitnodiging(wat) {
 }
 document.getElementById("nodigUitSluiten").onclick = () => document.getElementById("nodigUit").close();
 
+// ---------- Uitnodigen via WhatsApp (ook voor wie nog geen account heeft) ----------
+// WhatsApp opent met een kant-en-klaar bericht. De link opent de bar of de route in de app,
+// en bevat je vriendenlink: wie zich aanmeldt, wordt meteen je vriend.
+async function ritLinkVoorWhatsapp(wat) {
+  let link = location.origin + location.pathname;
+  try {
+    if (!mijnVriendcode) mijnVriendcode = await haalVriendcodeOp();
+    if (mijnVriendcode) link += "?vriend=" + mijnVriendcode;
+  } catch (fout) { console.error(fout); }
+  if (wat.stop) return link + "#bar=" + encodeURIComponent(wat.stop.id);
+  if (wat.route && typeof kanDelen === "function" && kanDelen()) {
+    return link + (routeBron && routeBron.publiek ? "#routeid=" + routeBron.id : "#route=" + routeNaarCode());
+  }
+  return link;
+}
+
+document.getElementById("nodigUitWhatsapp").onclick = async () => {
+  const wat = uitnodigingVoor;
+  if (!wat) return;
+  const waarde = document.getElementById("nodigUitWanneer").value;
+  const locale = taal === "fr" ? "fr-BE" : taal === "en" ? "en-GB" : "nl-BE";
+  const wanneer = waarde
+    ? new Date(waarde).toLocaleString(locale, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })
+    : "";
+  const bericht = document.getElementById("nodigUitBericht").value.trim();
+  const wat1 = wat.route
+    ? "🚴 " + routeTitel(wat.route)
+    : "☕ " + wat.stop.naam + (wat.stop.plaats ? " (" + wat.stop.plaats + ")" : "");
+  const link = await ritLinkVoorWhatsapp(wat);
+  const tekst = [
+    t("waIntro"),
+    wat1,
+    wanneer ? "📅 " + wanneer : "",
+    bericht ? "💬 " + bericht : "",
+    "",
+    "👉 " + link,
+    t("waApp"),
+  ].filter((r, i) => r !== "" || i === 4).join("\n");
+  const url = "https://wa.me/?text=" + encodeURIComponent(tekst);
+  window.open(url, "_blank") || (location.href = url);
+};
+
 document.getElementById("nodigUitFormulier").onsubmit = async (event) => {
   event.preventDefault();
   // Een groep gekozen? Dan wordt het een groepsrit (groepen.js)
