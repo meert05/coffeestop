@@ -701,6 +701,12 @@
         <!-- Route plannen: zichtbaar na een klik op "🚴 Route plannen" -->
         <div id="routePaneel" hidden>
           <strong data-t="jouwRoute">Jouw route</strong>
+          <!-- Zoeken: een straat, plaats of bar toevoegen aan je route (route.js) -->
+          <div id="routeZoekVak" class="routeZoekVak">
+            <input id="routeZoek" type="search" autocomplete="off" enterkeyhint="search"
+                   placeholder="Zoek een straat, plaats of bar…" data-t-placeholder="routeZoekVoorbeeld" aria-label="Zoek een straat, plaats of bar">
+            <ul id="routeZoekLijst" class="routeZoekLijst" role="listbox" hidden></ul>
+          </div>
           <button id="rondritKnop" type="button" class="rondritKnop"><span class="tekst" data-t="rondritMaken">🎲 Rondrit maken</span><span class="nieuwLabel" data-t="nieuwKort">✨ Nieuw</span><small data-t="rondritKnopUitleg">Kies een afstand, wij zoeken een lus langs een open koffiebar.</small></button>
           <div id="routeStijlen"></div>
           <p id="routeLeeg" data-t="routeUitleg">Klik op de kaart om punten toe te voegen, en op een bar om ze mee te nemen.</p>

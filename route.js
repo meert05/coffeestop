@@ -972,3 +972,114 @@ function tekenRouteLijsten() {
     };
   });
 }
+
+
+// =====================================================
+//  ZOEKEN IN ROUTE PLANNEN: straat, plaats of bar
+// =====================================================
+// Je typt een adres of plaats (via Photon/OpenStreetMap) of de naam van een bar uit onze lijst.
+// Een keuze komt achteraan in je route (of als start als je route nog leeg is);
+// een bar komt, zoals altijd, op de plek met de kleinste omweg.
+let zoekTimer = null, zoekBeurt = 0, zoekResultaten = [];
+const zoekVak = document.getElementById("routeZoek");
+const zoekLijst = document.getElementById("routeZoekLijst");
+
+function adresLabel(f) {
+  const p = f.properties || {};
+  const straat = p.street ? p.street + (p.housenumber ? " " + p.housenumber : "") : "";
+  const titel = p.name && p.name !== p.street ? p.name : (straat || p.city || p.name || "?");
+  const plaats = [p.name && p.name !== p.street ? straat : "", p.postcode, p.city || p.town || p.village || p.county, p.country && p.country !== "België" && p.country !== "Belgium" && p.country !== "Belgique" ? p.country : ""]
+    .filter(Boolean).join(", ");
+  return { titel, plaats };
+}
+
+async function zoekAdressen(tekst) {
+  const c = kaart.getCenter();
+  const lang = taal === "fr" ? "fr" : taal === "en" ? "en" : "default";
+  const url = "https://photon.komoot.io/api/?limit=6&lang=" + lang + "&lat=" + c.lat.toFixed(3) + "&lon=" + c.lng.toFixed(3) + "&q=" + encodeURIComponent(tekst);
+  const antwoord = await fetch(url);
+  if (!antwoord.ok) throw new Error("photon " + antwoord.status);
+  const data = await antwoord.json();
+  const gezien = new Set();
+  return (data.features || []).map(f => {
+    const [lng, lat] = f.geometry.coordinates;
+    const { titel, plaats } = adresLabel(f);
+    return { soort: "adres", lat, lng, titel, plaats };
+  }).filter(r => { const k = r.titel + "|" + r.plaats; if (gezien.has(k)) return false; gezien.add(k); return true; });
+}
+
+function zoekBars(tekst) {
+  const z = tekst.toLowerCase();
+  return alleStops.filter(s => s.zichtbaar !== false && (s.naam || "").toLowerCase().includes(z)).slice(0, 3)
+    .map(s => ({ soort: "bar", stop: s, titel: s.naam, plaats: s.plaats || s.adres || "" }));
+}
+
+function tekenZoekLijst(lijst, bezig) {
+  zoekResultaten = lijst;
+  zoekLijst.innerHTML = "";
+  if (!lijst.length) {
+    zoekLijst.innerHTML = `<li class="leeg">${esc(bezig ? t("laden") : t("routeZoekNiets"))}</li>`;
+  }
+  lijst.forEach((r, i) => {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    li.dataset.i = i;
+    li.innerHTML = `<span class="ico">${r.soort === "bar" ? "☕" : "📍"}</span><span class="tekst"><b></b><small></small></span>`;
+    li.querySelector("b").textContent = r.titel;
+    li.querySelector("small").textContent = r.plaats;
+    // pointerdown: kiezen vóór het vak de focus verliest
+    li.addEventListener("pointerdown", (event) => { event.preventDefault(); kiesZoekResultaat(r); });
+    zoekLijst.appendChild(li);
+  });
+  zoekLijst.hidden = false;
+}
+
+function sluitZoekLijst() { zoekLijst.hidden = true; }
+
+function kiesZoekResultaat(r) {
+  sluitZoekLijst();
+  zoekVak.value = "";
+  zoekVak.blur();
+  // Op de gsm: het paneel weer half, zodat je het punt op de kaart ziet
+  if (typeof zetVel === "function" && window.matchMedia("(max-width: 860px)").matches) zetVel("half");
+  if (routeImport) { document.getElementById("routeMelding").textContent = t("importKlik"); return; }
+  if (r.soort === "bar") {
+    if (!routePunten.some(p => p.stopId === r.stop.id)) wisselBarInRoute(r.stop);
+    kaart.setView([r.stop.lat, r.stop.lng], Math.max(kaart.getZoom(), 13));
+    return;
+  }
+  routePunten.push({ lat: r.lat, lng: r.lng, naam: r.titel.slice(0, 60), stopId: null });
+  kaart.setView([r.lat, r.lng], Math.max(kaart.getZoom(), 13));
+  routeGewijzigd();
+}
+
+zoekVak.addEventListener("input", () => {
+  const tekst = zoekVak.value.trim();
+  clearTimeout(zoekTimer);
+  if (tekst.length < 3) { sluitZoekLijst(); return; }
+  const bars = zoekBars(tekst);
+  tekenZoekLijst(bars, true);
+  const beurt = ++zoekBeurt;
+  zoekTimer = setTimeout(async () => {
+    let adressen = [];
+    try { adressen = await zoekAdressen(tekst); } catch (fout) { console.error(fout); }
+    if (beurt !== zoekBeurt) return;          // intussen verder getypt
+    tekenZoekLijst([...bars, ...adressen], false);
+  }, 350);
+});
+zoekVak.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    if (zoekResultaten.length && !zoekLijst.hidden) kiesZoekResultaat(zoekResultaten[0]);
+  }
+  if (event.key === "Escape") { sluitZoekLijst(); zoekVak.blur(); }
+});
+zoekVak.addEventListener("blur", () => setTimeout(sluitZoekLijst, 150));
+zoekVak.addEventListener("focus", () => {
+  // Op de gsm: het paneel helemaal open, zodat de lijst niet achter het toetsenbord verdwijnt
+  if (typeof zetVel === "function" && window.matchMedia("(max-width: 860px)").matches) {
+    zetVel("vol");
+    setTimeout(() => zoekVak.scrollIntoView({ block: "center", behavior: "smooth" }), 250);
+  }
+  if (zoekResultaten.length && zoekVak.value.trim().length >= 3) zoekLijst.hidden = false;
+});
